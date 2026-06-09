@@ -3,6 +3,13 @@ describe('Tenant Dashboard & Issue Management E2E Test', () => {
   const issueId = 101;
 
   beforeEach(() => {
+    // Set localStorage auth tokens so the dashboard is accessible
+    cy.window().then((win) => {
+      win.localStorage.setItem('token', 'mock-jwt-access-token');
+      win.localStorage.setItem('user', 'zoo_keeper');
+      win.localStorage.setItem('tenantId', tenantUuid);
+    });
+
     // Intercept Tenant Config loading
     cy.intercept('GET', `**/api/tenant/${tenantUuid}/config/`, {
       statusCode: 200,

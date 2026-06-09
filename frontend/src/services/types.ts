@@ -17,6 +17,7 @@ export interface TenantConfig {
   logo_url: string | null;
   visual_config: TenantVisualConfig;
   custom_fields: CustomField[];
+  is_public_reporting_enabled: boolean;
 }
 
 export interface IssuePayload {

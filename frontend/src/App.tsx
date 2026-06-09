@@ -4,6 +4,9 @@ import type { TenantConfig, IssuePayload } from './services/types';
 import { TenantForm } from './components/TenantForm';
 import { DynamicIssueForm } from './components/DynamicIssueForm';
 import { Dashboard } from './pages/Dashboard';
+import { Login } from './pages/Login';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { Snackbar } from '@mui/material';
 import {
   AppContainer,
@@ -24,16 +27,21 @@ import {
   FullWidthAlert,
   TabContainer,
   TabButton,
+  AuthStatusContainer,
+  LogoutButton,
+  RequiredAuthAlert,
+  AlertButton,
 } from './App.styles';
 
-function App() {
+function AppContent() {
+  const { isAuthenticated, user, logout } = useAuth();
   const [config, setConfig] = useState<TenantConfig | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [successOpen, setSuccessOpen] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'report' | 'dashboard'>('report');
+  const [activeTab, setActiveTab] = useState<'report' | 'dashboard' | 'login'>('report');
 
   // Apply dynamic tenant color configuration to root stylesheet variables
   useEffect(() => {
@@ -100,9 +108,9 @@ function App() {
     } catch (err: any) {
       console.error(err);
       alert(
-        err.response?.data?.extra_data
-          ? `Validation Error: ${err.response.data.extra_data}`
-          : 'Failed to submit issue. Please check fields.'
+        err.response?.data?.detail || 
+        err.response?.data?.extra_data ||
+        'Failed to submit issue. Please check fields.'
       );
       throw err;
     } finally {
@@ -120,6 +128,13 @@ function App() {
       </AppHeader>
 
       <AppMain>
+        {isAuthenticated && (
+          <AuthStatusContainer>
+            <span>Logged in as <strong>{user}</strong></span>
+            <LogoutButton onClick={logout} data-testid="logout-button">Logout</LogoutButton>
+          </AuthStatusContainer>
+        )}
+
         <TenantForm onSubmit={handleFetchConfig} loading={loading} error={error} />
 
         {config && (
@@ -165,12 +180,34 @@ function App() {
               >
                 Manager Dashboard
               </TabButton>
+              {activeTab === 'login' && (
+                <TabButton
+                  $active={true}
+                  onClick={() => setActiveTab('login')}
+                  data-testid="tab-login"
+                >
+                  Employee Login
+                </TabButton>
+              )}
             </TabContainer>
 
             {activeTab === 'report' ? (
-              <DynamicIssueForm tenant={config} onSubmit={handleCreateIssue} submitting={submitting} />
+              config.is_public_reporting_enabled !== false || isAuthenticated ? (
+                <DynamicIssueForm tenant={config} onSubmit={handleCreateIssue} submitting={submitting} />
+              ) : (
+                <RequiredAuthAlert severity="warning" data-testid="public-disabled-warning">
+                  Employee login required to report issues for this location.
+                  <AlertButton variant="contained" onClick={() => setActiveTab('login')} data-testid="go-to-login-button">
+                    Go to Login
+                  </AlertButton>
+                </RequiredAuthAlert>
+              )
+            ) : activeTab === 'dashboard' ? (
+              <ProtectedRoute onRedirect={() => setActiveTab('login')}>
+                <Dashboard tenant={config} />
+              </ProtectedRoute>
             ) : (
-              <Dashboard tenant={config} />
+              <Login onSuccess={() => setActiveTab('dashboard')} />
             )}
           </>
         )}
@@ -191,6 +228,14 @@ function App() {
         </FullWidthAlert>
       </Snackbar>
     </AppContainer>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

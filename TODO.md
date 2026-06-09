@@ -117,3 +117,32 @@
 - [x] A manager can view a paginated list of all issues for their specific Tenant.
 - [x] The custom fields (e.g., "zona_parque", "urgencia") are clearly visible in the dashboard.
 - [x] The manager can successfully change the status of an issue, and the update persists in the database.
+
+# SPRINT 7: Authentication, Access Control & Smart Reporting
+
+## [x] Backend Tasks (Django & Security)
+
+- [x] **Tenant Model Update:** Add `is_public_reporting_enabled = models.BooleanField(default=True)` to the `Tenant` model in `core/models.py`. Run `makemigrations` and `migrate`.
+- [x] **User Model Link:** Extend the standard Django `User` model (or create a custom one) to include a `tenant` ForeignKey. This guarantees an employee is cryptographically bound to their company.
+- [x] **JWT Setup:** Install `djangorestframework-simplejwt`. Configure `/api/token/` (Login) and `/api/token/refresh/` endpoints.
+- [x] **Smart Issue Creation Endpoint:** Modify the `POST /api/issues/create/` logic:
+  - Query the target Tenant.
+  - If `is_public_reporting_enabled` is `True`: allow anonymous creation.
+  - If `is_public_reporting_enabled` is `False`: strictly enforce `IsAuthenticated` and verify the JWT user belongs to the target Tenant. Return a 403 Forbidden otherwise.
+- [x] **Restricted Signup:** Do NOT create a public registration endpoint. Employee accounts will only be created by the Tenant Admin (handled via Django Admin for now).
+
+## [x] Frontend Tasks (React + TypeScript)
+
+- [x] **Auth State Management:** Implement `AuthContext.tsx` to handle the JWT lifecycle. Configure an Axios interceptor to automatically attach `Authorization: Bearer <token>` to requests.
+- [x] **Login View:** Create `Login.tsx` with MUI (Email and Password inputs).
+- [x] **Smart QR Flow Logic:** Update the dynamic issue reporting component:
+  - Upon fetching the Tenant config, check `is_public_reporting_enabled`.
+  - If it's `false` AND the user lacks a valid JWT, do NOT render the issue form. Instead, render an MUI `<Alert>` stating "Employee login required to report issues for this location" with a button routing to the Login view.
+- [x] **Protected Routes:** Implement a `ProtectedRoute` wrapper component to block unauthenticated access to the Dashboard, redirecting intruders to the Login page.
+
+## [x] Acceptance Criteria
+
+- [x] Anonymous users CAN successfully submit issues if the Tenant's public reporting is enabled.
+- [x] Anonymous users CANNOT see the form or submit issues if public reporting is disabled (they are prompted to log in).
+- [x] The Dashboard route is completely inaccessible without a valid JWT.
+- [x] There is no public "Sign Up" or "Register" link anywhere in the UI.

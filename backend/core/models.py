@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 from typing import Any, Dict
 
 class Tenant(models.Model):
@@ -19,6 +20,10 @@ class Tenant(models.Model):
         default=dict,
         blank=True,
         help_text="Tenant visual configuration containing colors, branding elements."
+    )
+    is_public_reporting_enabled = models.BooleanField(
+        default=True,
+        help_text="Whether anonymous users can report issues for this location."
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -104,3 +109,25 @@ class Issue(models.Model):
 
     def __str__(self) -> str:
         return f"Issue #{self.id} ({self.tenant.name}) - {self.status}"
+
+
+class User(AbstractUser):
+    """
+    Custom User model extending Django's standard User to cryptographically
+    bind employees to a Tenant company.
+    """
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name='users',
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Tenant that this employee belongs to."
+    )
+
+    def __str__(self) -> str:
+        if self.tenant:
+            return f"{self.username} ({self.tenant.name})"
+        return self.username
+

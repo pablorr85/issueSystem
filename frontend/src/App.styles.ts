@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { Alert } from '@mui/material';
+import { Alert, Button } from '@mui/material';
 
 export const AppContainer = styled.div`
   padding: 40px max(20px, (100% - 800px) / 2);
@@ -137,6 +137,60 @@ export const TabButton = styled.button<{ $active: boolean }>`
     background: ${({ $active }) => ($active ? 'var(--primary-hover)' : 'rgba(255, 255, 255, 0.06)')};
     border-color: ${({ $active }) => ($active ? 'var(--primary-hover)' : 'rgba(255, 255, 255, 0.15)')};
     color: white;
+  }
+`;
+
+export const AuthStatusContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  color: #a09cb4;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+`;
+
+export const LogoutButton = styled.button`
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: white;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+`;
+
+export const RequiredAuthAlert = styled(Alert)`
+  border-radius: 12px !important;
+  background-color: rgba(255, 179, 0, 0.05) !important;
+  color: #ffd54f !important;
+  border: 1px solid rgba(255, 179, 0, 0.2) !important;
+  padding: 16px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  
+  & .MuiAlert-icon {
+    color: #ffd54f !important;
+  }
+`;
+
+export const AlertButton = styled(Button)`
+  background-color: var(--primary) !important;
+  color: white !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  align-self: flex-start !important;
+  margin-top: 12px !important;
+  
+  &:hover {
+    background-color: var(--primary-hover) !important;
   }
 `;
 

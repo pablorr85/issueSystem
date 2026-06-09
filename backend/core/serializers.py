@@ -82,3 +82,17 @@ class IssueStatusUpdateSerializer(serializers.ModelSerializer):
         model = Issue
         fields = ('status',)
 
+
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    Custom token serializer to return tenant_id and username in response.
+    """
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data['tenant_id'] = str(self.user.tenant.id) if self.user.tenant else None
+        data['username'] = self.user.username
+        return data
+
+

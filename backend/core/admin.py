@@ -26,3 +26,19 @@ class IssueAdmin(admin.ModelAdmin):
     list_filter = ('tenant', 'status')
     search_fields = ('description', 'tenant__name')
     readonly_fields = ('created_at', 'updated_at')
+
+
+from django.contrib.auth.admin import UserAdmin
+from .models import User
+
+@admin.register(User)
+class CustomUserAdmin(UserAdmin):
+    fieldsets = UserAdmin.fieldsets + (
+        ('Tenant Association', {'fields': ('tenant',)}),
+    )
+    add_fieldsets = UserAdmin.add_fieldsets + (
+        ('Tenant Association', {'fields': ('tenant',)}),
+    )
+    list_display = UserAdmin.list_display + ('tenant',)
+    list_filter = UserAdmin.list_filter + ('tenant',)
+
