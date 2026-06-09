@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getTenantConfig, createIssue } from './services/api';
 import type { TenantConfig, IssuePayload } from './services/types';
 import { TenantForm } from './components/TenantForm';
@@ -34,6 +35,7 @@ import {
 } from './App.styles';
 
 function AppContent() {
+  const { t, i18n } = useTranslation();
   const { isAuthenticated, user, logout } = useAuth();
   const [config, setConfig] = useState<TenantConfig | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -79,6 +81,13 @@ function AppContent() {
     }
   }, [config]);
 
+  // Synchronize language dynamically based on tenant settings
+  useEffect(() => {
+    if (config?.default_language) {
+      i18n.changeLanguage(config.default_language);
+    }
+  }, [config?.default_language, i18n]);
+
   const handleFetchConfig = async (uuid: string) => {
     setLoading(true);
     setError(null);
@@ -96,8 +105,8 @@ function AppContent() {
           : undefined;
       setError(
         status === 404
-          ? 'Tenant not found. Please verify the UUID.'
-          : 'Failed to fetch configuration. Check backend status.'
+          ? t('app.errorTenantNotFound')
+          : t('app.errorFetchConfig')
       );
     } finally {
       setLoading(false);
@@ -111,7 +120,7 @@ function AppContent() {
       setSuccessOpen(true);
     } catch (err: unknown) {
       console.error(err);
-      let errMsg = 'Failed to submit issue. Please check fields.';
+      let errMsg = t('app.errorSubmitIssue');
       if (err && typeof err === 'object' && 'response' in err) {
         const responseData = (err as { response?: { data?: { detail?: string; extra_data?: string } } }).response?.data;
         if (responseData) {
@@ -128,17 +137,17 @@ function AppContent() {
   return (
     <AppContainer>
       <AppHeader className="animate-fade-in">
-        <AppTitle>Issue Tracker SaaS</AppTitle>
+        <AppTitle>{t('app.appTitle')}</AppTitle>
         <AppSubtitle>
-          Tenant Dashboard & Dynamic Issue Management
+          {t('app.appSubtitle')}
         </AppSubtitle>
       </AppHeader>
 
       <AppMain>
         {isAuthenticated && (
           <AuthStatusContainer>
-            <span>Logged in as <strong>{user}</strong></span>
-            <LogoutButton onClick={logout} data-testid="logout-button">Logout</LogoutButton>
+            <span>{t('app.loggedInAsPrefix')}<strong>{user}</strong></span>
+            <LogoutButton onClick={logout} data-testid="logout-button">{t('app.logout')}</LogoutButton>
           </AuthStatusContainer>
         )}
 
@@ -147,7 +156,7 @@ function AppContent() {
         {config && (
           <>
             <BrandingSection className="glass-card animate-fade-in">
-              <BrandingHeader>Active Tenant Branding</BrandingHeader>
+              <BrandingHeader>{t('app.tenantBranding')}</BrandingHeader>
               <BrandingCard>
                 {config.logo_url ? (
                   <BrandingImage src={config.logo_url} alt="Tenant Logo" />
@@ -159,13 +168,13 @@ function AppContent() {
                 <div>
                   <BrandingTitle>{config.name}</BrandingTitle>
                   <BrandingSubtitle>
-                    Branding theme updated dynamically.
+                    {t('app.brandingSubtitle')}
                   </BrandingSubtitle>
                 </div>
               </BrandingCard>
 
               <div>
-                <BrandingJSONTitle>Visual Config JSON:</BrandingJSONTitle>
+                <BrandingJSONTitle>{t('app.visualConfigTitle')}</BrandingJSONTitle>
                 <PreContainer>
                   {JSON.stringify(config.visual_config, null, 2)}
                 </PreContainer>
@@ -178,14 +187,14 @@ function AppContent() {
                 onClick={() => setActiveTab('report')}
                 data-testid="tab-report"
               >
-                Report Issue
+                {t('app.tabReport')}
               </TabButton>
               <TabButton
                 $active={activeTab === 'dashboard'}
                 onClick={() => setActiveTab('dashboard')}
                 data-testid="tab-dashboard"
               >
-                Manager Dashboard
+                {t('app.tabDashboard')}
               </TabButton>
               {activeTab === 'login' && (
                 <TabButton
@@ -193,7 +202,7 @@ function AppContent() {
                   onClick={() => setActiveTab('login')}
                   data-testid="tab-login"
                 >
-                  Employee Login
+                  {t('app.tabLogin')}
                 </TabButton>
               )}
             </TabContainer>
@@ -203,9 +212,9 @@ function AppContent() {
                 <DynamicIssueForm tenant={config} onSubmit={handleCreateIssue} submitting={submitting} />
               ) : (
                 <RequiredAuthAlert severity="warning" data-testid="public-disabled-warning">
-                  Employee login required to report issues for this location.
+                  {t('app.requiredAuthAlertText')}
                   <AlertButton variant="contained" onClick={() => setActiveTab('login')} data-testid="go-to-login-button">
-                    Go to Login
+                    {t('app.goToLoginButton')}
                   </AlertButton>
                 </RequiredAuthAlert>
               )
@@ -221,7 +230,7 @@ function AppContent() {
       </AppMain>
 
       <AppFooter>
-        Single-DB Multi-Tenancy Architecture • Admin dashboard ready
+        {t('app.footerText')}
       </AppFooter>
 
       <Snackbar
@@ -231,7 +240,7 @@ function AppContent() {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <FullWidthAlert severity="success" variant="filled" onClose={() => setSuccessOpen(false)}>
-          Issue submitted successfully!
+          {t('app.snackbarSuccess')}
         </FullWidthAlert>
       </Snackbar>
     </AppContainer>

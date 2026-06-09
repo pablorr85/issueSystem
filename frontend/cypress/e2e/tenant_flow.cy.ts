@@ -6,6 +6,7 @@ describe('Tenant Flow E2E Test', () => {
       body: {
         name: 'Parque de Atracciones',
         logo_url: null,
+        default_language: 'en',
         visual_config: {
           primary_color: '#FF5733',
         },
@@ -14,17 +15,17 @@ describe('Tenant Flow E2E Test', () => {
 
     cy.visit('/');
 
-    // Verify initial state
-    cy.contains('h1', 'Issue Tracker SaaS').should('be.visible');
+    // Verify initial state is Spanish default
+    cy.contains('h1', 'SaaS de Gestión de Incidencias').should('be.visible');
     
     // Type UUID and submit
-    cy.get('input[placeholder*="Enter Tenant UUID"]').type('f818979b-2ea0-43cb-8dd1-7c1729ee1fea');
+    cy.get('input').type('f818979b-2ea0-43cb-8dd1-7c1729ee1fea');
     cy.get('button[type="submit"]').click();
 
     // Wait for the intercepted request
     cy.wait('@getTenantConfig');
 
-    // Verify updated tenant branding
+    // Verify updated tenant branding (switched to English)
     cy.contains('h3', 'Parque de Atracciones').should('be.visible');
     cy.contains('Branding theme updated dynamically.').should('be.visible');
   });
@@ -36,11 +37,11 @@ describe('Tenant Flow E2E Test', () => {
 
     cy.visit('/');
 
-    cy.get('input[placeholder*="Enter Tenant UUID"]').type('00000000-0000-0000-0000-000000000000');
+    cy.get('input').type('00000000-0000-0000-0000-000000000000');
     cy.get('button[type="submit"]').click();
 
     cy.wait('@getNotFound');
 
-    cy.contains('Tenant not found. Please verify the UUID.').should('be.visible');
+    cy.contains('Tenant no encontrado. Por favor verifique el UUID.').should('be.visible');
   });
 });

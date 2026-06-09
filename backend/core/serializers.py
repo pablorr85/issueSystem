@@ -18,7 +18,7 @@ class TenantConfigSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tenant
-        fields = ('id', 'name', 'logo_url', 'visual_config', 'custom_fields')
+        fields = ('id', 'name', 'logo_url', 'visual_config', 'custom_fields', 'default_language')
 
 
 class IssueSerializer(serializers.ModelSerializer):

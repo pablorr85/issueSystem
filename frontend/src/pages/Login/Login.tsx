@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import {
   LoginContainer,
@@ -15,6 +16,7 @@ export interface LoginProps {
 }
 
 export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
+  const { t } = useTranslation();
   const { login } = useAuth();
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -24,7 +26,7 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) {
-      setError('Please fill in both username and password fields.');
+      setError(t('login.errorEmpty'));
       return;
     }
 
@@ -36,7 +38,7 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
       onSuccess();
     } catch (err: unknown) {
       console.error(err);
-      let errMsg = 'Invalid credentials. Please verify your username and password.';
+      let errMsg = t('login.errorDefault');
       if (err && typeof err === 'object' && 'response' in err) {
         const responseData = (err as { response?: { data?: { detail?: string } } }).response?.data;
         if (responseData?.detail) {
@@ -53,18 +55,18 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
     <LoginContainer className="animate-fade-in">
       <StyledCard>
         <LoginTitle variant="h5" component="h2">
-          Employee Sign In
+          {t('login.title')}
         </LoginTitle>
-
+ 
         {error && (
           <ErrorAlert severity="error" onClose={() => setError(null)}>
             {error}
           </ErrorAlert>
         )}
-
+ 
         <FormContainer onSubmit={handleSubmit} noValidate>
           <StyledTextField
-            label="Username"
+            label={t('login.usernameLabel')}
             variant="outlined"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -73,9 +75,9 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
             fullWidth
             inputProps={{ 'data-testid': 'login-username-input' }}
           />
-
+ 
           <StyledTextField
-            label="Password"
+            label={t('login.passwordLabel')}
             type="password"
             variant="outlined"
             value={password}
@@ -85,7 +87,7 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
             fullWidth
             inputProps={{ 'data-testid': 'login-password-input' }}
           />
-
+ 
           <SubmitButton
             type="submit"
             variant="contained"
@@ -93,7 +95,7 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
             fullWidth
             data-testid="login-submit-button"
           >
-            {loading ? 'Signing In...' : 'Sign In'}
+            {loading ? t('login.loading') : t('login.button')}
           </SubmitButton>
         </FormContainer>
       </StyledCard>

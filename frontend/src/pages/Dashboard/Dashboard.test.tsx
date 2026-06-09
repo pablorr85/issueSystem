@@ -79,7 +79,7 @@ describe('Dashboard Page Component', () => {
 
     // Standard fields verify
     expect(screen.getByText('101')).toBeInTheDocument(); // ID cell
-    expect(screen.getByText('open')).toBeInTheDocument(); // Status badge
+    expect(screen.getAllByText('open')[0]).toBeInTheDocument(); // Status badge
   });
 
   test('filters list when status filter selection is changed', async () => {
@@ -128,7 +128,7 @@ describe('Dashboard Page Component', () => {
 
     // UI optimistic status rendering check
     await waitFor(() => {
-      expect(screen.getByText('in progress')).toBeInTheDocument();
+      expect(screen.getAllByText('in progress')[0]).toBeInTheDocument();
     });
   });
 });

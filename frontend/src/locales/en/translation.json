@@ -1,0 +1,73 @@
+{
+  "tenantForm": {
+    "title": "Load Tenant Configuration",
+    "label": "Tenant UUID",
+    "placeholder": "Enter Tenant UUID",
+    "button": "Load",
+    "loading": "Loading..."
+  },
+  "login": {
+    "title": "Employee Sign In",
+    "usernameLabel": "Username",
+    "passwordLabel": "Password",
+    "button": "Sign In",
+    "loading": "Signing In...",
+    "errorEmpty": "Please fill in both username and password fields.",
+    "errorDefault": "Invalid credentials. Please verify your username and password."
+  },
+  "dynamicIssueForm": {
+    "title": "Report an Issue ({{name}})",
+    "descriptionLabel": "Description",
+    "descriptionRequired": "Description is required.",
+    "photoLabel": "Photo URL (Optional)",
+    "button": "Submit Issue",
+    "submitting": "Submitting...",
+    "fieldRequired": "{{name}} is required.",
+    "detailsHeader": "Tenant Specific Details",
+    "none": "None"
+  },
+  "dashboard": {
+    "title": "Tenant Manager Dashboard",
+    "filterAll": "All",
+    "filterOpen": "Open",
+    "filterInProgress": "In Progress",
+    "filterResolved": "Resolved",
+    "tableID": "ID",
+    "tableStatus": "Status",
+    "tableDescription": "Description",
+    "tableCreatedAt": "Created At",
+    "tableActions": "Actions",
+    "tableNoIssues": "No issues reported for this tenant.",
+    "paginationInfo": "Page {{page}} of {{totalPages}} ({{totalCount}} total issues)",
+    "paginationPrev": "Previous",
+    "paginationNext": "Next",
+    "actionOpen": "Open",
+    "actionInProgress": "In progress",
+    "actionResolved": "Resolved",
+    "statusFilterLabel": "Filter by Status",
+    "errorUpdate": "Error updating issue status. Please try again.",
+    "loadingIssues": "Loading dashboard issues...",
+    "noIssuesFiltered": "No issues reported under these criteria.",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "app": {
+    "appTitle": "Issue Tracker SaaS",
+    "appSubtitle": "Tenant Dashboard & Dynamic Issue Management",
+    "loggedInAsPrefix": "Logged in as ",
+    "logout": "Logout",
+    "tenantBranding": "Active Tenant Branding",
+    "brandingSubtitle": "Branding theme updated dynamically.",
+    "visualConfigTitle": "Visual Config JSON:",
+    "tabReport": "Report Issue",
+    "tabDashboard": "Manager Dashboard",
+    "tabLogin": "Employee Login",
+    "requiredAuthAlertText": "Employee login required to report issues for this location.",
+    "goToLoginButton": "Go to Login",
+    "footerText": "Single-DB Multi-Tenancy Architecture • Admin dashboard ready",
+    "snackbarSuccess": "Issue submitted successfully!",
+    "errorTenantNotFound": "Tenant not found. Please verify the UUID.",
+    "errorFetchConfig": "Failed to fetch configuration. Check backend status.",
+    "errorSubmitIssue": "Failed to submit issue. Please check fields."
+  }
+}

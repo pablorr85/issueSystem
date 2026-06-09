@@ -17,6 +17,7 @@ describe('Tenant Dashboard & Issue Management E2E Test', () => {
         id: tenantUuid,
         name: 'Wild Park MVP',
         logo_url: null,
+        default_language: 'en',
         visual_config: {
           primary_color: '#2e7d32'
         },
@@ -80,8 +81,8 @@ describe('Tenant Dashboard & Issue Management E2E Test', () => {
     cy.visit('/');
 
     // 1. Load the Tenant Configuration
-    cy.get('input[placeholder*="Enter Tenant UUID"]').type(tenantUuid);
-    cy.get('button').contains('Load').click();
+    cy.get('input').type(tenantUuid);
+    cy.get('button[type="submit"]').click();
     cy.wait('@getTenantConfig');
 
     // Verify dynamic form renders
@@ -106,7 +107,7 @@ describe('Tenant Dashboard & Issue Management E2E Test', () => {
     // Verify row data renders
     cy.get(`[data-testid="issue-row-${issueId}"]`).within(() => {
       cy.contains('101').should('be.visible');
-      cy.contains('open').should('be.visible');
+      cy.contains('Open').should('be.visible');
       cy.contains('Water leak in alligator pond').should('be.visible');
       cy.contains('Zona Marina').should('be.visible');
       cy.contains('CRÍTICA').should('be.visible');
@@ -130,7 +131,7 @@ describe('Tenant Dashboard & Issue Management E2E Test', () => {
 
     // Verify UI reflects resolved state
     cy.get(`[data-testid="issue-row-${issueId}"]`).within(() => {
-      cy.contains('resolved').should('be.visible');
+      cy.contains('Resolved').should('be.visible');
     });
   });
 });

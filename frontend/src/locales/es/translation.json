@@ -1,0 +1,75 @@
+{
+  "tenantForm": {
+    "title": "Cargar Configuración de Tenant",
+    "label": "UUID de Tenant",
+    "placeholder": "Introduce el UUID del Tenant",
+    "button": "Cargar",
+    "loading": "Cargando..."
+  },
+  "login": {
+    "title": "Inicio de Sesión de Empleado",
+    "usernameLabel": "Usuario",
+    "passwordLabel": "Contraseña",
+    "button": "Iniciar Sesión",
+    "loading": "Iniciando Sesión...",
+    "errorEmpty": "Por favor, rellene los campos de usuario y contraseña.",
+    "errorDefault": "Credenciales inválidas. Por favor, verifique su usuario y contraseña."
+  },
+
+  "dynamicIssueForm": {
+    "title": "Reportar una Incidencia ({{name}})",
+    "descriptionLabel": "Descripción de la Incidencia",
+    "descriptionRequired": "La descripción es requerida.",
+    "photoLabel": "URL de la Foto (Opcional)",
+    "button": "Enviar Incidencia",
+    "submitting": "Enviando...",
+    "fieldRequired": "{{name}} es requerido.",
+    "detailsHeader": "Detalles Específicos del Tenant",
+    "none": "Ninguno"
+  },
+
+  "dashboard": {
+    "title": "Panel de Gestión de Incidencias",
+    "filterAll": "Todos",
+    "filterOpen": "Abiertas",
+    "filterInProgress": "En Progreso",
+    "filterResolved": "Resueltas",
+    "tableID": "ID",
+    "tableStatus": "Estado",
+    "tableDescription": "Descripción",
+    "tableCreatedAt": "Fecha de Creación",
+    "tableActions": "Acciones",
+    "tableNoIssues": "No se han reportado incidencias para este tenant.",
+    "paginationInfo": "Página {{page}} de {{totalPages}} ({{totalCount}} incidencias en total)",
+    "paginationPrev": "Anterior",
+    "paginationNext": "Siguiente",
+    "actionOpen": "Abierto",
+    "actionInProgress": "En progreso",
+    "actionResolved": "Resuelto",
+    "statusFilterLabel": "Filtrar por Estado",
+    "errorUpdate": "Error al actualizar el estado de la incidencia. Por favor, inténtelo de nuevo.",
+    "loadingIssues": "Cargando incidencias del panel...",
+    "noIssuesFiltered": "No se encontraron incidencias bajo estos criterios.",
+    "yes": "Sí",
+    "no": "No"
+  },
+  "app": {
+    "appTitle": "SaaS de Gestión de Incidencias",
+    "appSubtitle": "Panel del Tenant y Gestión Dinámica de Incidencias",
+    "loggedInAsPrefix": "Sesión iniciada como ",
+    "logout": "Cerrar Sesión",
+    "tenantBranding": "Identidad Visual Activa del Tenant",
+    "brandingSubtitle": "Tema visual actualizado dinámicamente.",
+    "visualConfigTitle": "JSON de Configuración Visual:",
+    "tabReport": "Reportar Incidencia",
+    "tabDashboard": "Panel de Gestión",
+    "tabLogin": "Acceso Empleados",
+    "requiredAuthAlertText": "Se requiere inicio de sesión de empleado para reportar incidencias en esta ubicación.",
+    "goToLoginButton": "Ir al Login",
+    "footerText": "Arquitectura Multi-Tenant con Base de Datos Única • Panel de control listo",
+    "snackbarSuccess": "¡Incidencia enviada con éxito!",
+    "errorTenantNotFound": "Tenant no encontrado. Por favor verifique el UUID.",
+    "errorFetchConfig": "Error al obtener la configuración. Compruebe el estado del servidor.",
+    "errorSubmitIssue": "Error al enviar la incidencia. Compruebe los campos."
+  }
+}

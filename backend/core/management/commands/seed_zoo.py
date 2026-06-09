@@ -12,7 +12,8 @@ class Command(BaseCommand):
                 'visual_config': {
                     'primary_color': '#2e7d32', # Forest Green
                     'secondary_color': '#ffb300'
-                }
+                },
+                'default_language': 'es'
             }
         )
 

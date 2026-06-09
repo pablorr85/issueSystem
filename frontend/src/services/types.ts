@@ -18,8 +18,8 @@ export interface TenantConfig {
   visual_config: TenantVisualConfig;
   custom_fields: CustomField[];
   is_public_reporting_enabled: boolean;
+  default_language: 'es' | 'en';
 }
-
 export interface IssuePayload {
   tenant_id: string;
   description: string;

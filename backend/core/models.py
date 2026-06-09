@@ -25,6 +25,12 @@ class Tenant(models.Model):
         default=True,
         help_text="Whether anonymous users can report issues for this location."
     )
+    default_language = models.CharField(
+        max_length=5,
+        choices=[('es', 'Spanish'), ('en', 'English')],
+        default='es',
+        help_text="Default language for the tenant interface."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MenuItem, InputLabel } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import { useTranslation } from 'react-i18next';
 import { getIssues, updateIssueStatus } from '../../services/api';
 import type { TenantConfig, Issue } from '../../services/types';
 import {
@@ -13,17 +14,17 @@ import {
   TableWrapper,
   StyledTable,
   StyledTableHead,
-  StyledTableBody,
-  StyledTableHeadCell,
   StyledTableRow,
   StyledTableCell,
+  StyledTableHeadCell,
   StatusBadge,
   TableSelect,
   PaginationFooter,
   PaginationInfo,
   PaginationButtons,
   PaginationButton,
-  EmptyState
+  EmptyState,
+  StyledTableBody
 } from './Dashboard.styles';
 
 export interface DashboardProps {
@@ -31,6 +32,7 @@ export interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
+  const { t } = useTranslation();
   const [issues, setIssues] = useState<Issue[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -84,7 +86,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
       console.error('Failed to update status:', err);
       // Revert UI to previous state on error
       setIssues(originalIssues);
-      alert('Error updating issue status. Please try again.');
+      alert(t('dashboard.errorUpdate'));
     });
   };
 
@@ -114,24 +116,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
       <DashboardHeader>
         <DashboardTitle variant="h5" component="h2">
           <DashboardIcon sx={{ color: 'var(--primary)' }} />
-          Tenant Manager Dashboard
+          {t('dashboard.title')}
         </DashboardTitle>
 
         <FilterSection>
           <StyledFormControl variant="outlined">
-            <InputLabel id="filter-status-label">Status Filter</InputLabel>
+            <InputLabel id="filter-status-label">{t('dashboard.statusFilterLabel')}</InputLabel>
             <TableSelect
               labelId="filter-status-label"
               value={statusFilter}
-              label="Status Filter"
+              label={t('dashboard.statusFilterLabel')}
               onChange={(e) => handleFilterChange(e.target.value as string)}
               disabled={loading}
               inputProps={{ 'data-testid': 'dashboard-status-filter' }}
             >
-              <MenuItem value=""><em>All Statuses</em></MenuItem>
-              <MenuItem value="open">Open</MenuItem>
-              <MenuItem value="in_progress">In Progress</MenuItem>
-              <MenuItem value="resolved">Resolved</MenuItem>
+              <MenuItem value=""><em>{t('dashboard.filterAll')}</em></MenuItem>
+              <MenuItem value="open">{t('dashboard.filterOpen')}</MenuItem>
+              <MenuItem value="in_progress">{t('dashboard.filterInProgress')}</MenuItem>
+              <MenuItem value="resolved">{t('dashboard.filterResolved')}</MenuItem>
             </TableSelect>
           </StyledFormControl>
         </FilterSection>
@@ -142,9 +144,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
           <StyledTable aria-label="issues table">
             <StyledTableHead>
               <StyledTableRow>
-                <StyledTableHeadCell>ID</StyledTableHeadCell>
-                <StyledTableHeadCell>Status</StyledTableHeadCell>
-                <StyledTableHeadCell>Description</StyledTableHeadCell>
+                <StyledTableHeadCell>{t('dashboard.tableID')}</StyledTableHeadCell>
+                <StyledTableHeadCell>{t('dashboard.tableStatus')}</StyledTableHeadCell>
+                <StyledTableHeadCell>{t('dashboard.tableDescription')}</StyledTableHeadCell>
                 
                 {/* Dynamically render header columns for each tenant custom field */}
                 {customFields.map(field => (
@@ -153,22 +155,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
                   </StyledTableHeadCell>
                 ))}
                 
-                <StyledTableHeadCell>Created At</StyledTableHeadCell>
-                <StyledTableHeadCell align="center">Actions</StyledTableHeadCell>
+                <StyledTableHeadCell>{t('dashboard.tableCreatedAt')}</StyledTableHeadCell>
+                <StyledTableHeadCell align="center">{t('dashboard.tableActions')}</StyledTableHeadCell>
               </StyledTableRow>
             </StyledTableHead>
             <StyledTableBody>
               {loading && issues.length === 0 ? (
                 <StyledTableRow>
                   <StyledTableCell colSpan={5 + customFields.length} align="center">
-                    Loading dashboard issues...
+                    {t('dashboard.loadingIssues')}
                   </StyledTableCell>
                 </StyledTableRow>
               ) : issues.length === 0 ? (
                 <StyledTableRow>
                   <StyledTableCell colSpan={5 + customFields.length} padding="none">
                     <EmptyState>
-                      No issues reported under these criteria.
+                      {t('dashboard.noIssuesFiltered')}
                     </EmptyState>
                   </StyledTableCell>
                 </StyledTableRow>
@@ -178,7 +180,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
                     <StyledTableCell>{issue.id}</StyledTableCell>
                     <StyledTableCell>
                       <StatusBadge $status={issue.status}>
-                        {issue.status.replace(/_/g, ' ')}
+                        {issue.status === 'open'
+                          ? t('dashboard.actionOpen')
+                          : issue.status === 'in_progress'
+                          ? t('dashboard.actionInProgress')
+                          : t('dashboard.actionResolved')}
                       </StatusBadge>
                     </StyledTableCell>
                     <StyledTableCell>{issue.description}</StyledTableCell>
@@ -190,7 +196,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
                       
                       if (rawVal !== undefined && rawVal !== null && rawVal !== '') {
                         if (typeof rawVal === 'boolean') {
-                          displayVal = rawVal ? 'Yes' : 'No';
+                          displayVal = rawVal ? t('dashboard.yes') : t('dashboard.no');
                         } else {
                           displayVal = String(rawVal);
                         }
@@ -210,9 +216,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
                         onChange={(e) => handleStatusChange(issue.id, e.target.value as string)}
                         inputProps={{ 'data-testid': `action-status-select-${issue.id}` }}
                       >
-                        <MenuItem value="open">Open</MenuItem>
-                        <MenuItem value="in_progress">In Progress</MenuItem>
-                        <MenuItem value="resolved">Resolved</MenuItem>
+                        <MenuItem value="open">{t('dashboard.actionOpen')}</MenuItem>
+                        <MenuItem value="in_progress">{t('dashboard.actionInProgress')}</MenuItem>
+                        <MenuItem value="resolved">{t('dashboard.actionResolved')}</MenuItem>
                       </TableSelect>
                     </StyledTableCell>
                   </StyledTableRow>
@@ -226,7 +232,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
         {totalCount > 0 && (
           <PaginationFooter>
             <PaginationInfo>
-              Page {currentPage} of {totalPages} ({totalCount} total issues)
+              {t('dashboard.paginationInfo', { page: currentPage, totalPages, totalCount })}
             </PaginationInfo>
             <PaginationButtons>
               <PaginationButton
@@ -236,7 +242,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 data-testid="pagination-prev"
               >
-                Previous
+                {t('dashboard.paginationPrev')}
               </PaginationButton>
               <PaginationButton
                 variant="outlined"
@@ -245,7 +251,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 data-testid="pagination-next"
               >
-                Next
+                {t('dashboard.paginationNext')}
               </PaginationButton>
             </PaginationButtons>
           </PaginationFooter>

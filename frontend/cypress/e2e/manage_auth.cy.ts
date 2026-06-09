@@ -16,6 +16,7 @@ describe('Authentication & Access Control E2E Test', () => {
         id: tenantUuid,
         name: 'Private Zoo',
         logo_url: null,
+        default_language: 'en',
         visual_config: { primary_color: '#4a148c' },
         is_public_reporting_enabled: false,
         custom_fields: []
@@ -25,8 +26,8 @@ describe('Authentication & Access Control E2E Test', () => {
     cy.visit('/');
 
     // Load tenant
-    cy.get('input[placeholder*="Enter Tenant UUID"]').type(tenantUuid);
-    cy.get('button').contains('Load').click();
+    cy.get('input').type(tenantUuid);
+    cy.get('button[type="submit"]').click();
     cy.wait('@getPrivateConfig');
 
     // Form should not be displayed, instead show alert
@@ -49,6 +50,7 @@ describe('Authentication & Access Control E2E Test', () => {
         id: tenantUuid,
         name: 'Selwo Marina',
         logo_url: null,
+        default_language: 'en',
         visual_config: { primary_color: '#00E5FF' },
         is_public_reporting_enabled: true,
         custom_fields: []
@@ -58,8 +60,8 @@ describe('Authentication & Access Control E2E Test', () => {
     cy.visit('/');
 
     // Load tenant
-    cy.get('input[placeholder*="Enter Tenant UUID"]').type(tenantUuid);
-    cy.get('button').contains('Load').click();
+    cy.get('input').type(tenantUuid);
+    cy.get('button[type="submit"]').click();
     cy.wait('@getTenantConfig');
 
     // Click Dashboard tab
@@ -77,6 +79,7 @@ describe('Authentication & Access Control E2E Test', () => {
         id: tenantUuid,
         name: 'Private Zoo',
         logo_url: null,
+        default_language: 'en',
         visual_config: { primary_color: '#4a148c' },
         is_public_reporting_enabled: false,
         custom_fields: []
@@ -108,8 +111,8 @@ describe('Authentication & Access Control E2E Test', () => {
     cy.visit('/');
 
     // Load tenant
-    cy.get('input[placeholder*="Enter Tenant UUID"]').type(tenantUuid);
-    cy.get('button').contains('Load').click();
+    cy.get('input').type(tenantUuid);
+    cy.get('button[type="submit"]').click();
     cy.wait('@getPrivateConfig');
 
     // Verify warning is visible initially

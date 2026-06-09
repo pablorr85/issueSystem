@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { InputLabel, Select, MenuItem } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import type { TenantConfig, IssuePayload } from '../../services/types';
 import {
   StyledCard,
@@ -25,6 +26,7 @@ export interface DynamicIssueFormProps {
 }
 
 export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSubmit, submitting }) => {
+  const { t } = useTranslation();
   const [description, setDescription] = useState<string>('');
   const [photoUrl, setPhotoUrl] = useState<string>('');
   const [extraData, setExtraData] = useState<Record<string, CustomFieldValue>>({});
@@ -63,14 +65,14 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
     const newErrors: Record<string, string> = {};
 
     if (!description.trim()) {
-      newErrors.description = 'Description is required.';
+      newErrors.description = t('dynamicIssueForm.descriptionRequired');
     }
 
     (tenant.custom_fields || []).forEach(field => {
       const value = extraData[field.name];
       if (field.required) {
         if (value === undefined || value === null || value === '') {
-          newErrors[field.name] = `${field.name} is required.`;
+          newErrors[field.name] = t('dynamicIssueForm.fieldRequired', { name: field.name });
         }
       }
     });
@@ -121,13 +123,13 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
     <StyledCard className="animate-fade-in">
       <FormTitle variant="h5" component="h2">
         <TitleIcon />
-        Report an Issue ({tenant.name})
+        {t('dynamicIssueForm.title', { name: tenant.name })}
       </FormTitle>
 
       <FormContainer onSubmit={handleSubmit} noValidate>
         {/* Description */}
         <StyledTextField
-          label="Problem Description"
+          label={t('dynamicIssueForm.descriptionLabel')}
           variant="outlined"
           multiline
           rows={3}
@@ -150,7 +152,7 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
 
         {/* Photo URL */}
         <StyledTextField
-          label="Photo URL (Optional)"
+          label={t('dynamicIssueForm.photoLabel')}
           variant="outlined"
           value={photoUrl}
           onChange={(e) => setPhotoUrl(e.target.value)}
@@ -161,7 +163,7 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
         {(tenant.custom_fields || []).length > 0 && (
           <DynamicFieldsContainer>
             <SectionSubtitle variant="subtitle1">
-              Tenant Specific Details
+              {t('dynamicIssueForm.detailsHeader')}
             </SectionSubtitle>
 
             {(tenant.custom_fields || []).map(field => {
@@ -197,7 +199,7 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
                       inputProps={{ 'data-testid': `select-${field.name}` }}
                     >
                       <MenuItem value="">
-                        <em>None</em>
+                        <em>{t('dynamicIssueForm.none')}</em>
                       </MenuItem>
                       {field.options?.map(opt => (
                         <MenuItem key={opt} value={opt}>{opt}</MenuItem>
@@ -234,7 +236,7 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
           variant="contained"
           disabled={submitting}
         >
-          {submitting ? 'Submitting...' : 'Submit Issue'}
+          {submitting ? t('dynamicIssueForm.submitting') : t('dynamicIssueForm.button')}
         </SubmitButton>
       </FormContainer>
     </StyledCard>

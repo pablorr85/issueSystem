@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import SearchIcon from '@mui/icons-material/Search';
+import { useTranslation } from 'react-i18next';
 import { StyledCard, FormContainer, StyledTextField, StyledButton, FormTitle } from './TenantForm.styles';
 
 export interface TenantFormProps {
@@ -9,6 +10,7 @@ export interface TenantFormProps {
 }
 
 export const TenantForm: React.FC<TenantFormProps> = ({ onSubmit, loading, error }) => {
+  const { t } = useTranslation();
   const [uuidInput, setUuidInput] = useState<string>('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -21,14 +23,14 @@ export const TenantForm: React.FC<TenantFormProps> = ({ onSubmit, loading, error
   return (
     <StyledCard className="animate-fade-in">
       <FormTitle variant="h5" component="h2">
-        Load Tenant Configuration
+        {t('tenantForm.title')}
       </FormTitle>
       
       <FormContainer onSubmit={handleSubmit}>
         <StyledTextField
           variant="outlined"
-          label="Tenant UUID"
-          placeholder="Enter Tenant UUID (e.g. f47ac10b-y12a...)"
+          label={t('tenantForm.label')}
+          placeholder={t('tenantForm.placeholder')}
           value={uuidInput}
           onChange={(e) => setUuidInput(e.target.value)}
           disabled={loading}
@@ -43,7 +45,7 @@ export const TenantForm: React.FC<TenantFormProps> = ({ onSubmit, loading, error
           disabled={loading || !uuidInput.trim()}
           startIcon={<SearchIcon />}
         >
-          {loading ? 'Loading...' : 'Load'}
+          {loading ? t('tenantForm.loading') : t('tenantForm.button')}
         </StyledButton>
       </FormContainer>
     </StyledCard>

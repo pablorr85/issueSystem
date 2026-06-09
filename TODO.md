@@ -146,3 +146,25 @@
 - [x] Anonymous users CANNOT see the form or submit issues if public reporting is disabled (they are prompted to log in).
 - [x] The Dashboard route is completely inaccessible without a valid JWT.
 - [x] There is no public "Sign Up" or "Register" link anywhere in the UI.
+
+# SPRINT 8: Internationalization (i18n) & Spanish Default Localization
+
+## [x] Backend Tasks (Django)
+
+- [x] **Tenant Model Update:** Add a `default_language` field to the `Tenant` model in `core/models.py` using `models.CharField(max_length=5, choices=[('es', 'Spanish'), ('en', 'English')], default='es')`.
+- [x] **Migrations:** Run `makemigrations` and `migrate`.
+- [x] **API Update:** Ensure the `default_language` is serialized and included in the JSON payload returned by the Tenant config endpoint (`/api/tenant/<uuid>/config/`).
+
+## [x] Frontend Tasks (React + TypeScript)
+
+- [x] **Dependencies:** Install i18next packages (`npm install i18next react-i18next i18next-browser-languagedetector`).
+- [x] **Translation Files:** Create a `src/locales/` directory containing `es/` and `en/` subfolders. Create a `translation.json` inside each. Extract all currently hardcoded UI texts from the React components into these JSON files.
+- [x] **i18n Configuration:** Create `src/i18n.ts` to initialize `i18next`. **CRITICAL:** Set the `fallbackLng` and `defaultNS` to `'es'` (Spanish). Import this configuration file into `main.tsx`.
+- [x] **Dynamic Language Switching:** Update the logic that fetches the Tenant configuration: if the API returns a `default_language`, update the UI language dynamically using `i18n.changeLanguage()`.
+- [x] **Component Refactoring:** Refactor `Login.tsx`, `Dashboard.tsx`, and `DynamicIssueForm.tsx` to strictly use the `useTranslation()` hook and the `t('key')` function instead of plain text.
+
+## [x] Acceptance Criteria
+
+- No hardcoded UI strings exist in any React component.
+- The UI defaults to Spanish upon loading.
+- Changing the `default_language` setting for a Tenant in the Django Admin automatically translates their public QR reporting form.

@@ -9,6 +9,7 @@ describe('Submit Issue E2E Test', () => {
         id: tenantUuid,
         name: 'Selwo Marina',
         logo_url: null,
+        default_language: 'en',
         visual_config: {
           primary_color: '#00E5FF'
         },
@@ -62,8 +63,8 @@ describe('Submit Issue E2E Test', () => {
     cy.visit('/');
 
     // Load Tenant
-    cy.get('input[placeholder*="Enter Tenant UUID"]').type(tenantUuid);
-    cy.get('button').contains('Load').click();
+    cy.get('input').type(tenantUuid);
+    cy.get('button[type="submit"]').click();
     cy.wait('@getTenantConfig');
 
     // Verify dynamic form renders
