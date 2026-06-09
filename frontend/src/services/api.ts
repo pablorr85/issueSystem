@@ -15,7 +15,7 @@ export const getTenantConfig = async (tenantId: string): Promise<TenantConfig> =
   return response.data;
 };
 
-export const createIssue = async (payload: IssuePayload): Promise<any> => {
+export const createIssue = async (payload: IssuePayload): Promise<Issue> => {
   const response = await api.post('/issues/create/', payload);
   return response.data;
 };
@@ -25,7 +25,7 @@ export const getIssues = async (
   status?: string,
   page?: number
 ): Promise<PaginatedResponse<Issue>> => {
-  const params: Record<string, any> = { tenant_id: tenantId };
+  const params: Record<string, string | number> = { tenant_id: tenantId };
   if (status) params.status = status;
   if (page) params.page = page;
 

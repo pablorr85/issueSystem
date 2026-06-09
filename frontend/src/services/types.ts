@@ -1,7 +1,7 @@
 export interface TenantVisualConfig {
   primary_color?: string;
   secondary_color?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface CustomField {
@@ -24,7 +24,7 @@ export interface IssuePayload {
   tenant_id: string;
   description: string;
   photo_url?: string;
-  extra_data: Record<string, any>;
+  extra_data: Record<string, unknown>;
 }
 
 export interface Issue {
@@ -33,7 +33,7 @@ export interface Issue {
   status: string;
   description: string;
   photo_url?: string;
-  extra_data: Record<string, any>;
+  extra_data: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }

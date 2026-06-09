@@ -16,6 +16,8 @@ import {
   StyledErrorText
 } from './DynamicIssueForm.styles';
 
+type CustomFieldValue = string | number | boolean;
+
 export interface DynamicIssueFormProps {
   tenant: TenantConfig;
   onSubmit: (payload: IssuePayload) => Promise<void>;
@@ -25,12 +27,12 @@ export interface DynamicIssueFormProps {
 export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSubmit, submitting }) => {
   const [description, setDescription] = useState<string>('');
   const [photoUrl, setPhotoUrl] = useState<string>('');
-  const [extraData, setExtraData] = useState<Record<string, any>>({});
+  const [extraData, setExtraData] = useState<Record<string, CustomFieldValue>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Initialize extraData fields based on tenant's CustomFields
   useEffect(() => {
-    const initialExtra: Record<string, any> = {};
+    const initialExtra: Record<string, CustomFieldValue> = {};
     (tenant.custom_fields || []).forEach(field => {
       if (field.field_type === 'boolean') {
         initialExtra[field.name] = false;
@@ -42,7 +44,7 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
     setErrors({});
   }, [tenant]);
 
-  const handleExtraChange = (name: string, value: any) => {
+  const handleExtraChange = (name: string, value: CustomFieldValue) => {
     setExtraData(prev => ({
       ...prev,
       [name]: value
@@ -82,7 +84,7 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
     if (!validateForm()) return;
 
     // Convert types for dynamic fields if necessary (e.g. number)
-    const processedExtra: Record<string, any> = {};
+    const processedExtra: Record<string, CustomFieldValue> = {};
     (tenant.custom_fields || []).forEach(field => {
       const val = extraData[field.name];
       if (field.field_type === 'number' && val !== '') {
@@ -103,7 +105,7 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
       // Reset form on success
       setDescription('');
       setPhotoUrl('');
-      const resetExtra: Record<string, any> = {};
+      const resetExtra: Record<string, CustomFieldValue> = {};
       (tenant.custom_fields || []).forEach(field => {
         if (field.field_type === 'boolean') {
           resetExtra[field.name] = false;

@@ -88,10 +88,14 @@ function AppContent() {
     try {
       const data = await getTenantConfig(uuid);
       setConfig(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
+      const status =
+        err && typeof err === 'object' && 'response' in err
+          ? (err as { response?: { status?: number } }).response?.status
+          : undefined;
       setError(
-        err.response?.status === 404
+        status === 404
           ? 'Tenant not found. Please verify the UUID.'
           : 'Failed to fetch configuration. Check backend status.'
       );
@@ -105,13 +109,16 @@ function AppContent() {
     try {
       await createIssue(payload);
       setSuccessOpen(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      alert(
-        err.response?.data?.detail || 
-        err.response?.data?.extra_data ||
-        'Failed to submit issue. Please check fields.'
-      );
+      let errMsg = 'Failed to submit issue. Please check fields.';
+      if (err && typeof err === 'object' && 'response' in err) {
+        const responseData = (err as { response?: { data?: { detail?: string; extra_data?: string } } }).response?.data;
+        if (responseData) {
+          errMsg = responseData.detail || responseData.extra_data || errMsg;
+        }
+      }
+      alert(errMsg);
       throw err;
     } finally {
       setSubmitting(false);

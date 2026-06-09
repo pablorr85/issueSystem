@@ -34,12 +34,16 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
     try {
       await login(username.trim(), password.trim());
       onSuccess();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(
-        err.response?.data?.detail || 
-        'Invalid credentials. Please verify your username and password.'
-      );
+      let errMsg = 'Invalid credentials. Please verify your username and password.';
+      if (err && typeof err === 'object' && 'response' in err) {
+        const responseData = (err as { response?: { data?: { detail?: string } } }).response?.data;
+        if (responseData?.detail) {
+          errMsg = responseData.detail;
+        }
+      }
+      setError(errMsg);
     } finally {
       setLoading(false);
     }
