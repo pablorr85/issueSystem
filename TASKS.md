@@ -85,6 +85,6 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('\n🚀 Seeding process completed successfully!'))
 ```
 
-## [ ] Frontend Tasks (React)
+## [x] Frontend Tasks (React)
 
-- [ ] Create Issue Link: Add a button or link inside the Dashboard panel to allow authenticated users to easily navigate to the issue reporting form.
+- [x] Create Issue Link: Add a button or link inside the Dashboard panel to allow authenticated users to easily navigate to the issue reporting form.

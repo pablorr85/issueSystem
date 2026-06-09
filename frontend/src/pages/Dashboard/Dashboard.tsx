@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MenuItem, InputLabel } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import AddIcon from '@mui/icons-material/Add';
 import { useTranslation } from 'react-i18next';
 import { getIssues, updateIssueStatus } from '../../services/api';
 import type { TenantConfig, Issue } from '../../services/types';
@@ -24,7 +26,8 @@ import {
   PaginationButtons,
   PaginationButton,
   EmptyState,
-  StyledTableBody
+  StyledTableBody,
+  ReportButton
 } from './Dashboard.styles';
 
 export interface DashboardProps {
@@ -33,6 +36,7 @@ export interface DashboardProps {
 
 export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [issues, setIssues] = useState<Issue[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -120,6 +124,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
         </DashboardTitle>
 
         <FilterSection>
+          <ReportButton
+            variant="contained"
+            onClick={() => navigate(`/${tenant.id}/report`)}
+            data-testid="create-issue-link"
+          >
+            <AddIcon />
+            {t('app.tabReport')}
+          </ReportButton>
+
           <StyledFormControl variant="outlined">
             <InputLabel id="filter-status-label">{t('dashboard.statusFilterLabel')}</InputLabel>
             <TableSelect

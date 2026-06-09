@@ -1,5 +1,6 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { Dashboard } from './Dashboard';
 import { getIssues, updateIssueStatus } from '../../services/api';
 import type { TenantConfig, PaginatedResponse, Issue } from '../../services/types';
@@ -59,7 +60,11 @@ describe('Dashboard Page Component', () => {
   test('renders header title and dynamically maps custom fields columns', async () => {
     vi.mocked(getIssues).mockResolvedValue(mockIssuesResponse);
 
-    render(<Dashboard tenant={mockTenant} />);
+    render(
+      <MemoryRouter>
+        <Dashboard tenant={mockTenant} />
+      </MemoryRouter>
+    );
 
     // Check title renders
     expect(screen.getByText(/Tenant Manager Dashboard/i)).toBeInTheDocument();
@@ -85,7 +90,11 @@ describe('Dashboard Page Component', () => {
   test('filters list when status filter selection is changed', async () => {
     vi.mocked(getIssues).mockResolvedValue(mockIssuesResponse);
 
-    render(<Dashboard tenant={mockTenant} />);
+    render(
+      <MemoryRouter>
+        <Dashboard tenant={mockTenant} />
+      </MemoryRouter>
+    );
 
     // Wait for initial load
     await waitFor(() => {
@@ -111,7 +120,11 @@ describe('Dashboard Page Component', () => {
       status: 'in_progress'
     });
 
-    render(<Dashboard tenant={mockTenant} />);
+    render(
+      <MemoryRouter>
+        <Dashboard tenant={mockTenant} />
+      </MemoryRouter>
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Broken handrail near marine pool')).toBeInTheDocument();

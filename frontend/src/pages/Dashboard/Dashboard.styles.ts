@@ -239,3 +239,20 @@ export const ExtraDataItem = styled.div`
     color: #fff;
   }
 `;
+
+export const ReportButton = styled(Button)`
+  background: var(--primary) !important;
+  color: white !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  height: 40px !important;
+  border-radius: 8px !important;
+  padding: 0 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  
+  &:hover {
+    background: var(--primary-hover) !important;
+  }
+`;
