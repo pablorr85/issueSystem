@@ -1,19 +1,3 @@
-# TASK 1: Create Database Seeder for MVP Demo
-
-## 🎯 Objective
-
-Create a Django management command to automatically populate the database with a realistic "Theme Park / Zoo" Tenant and its highly specific dynamic schema (`CustomFields`). This mock data is crucial for the upcoming stakeholder demo.
-
-## [x] Backend Tasks (Django)
-
-- [x] **Directory Structure:** Inside the `backend/core/` application, create the following directory structure if it doesn't exist: `management/commands/`. Ensure both directories contain an `__init__.py` file.
-- [x] **Command Creation:** Create a file named `seed_zoo.py` inside `management/commands/`.
-- [x] **Implementation:** Implement the `BaseCommand` to create the Tenant and CustomFields. Use the exact script provided below.
-- [x] **Execution:** Run the command in the terminal via `python manage.py seed_zoo`.
-
-## 📜 Code for `seed_zoo.py`
-
-```python
 from django.core.management.base import BaseCommand
 from core.models import Tenant, CustomField
 
@@ -83,4 +67,3 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.NOTICE(f"   ✔️ CustomField '{cf.name}' already exists."))
 
         self.stdout.write(self.style.SUCCESS('\n🚀 Seeding process completed successfully!'))
-```
