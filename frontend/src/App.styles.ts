@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { Alert } from '@mui/material';
 
 export const AppContainer = styled.div`
   padding: 40px max(20px, (100% - 800px) / 2);
@@ -87,3 +88,29 @@ export const AppFooter = styled.footer`
   color: var(--text-muted);
   font-size: 0.9rem;
 `;
+
+export const AppMain = styled.main`
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+`;
+
+export const BrandingHeader = styled.h2`
+  font-size: 1.5rem;
+  margin: 0 0 10px 0;
+`;
+
+export const BrandingImage = styled.img`
+  height: 50px;
+  object-fit: contain;
+`;
+
+export const BrandingJSONTitle = styled.h4`
+  margin: 0 0 10px 0;
+  color: var(--text-secondary);
+`;
+
+export const FullWidthAlert = styled(Alert)`
+  width: 100% !important;
+`;
+

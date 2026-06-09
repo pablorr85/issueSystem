@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { getTenantConfig } from './services/api';
-import type { TenantConfig } from './services/types';
+import { getTenantConfig, createIssue } from './services/api';
+import type { TenantConfig, IssuePayload } from './services/types';
 import { TenantForm } from './components/TenantForm';
+import { DynamicIssueForm } from './components/DynamicIssueForm';
+import { Snackbar } from '@mui/material';
 import {
   AppContainer,
   AppHeader,
@@ -14,12 +16,20 @@ import {
   BrandingSubtitle,
   PreContainer,
   AppFooter,
+  AppMain,
+  BrandingHeader,
+  BrandingImage,
+  BrandingJSONTitle,
+  FullWidthAlert,
 } from './App.styles';
 
 function App() {
   const [config, setConfig] = useState<TenantConfig | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [successOpen, setSuccessOpen] = useState<boolean>(false);
 
   // Apply dynamic tenant color configuration to root stylesheet variables
   useEffect(() => {
@@ -77,50 +87,83 @@ function App() {
     }
   };
 
+  const handleCreateIssue = async (payload: IssuePayload) => {
+    setSubmitting(true);
+    try {
+      await createIssue(payload);
+      setSuccessOpen(true);
+    } catch (err: any) {
+      console.error(err);
+      alert(
+        err.response?.data?.extra_data
+          ? `Validation Error: ${err.response.data.extra_data}`
+          : 'Failed to submit issue. Please check fields.'
+      );
+      throw err;
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <AppContainer>
       <AppHeader className="animate-fade-in">
         <AppTitle>Issue Tracker SaaS</AppTitle>
         <AppSubtitle>
-          Sprint 4: TS strict, MUI components & Test Suite Setup
+          Sprint 5: Dynamic Form Engine & Custom Fields
         </AppSubtitle>
       </AppHeader>
 
-      <main style={{ display: 'flex', flexDirection: 'column' }}>
+      <AppMain>
         <TenantForm onSubmit={handleFetchConfig} loading={loading} error={error} />
 
         {config && (
-          <BrandingSection className="glass-card animate-fade-in">
-            <h2 style={{ fontSize: '1.5rem', margin: '0 0 10px 0' }}>Active Tenant Branding</h2>
-            <BrandingCard>
-              {config.logo_url ? (
-                <img src={config.logo_url} alt="Tenant Logo" style={{ height: '50px', objectFit: 'contain' }} />
-              ) : (
-                <LogoPlaceholder>
-                  {config.name.charAt(0)}
-                </LogoPlaceholder>
-              )}
-              <div>
-                <BrandingTitle>{config.name}</BrandingTitle>
-                <BrandingSubtitle>
-                  Branding theme updated dynamically.
-                </BrandingSubtitle>
-              </div>
-            </BrandingCard>
+          <>
+            <BrandingSection className="glass-card animate-fade-in">
+              <BrandingHeader>Active Tenant Branding</BrandingHeader>
+              <BrandingCard>
+                {config.logo_url ? (
+                  <BrandingImage src={config.logo_url} alt="Tenant Logo" />
+                ) : (
+                  <LogoPlaceholder>
+                    {config.name.charAt(0)}
+                  </LogoPlaceholder>
+                )}
+                <div>
+                  <BrandingTitle>{config.name}</BrandingTitle>
+                  <BrandingSubtitle>
+                    Branding theme updated dynamically.
+                  </BrandingSubtitle>
+                </div>
+              </BrandingCard>
 
-            <div>
-              <h4 style={{ margin: '0 0 10px 0', color: 'var(--text-secondary)' }}>Visual Config JSON:</h4>
-              <PreContainer>
-                {JSON.stringify(config.visual_config, null, 2)}
-              </PreContainer>
-            </div>
-          </BrandingSection>
+              <div>
+                <BrandingJSONTitle>Visual Config JSON:</BrandingJSONTitle>
+                <PreContainer>
+                  {JSON.stringify(config.visual_config, null, 2)}
+                </PreContainer>
+              </div>
+            </BrandingSection>
+
+            <DynamicIssueForm tenant={config} onSubmit={handleCreateIssue} submitting={submitting} />
+          </>
         )}
-      </main>
+      </AppMain>
 
       <AppFooter>
         Single-DB Multi-Tenancy Architecture • Admin dashboard ready
       </AppFooter>
+
+      <Snackbar
+        open={successOpen}
+        autoHideDuration={5000}
+        onClose={() => setSuccessOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <FullWidthAlert severity="success" variant="filled" onClose={() => setSuccessOpen(false)}>
+          Issue submitted successfully!
+        </FullWidthAlert>
+      </Snackbar>
     </AppContainer>
   );
 }

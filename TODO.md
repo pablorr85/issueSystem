@@ -65,3 +65,29 @@
 - [x] Running `npx tsc --noEmit` returns zero type errors.
 - [x] Material-UI components render without style conflicts.
 - [x] Unit and Cypress tests pass successfully.
+
+# SPRINT 5: The Dynamic Form Engine (Core Business Logic)
+
+## [x] Backend Tasks (Django API)
+
+- [x] **Schema Payload:** Update the existing GET endpoint for the Tenant config (e.g., `/api/tenant/<uuid>/config/`) to also serialize and return its related `CustomField`s (including `name`, `field_type`, `required`, and `options`).
+- [x] **Issue Serialization:** Create a `ModelSerializer` for the `Issue` model.
+- [x] **Submission Endpoint:** Ensure the `POST /api/issues/create/` endpoint validates the incoming data (tenant UUID, description, photo_url) and properly saves the `extra_data` JSON payload into the database.
+
+## [x] Frontend Tasks (React + TypeScript)
+
+- [x] **Type Definitions:** Update the `TenantConfig` interface in `types.ts` to include an array of `CustomField` objects. Create an interface for the `IssuePayload`.
+- [x] **Dynamic Form Component:** Create a `DynamicIssueForm.tsx` component using MUI. It must render standard inputs (Description) and dynamically loop through the `CustomField`s to render the correct MUI components (e.g., `<TextField>` for text/number, `<Select>` for dropdowns).
+- [x] **State Management:** Implement form state handling (consider using `react-hook-form` for performance, or standard React state) to capture the standard fields and construct the `extra_data` key-value object.
+- [x] **Submission Handler:** Wire up the submit button to send the Axios POST request. Show an MUI `<Snackbar>` or `<Alert>` on success.
+
+## [x] Testing Tasks
+
+- [x] **Unit Tests:** Write a test in `DynamicIssueForm.test.tsx` verifying that providing mock `CustomField` data correctly renders the dynamic inputs on the screen.
+- [x] **E2E Tests:** Add a Cypress scenario (`submit_issue.cy.ts`) that fills out both standard and dynamic fields, clicks submit, and asserts the success message appears.
+
+## [x] Acceptance Criteria
+
+- [x] End-users can see a form that perfectly matches the Tenant's database configuration.
+- [x] Submitting the form creates a new `Issue` row in PostgreSQL.
+- [x] The Django Admin panel displays the new `Issue` with the custom fields correctly saved inside the `extra_data` JSONB column.

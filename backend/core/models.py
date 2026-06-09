@@ -35,6 +35,7 @@ class CustomField(models.Model):
         ('text', 'Text'),
         ('number', 'Number'),
         ('boolean', 'Boolean'),
+        ('select', 'Select'),
     )
 
     tenant: Tenant = models.ForeignKey(
@@ -53,6 +54,11 @@ class CustomField(models.Model):
     required: bool = models.BooleanField(
         default=False,
         help_text="Whether this field must be filled when submitting an issue."
+    )
+    options: list = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of options for select fields."
     )
     created_at = models.DateTimeField(auto_now_add=True)
 

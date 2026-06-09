@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Typography } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import { StyledCard, FormContainer, StyledTextField, StyledButton } from './TenantForm.styles';
+import { StyledCard, FormContainer, StyledTextField, StyledButton, FormTitle } from './TenantForm.styles';
 
 export interface TenantFormProps {
   onSubmit: (uuid: string) => void;
@@ -21,9 +20,9 @@ export const TenantForm: React.FC<TenantFormProps> = ({ onSubmit, loading, error
 
   return (
     <StyledCard className="animate-fade-in">
-      <Typography variant="h5" component="h2" sx={{ fontWeight: 600, color: 'white' }}>
+      <FormTitle variant="h5" component="h2">
         Load Tenant Configuration
-      </Typography>
+      </FormTitle>
       
       <FormContainer onSubmit={handleSubmit}>
         <StyledTextField

@@ -1,5 +1,10 @@
 import styled from 'styled-components';
-import { Card, TextField, Button } from '@mui/material';
+import { Card, TextField, Button, Typography } from '@mui/material';
+
+export const FormTitle = styled(Typography)`
+  font-weight: 600 !important;
+  color: white !important;
+`;
 
 export const StyledCard = styled(Card)`
   padding: 24px;
