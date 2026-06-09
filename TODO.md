@@ -168,3 +168,26 @@
 - No hardcoded UI strings exist in any React component.
 - The UI defaults to Spanish upon loading.
 - Changing the `default_language` setting for a Tenant in the Django Admin automatically translates their public QR reporting form.
+
+# SPRINT 9: UI/UX Separation & Routing
+
+## [x] Backend Tasks (Django)
+
+- [x] **Endpoint Verification:** Verify that all REST API endpoints (e.g., submitting issues, fetching tenant config) function correctly and independently of the new frontend routing structure.
+- [x] **CORS/CSRF Check:** Ensure CORS and CSRF settings in `settings.py` correctly handle requests from the decoupled frontend setup.
+
+## [x] Frontend Tasks (React + TypeScript)
+
+- [x] **Dependencies:** Install the routing library (`npm install react-router-dom`).
+- [x] **Routing Configuration:** Set up `BrowserRouter` in `main.tsx` or `App.tsx`. Define the routing tree using `Routes` and `Route` components.
+- [x] **Public View (\`/:tenant_id/report\`):** Create `src/views/ReportIssueView.tsx`. Extract and move the issue submission form here. Remove all headers, navigation bars, and login buttons to keep the view strictly isolated for QR code users.
+- [x] **Authentication View (\`/login\`):** Create `src/views/LoginView.tsx`. Move the login form component here and configure a successful authentication redirect to `/dashboard`.
+- [x] **Private View (\`/dashboard\`):** Create `src/views/DashboardView.tsx`. Extract the administration panel and issue list/table and move them into this component.
+- [x] **Route Guarding:** Create a `ProtectedRoute` wrapper component. Apply it to the `/dashboard` route to verify if the user has a valid auth token, redirecting them to `/login` if unauthorized.
+- [x] **Cleanup:** Refactor `App.tsx` so it solely manages the route definitions, stripping out any residual UI elements or form states.
+
+## [x] Acceptance Criteria
+
+- Navigating to `/:tenant_id/report` renders only the reporting form, preventing any access to other parts of the application.
+- Navigating to `/dashboard` without an active, valid session automatically redirects the user to `/login`.
+- The root component (`App.tsx`) acts purely as a router, containing no direct UI layout or business logic.

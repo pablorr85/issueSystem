@@ -26,8 +26,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const interceptor = api.interceptors.request.use(
       (config) => {
-        if (authState.token) {
-          config.headers.Authorization = `Bearer ${authState.token}`;
+        const token = localStorage.getItem('token');
+        if (token && !config.headers.Authorization) {
+          config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
       },
@@ -37,7 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       api.interceptors.request.eject(interceptor);
     };
-  }, [authState.token]);
+  }, []);
 
   const login = async (username: string, password: string) => {
     try {
@@ -77,6 +78,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       tenantId: null,
     });
   };
+
+  // Attach response interceptor to handle token expiration/invalidity
+  useEffect(() => {
+    const interceptor = api.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const originalRequest = error.config;
+        if (
+          error.response?.status === 401 &&
+          !originalRequest._retry &&
+          (error.response.data?.code === 'token_not_valid' ||
+            error.response.data?.detail?.includes('token not valid') ||
+            error.response.data?.detail?.includes('credentials'))
+        ) {
+          originalRequest._retry = true;
+          logout();
+          if (originalRequest.headers) {
+            delete originalRequest.headers.Authorization;
+            delete originalRequest.headers.authorization;
+            if (typeof originalRequest.headers.delete === 'function') {
+              originalRequest.headers.delete('Authorization');
+              originalRequest.headers.delete('authorization');
+            }
+          }
+          return api(originalRequest);
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      api.interceptors.response.eject(interceptor);
+    };
+  }, []);
 
   const isAuthenticated = !!authState.token;
 

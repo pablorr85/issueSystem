@@ -43,32 +43,9 @@ describe('Authentication & Access Control E2E Test', () => {
   });
 
   it('redirects anonymous user to login page when trying to access manager dashboard', () => {
-    // Intercept config with public reporting enabled
-    cy.intercept('GET', `**/api/tenant/${tenantUuid}/config/`, {
-      statusCode: 200,
-      body: {
-        id: tenantUuid,
-        name: 'Selwo Marina',
-        logo_url: null,
-        default_language: 'en',
-        visual_config: { primary_color: '#00E5FF' },
-        is_public_reporting_enabled: true,
-        custom_fields: []
-      }
-    }).as('getTenantConfig');
-
-    cy.visit('/');
-
-    // Load tenant
-    cy.get('input').type(tenantUuid);
-    cy.get('button[type="submit"]').click();
-    cy.wait('@getTenantConfig');
-
-    // Click Dashboard tab
-    cy.get('[data-testid="tab-dashboard"]').click();
-
-    // Should redirect to employee login
-    cy.contains('h2', 'Employee Sign In').should('be.visible');
+    cy.visit('/dashboard');
+    cy.url().should('include', '/login');
+    cy.contains('h2', 'Inicio de Sesión de Empleado').should('be.visible');
   });
 
   it('authenticates user successfully, transitions to dashboard, shows logout, and allows public form access', () => {
@@ -108,21 +85,16 @@ describe('Authentication & Access Control E2E Test', () => {
       }
     }).as('getIssues');
 
-    cy.visit('/');
-
-    // Load tenant
-    cy.get('input').type(tenantUuid);
-    cy.get('button[type="submit"]').click();
+    // 1. Visit report page, verify warning is visible initially
+    cy.visit(`/${tenantUuid}/report`);
     cy.wait('@getPrivateConfig');
-
-    // Verify warning is visible initially
     cy.get('[data-testid="public-disabled-warning"]').should('be.visible');
 
-    // Go to Dashboard (which redirects to Login)
-    cy.get('[data-testid="tab-dashboard"]').click();
+    // 2. Click "Go to Login" button
+    cy.get('[data-testid="go-to-login-button"]').click();
     cy.contains('h2', 'Employee Sign In').should('be.visible');
 
-    // Type credentials
+    // 3. Type credentials and sign in
     cy.contains('label', 'Username').parent().find('input').type('zoo_keeper');
     cy.contains('label', 'Password').parent().find('input').type('keeperpass');
     cy.get('[data-testid="login-submit-button"]').click();
@@ -138,17 +110,19 @@ describe('Authentication & Access Control E2E Test', () => {
     cy.contains('Logged in as zoo_keeper').should('be.visible');
     cy.get('[data-testid="logout-button"]').should('be.visible');
 
-    // Now go back to "Report Issue" tab (since user is authenticated, they should see the form)
-    cy.get('[data-testid="tab-report"]').click();
+    // 4. Now go back to Report page directly (since user is authenticated, they should see the form)
+    cy.visit(`/${tenantUuid}/report`);
     cy.get('[data-testid="public-disabled-warning"]').should('not.exist');
     cy.contains('Report an Issue (Private Zoo)').should('be.visible');
     cy.get('textarea[required]').should('exist'); // Description input
 
-    // Logout
+    // 5. Go back to Dashboard to log out
+    cy.visit('/dashboard');
     cy.get('[data-testid="logout-button"]').click();
 
     // Verify logged out state
     cy.get('[data-testid="logout-button"]').should('not.exist');
+    cy.visit(`/${tenantUuid}/report`);
     cy.get('[data-testid="public-disabled-warning"]').should('be.visible'); // blocked again
   });
 });

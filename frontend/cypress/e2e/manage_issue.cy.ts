@@ -78,18 +78,9 @@ describe('Tenant Dashboard & Issue Management E2E Test', () => {
   });
 
   it('navigates to dashboard, displays dynamic custom columns, and resolves an issue', () => {
-    cy.visit('/');
-
-    // 1. Load the Tenant Configuration
-    cy.get('input').type(tenantUuid);
-    cy.get('button[type="submit"]').click();
+    // 1. Load the Dashboard directly (already authenticated)
+    cy.visit('/dashboard');
     cy.wait('@getTenantConfig');
-
-    // Verify dynamic form renders
-    cy.contains(`Report an Issue (Wild Park MVP)`).should('be.visible');
-
-    // 2. Switch to Manager Dashboard Tab
-    cy.get('[data-testid="tab-dashboard"]').click();
     cy.wait('@getIssuesList');
 
     // 3. Verify Dashboard Layout
