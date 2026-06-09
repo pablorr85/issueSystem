@@ -1,8 +1,8 @@
 import styled from 'styled-components';
 import { Alert, Button } from '@mui/material';
 
-export const AppContainer = styled.div`
-  padding: 40px max(20px, (100% - 800px) / 2);
+export const AppContainer = styled.div<{ $wide?: boolean }>`
+  padding: 40px max(20px, (100% - ${({ $wide }) => ($wide ? '1280px' : '800px')}) / 2);
   flex: 1;
   display: flex;
   flex-direction: column;

@@ -91,7 +91,7 @@ export const DashboardView: React.FC = () => {
   }
 
   return (
-    <AppContainer>
+    <AppContainer $wide>
       <AppHeader>
         <AppTitle>{t('app.appTitle')}</AppTitle>
         <AppSubtitle>{t('app.appSubtitle')}</AppSubtitle>

@@ -27,7 +27,8 @@ import {
   PaginationButton,
   EmptyState,
   StyledTableBody,
-  ReportButton
+  ReportButton,
+  FilterSelect
 } from './Dashboard.styles';
 
 export interface DashboardProps {
@@ -133,9 +134,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
             {t('app.tabReport')}
           </ReportButton>
 
-          <StyledFormControl variant="outlined">
+          <StyledFormControl variant="outlined" size="small">
             <InputLabel id="filter-status-label">{t('dashboard.statusFilterLabel')}</InputLabel>
-            <TableSelect
+            <FilterSelect
               labelId="filter-status-label"
               value={statusFilter}
               label={t('dashboard.statusFilterLabel')}
@@ -147,7 +148,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
               <MenuItem value="open">{t('dashboard.filterOpen')}</MenuItem>
               <MenuItem value="in_progress">{t('dashboard.filterInProgress')}</MenuItem>
               <MenuItem value="resolved">{t('dashboard.filterResolved')}</MenuItem>
-            </TableSelect>
+            </FilterSelect>
           </StyledFormControl>
         </FilterSection>
       </DashboardHeader>

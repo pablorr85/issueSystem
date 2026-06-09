@@ -35,7 +35,7 @@ export const FilterSection = styled.div`
 `;
 
 export const StyledFormControl = styled(FormControl)`
-  min-width: 150px !important;
+  min-width: 170px !important;
 
   & .MuiInputLabel-root {
     color: #a09cb4 !important;
@@ -254,5 +254,19 @@ export const ReportButton = styled(Button)`
   
   &:hover {
     background: var(--primary-hover) !important;
+  }
+`;
+
+export const FilterSelect = styled(Select)`
+  color: white !important;
+  font-size: 0.9rem !important;
+  
+  & .MuiSelect-select {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    padding-right: 36px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
   }
 `;
