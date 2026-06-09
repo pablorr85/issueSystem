@@ -1,5 +1,7 @@
 import styled from 'styled-components';
+import React from 'react';
 import { Card, TextField, Button, Typography, Alert } from '@mui/material';
+import type { TextFieldProps } from '@mui/material';
 
 export const LoginContainer = styled.div`
   display: flex;
@@ -39,7 +41,16 @@ export const FormContainer = styled.form`
   width: 100%;
 `;
 
-export const StyledTextField = styled(TextField)`
+interface CustomTextFieldProps extends Omit<TextFieldProps, 'variant'> {
+  variant?: 'outlined' | 'standard' | 'filled';
+  inputProps?: React.InputHTMLAttributes<HTMLInputElement> & { 'data-testid'?: string };
+}
+
+const MuiTextField = React.forwardRef<HTMLDivElement, CustomTextFieldProps>((props, ref) => (
+  React.createElement(TextField, { ref, ...props as unknown as TextFieldProps })
+));
+
+export const StyledTextField = styled(MuiTextField)`
   width: 100%;
 
   & .MuiOutlinedInput-root {

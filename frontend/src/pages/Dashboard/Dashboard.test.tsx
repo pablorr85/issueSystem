@@ -16,6 +16,8 @@ const mockTenant: TenantConfig = {
   name: 'Wild Park MVP',
   logo_url: null,
   visual_config: { primary_color: '#2e7d32' },
+  is_public_reporting_enabled: true,
+  default_language: 'es',
   custom_fields: [
     {
       name: 'zona_parque',

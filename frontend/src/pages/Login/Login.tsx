@@ -54,7 +54,7 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
   return (
     <LoginContainer className="animate-fade-in">
       <StyledCard>
-        <LoginTitle variant="h5" component="h2">
+        <LoginTitle variant="h5" as="h2">
           {t('login.title')}
         </LoginTitle>
  

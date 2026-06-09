@@ -8,6 +8,8 @@ const mockTenant: TenantConfig = {
   name: 'Zoo de Madrid',
   logo_url: null,
   visual_config: { primary_color: '#4CAF50' },
+  is_public_reporting_enabled: true,
+  default_language: 'es',
   custom_fields: [
     {
       name: 'Zone',

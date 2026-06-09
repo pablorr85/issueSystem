@@ -19,17 +19,24 @@ export const DashboardView: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { tenantId, user, logout } = useAuth();
   const navigate = useNavigate();
+  const [prevTenantId, setPrevTenantId] = useState<string | null>(tenantId);
   const [config, setConfig] = useState<TenantConfig | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(!!tenantId);
+
+  if (tenantId !== prevTenantId) {
+    setPrevTenantId(tenantId);
+    setConfig(null);
+    setLoading(!!tenantId);
+  }
 
   useEffect(() => {
     if (!tenantId) {
-      setLoading(false);
       return;
     }
-    setLoading(true);
+    let active = true;
     getTenantConfig(tenantId)
       .then(data => {
+        if (!active) return;
         setConfig(data);
         if (data.default_language) {
           i18n.changeLanguage(data.default_language);
@@ -37,9 +44,13 @@ export const DashboardView: React.FC = () => {
         setLoading(false);
       })
       .catch(err => {
+        if (!active) return;
         console.error('Failed to load tenant config for dashboard:', err);
         setLoading(false);
       });
+    return () => {
+      active = false;
+    };
   }, [tenantId, i18n]);
 
   useEffect(() => {

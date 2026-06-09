@@ -1,5 +1,7 @@
 import styled from 'styled-components';
+import React from 'react';
 import { Card, FormControl, TextField, Button, Typography, Box, Checkbox, FormControlLabel } from '@mui/material';
+import type { TextFieldProps } from '@mui/material';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 
 export const StyledCard = styled(Card)`
@@ -56,7 +58,7 @@ export const StyledFormControl = styled(FormControl)`
   }
 `;
 
-export const StyledTextField = styled(TextField)`
+const StyledTextFieldComponent = styled(TextField)`
   width: 100%;
 
   & .MuiOutlinedInput-root {
@@ -90,6 +92,8 @@ export const StyledTextField = styled(TextField)`
     margin-left: 0;
   }
 `;
+
+export const StyledTextField = StyledTextFieldComponent as React.ComponentType<TextFieldProps>;
 
 export const SubmitButton = styled(Button)`
   height: 50px !important;

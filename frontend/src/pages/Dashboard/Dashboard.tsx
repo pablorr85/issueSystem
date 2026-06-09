@@ -38,16 +38,29 @@ export interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [issues, setIssues] = useState<Issue[]>([]);
-  const [totalCount, setTotalCount] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [statusFilter, setStatusFilter] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
+  const [prevParams, setPrevParams] = useState({
+    tenantId: tenant.id,
+    page: currentPage,
+    statusFilter
+  });
+  const [issues, setIssues] = useState<Issue[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  if (
+    tenant.id !== prevParams.tenantId ||
+    currentPage !== prevParams.page ||
+    statusFilter !== prevParams.statusFilter
+  ) {
+    setPrevParams({ tenantId: tenant.id, page: currentPage, statusFilter });
+    setLoading(true);
+  }
 
   // Fetch issues whenever tenant, page, or status filter changes
   useEffect(() => {
     let active = true;
-    setLoading(true);
     
     // Page is 1-indexed for the API pagination
     getIssues(tenant.id, statusFilter || undefined, currentPage)
@@ -119,7 +132,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
   return (
     <DashboardContainer className="animate-fade-in">
       <DashboardHeader>
-        <DashboardTitle variant="h5" component="h2">
+        <DashboardTitle variant="h5" as="h2">
           <DashboardIcon sx={{ color: 'var(--primary)' }} />
           {t('dashboard.title')}
         </DashboardTitle>

@@ -15,7 +15,6 @@ import {
   LogoPlaceholder,
   BrandingTitle,
   BrandingSubtitle,
-  PreContainer,
   BrandingImage,
   RequiredAuthAlert,
   AlertButton,
@@ -28,26 +27,38 @@ export const ReportIssueView: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
+  const [prevTenantId, setPrevTenantId] = useState<string | undefined>(tenant_id);
   const [config, setConfig] = useState<TenantConfig | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(!!tenant_id);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [successOpen, setSuccessOpen] = useState<boolean>(false);
 
+  if (tenant_id !== prevTenantId) {
+    setPrevTenantId(tenant_id);
+    setConfig(null);
+    setLoading(!!tenant_id);
+    setError(null);
+  }
+
   useEffect(() => {
     if (!tenant_id) return;
-    setLoading(true);
-    setError(null);
+    let active = true;
     getTenantConfig(tenant_id)
       .then(data => {
+        if (!active) return;
         setConfig(data);
         setLoading(false);
       })
       .catch(err => {
+        if (!active) return;
         console.error(err);
         setError(t('app.errorTenantNotFound'));
         setLoading(false);
       });
+    return () => {
+      active = false;
+    };
   }, [tenant_id, t]);
 
   useEffect(() => {

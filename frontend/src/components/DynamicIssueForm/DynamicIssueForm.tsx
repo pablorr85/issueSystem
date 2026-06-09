@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { InputLabel, Select, MenuItem } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import type { TenantConfig, IssuePayload } from '../../services/types';
@@ -25,26 +25,31 @@ export interface DynamicIssueFormProps {
   submitting: boolean;
 }
 
+const getInitialExtraData = (tenant: TenantConfig): Record<string, CustomFieldValue> => {
+  const initialExtra: Record<string, CustomFieldValue> = {};
+  (tenant.custom_fields || []).forEach(field => {
+    if (field.field_type === 'boolean') {
+      initialExtra[field.name] = false;
+    } else {
+      initialExtra[field.name] = '';
+    }
+  });
+  return initialExtra;
+};
+
 export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSubmit, submitting }) => {
   const { t } = useTranslation();
+  const [prevTenant, setPrevTenant] = useState<TenantConfig>(tenant);
   const [description, setDescription] = useState<string>('');
   const [photoUrl, setPhotoUrl] = useState<string>('');
-  const [extraData, setExtraData] = useState<Record<string, CustomFieldValue>>({});
+  const [extraData, setExtraData] = useState<Record<string, CustomFieldValue>>(() => getInitialExtraData(tenant));
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Initialize extraData fields based on tenant's CustomFields
-  useEffect(() => {
-    const initialExtra: Record<string, CustomFieldValue> = {};
-    (tenant.custom_fields || []).forEach(field => {
-      if (field.field_type === 'boolean') {
-        initialExtra[field.name] = false;
-      } else {
-        initialExtra[field.name] = '';
-      }
-    });
-    setExtraData(initialExtra);
+  if (tenant !== prevTenant) {
+    setPrevTenant(tenant);
+    setExtraData(getInitialExtraData(tenant));
     setErrors({});
-  }, [tenant]);
+  }
 
   const handleExtraChange = (name: string, value: CustomFieldValue) => {
     setExtraData(prev => ({
@@ -121,7 +126,7 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
 
   return (
     <StyledCard className="animate-fade-in">
-      <FormTitle variant="h5" component="h2">
+      <FormTitle variant="h5" as="h2">
         <TitleIcon />
         {t('dynamicIssueForm.title', { name: tenant.name })}
       </FormTitle>

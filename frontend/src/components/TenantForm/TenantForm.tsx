@@ -22,7 +22,7 @@ export const TenantForm: React.FC<TenantFormProps> = ({ onSubmit, loading, error
 
   return (
     <StyledCard className="animate-fade-in">
-      <FormTitle variant="h5" component="h2">
+      <FormTitle variant="h5" as="h2">
         {t('tenantForm.title')}
       </FormTitle>
       
