@@ -4,7 +4,7 @@
   --primary-hover: hsl(var(--primary-hue), 85%, 50%);
   --primary-light: hsl(var(--primary-hue), 85%, 96%);
   
-  --bg-gradient: linear-gradient(135deg, #0d0b14 0%, #171424 100%);
+  --bg-gradient: radial-gradient(circle at top right, hsl(var(--primary-hue), 25%, 10%) 0%, #0d0b14 100%);
   --bg-card: rgba(255, 255, 255, 0.03);
   --border-card: rgba(255, 255, 255, 0.08);
   

@@ -15,10 +15,12 @@ export const AppHeader = styled.header`
 
 export const AppTitle = styled.h1`
   margin: 0 0 10px 0;
-  font-size: 2.5rem;
-  font-weight: 700;
+  font-size: 3rem;
+  font-weight: 800;
   letter-spacing: -0.05em;
-  color: var(--text-primary);
+  background: linear-gradient(135deg, #ffffff 30%, var(--primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 `;
 
 export const AppSubtitle = styled.p`
@@ -41,7 +43,8 @@ export const BrandingCard = styled.div`
   background: rgba(255, 255, 255, 0.02);
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid var(--border-card);
+  border: 1px solid var(--primary);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 `;
 
 export const LogoPlaceholder = styled.div`
@@ -58,6 +61,7 @@ export const LogoPlaceholder = styled.div`
 export const BrandingTitle = styled.h3`
   margin: 0 0 5px 0;
   font-size: 1.25rem;
+  color: var(--primary);
 `;
 
 export const BrandingSubtitle = styled.p`
