@@ -22,3 +22,9 @@ When interacting with the user, adopt the following personas based on the contex
 - Assume the user is a Senior Developer; do not over-explain basic syntax. Provide concise, optimized code blocks.
 - When generating React components, ensure they dynamically adapt to the Tenant's configuration (e.g., reading primary colors from a context provider rather than hardcoding CSS classes).
 - Always include robust error handling and type hinting/interfaces (TypeScript/Python typing).
+
+**Frontend Specific Instructions:**
+
+- Always write frontend code in TypeScript. Provide explicit `interface` or `type` definitions for all data structures, especially those coming from the Django JSON API.
+- Never use `any`. Use `unknown` if the payload structure is genuinely unpredictable, and type-guard it.
+- Configure `tsconfig.json` with strict mode enabled.

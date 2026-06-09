@@ -1,5 +1,15 @@
 # Architecture & Development Practices
 
+## 🛠 Tech Stack
+
+- **Backend:** Python / Django (REST API)
+- **Database:** PostgreSQL (JSONB)
+- **Frontend:** React (Vite + TypeScript)
+  - **UI Library:** Material-UI (MUI).
+  - **Styling:** `styled-components` (in separate `.styles.ts` files).
+  - **Unit Testing:** Vitest & React Testing Library.
+  - **E2E/Integration Testing:** Cypress.
+
 ## 🏛 Architecture Pattern: Single-DB Multi-Tenancy
 
 The system uses a shared database, shared schema multi-tenant architecture.
@@ -19,3 +29,5 @@ Data isolation is enforced at the application level (Django ORM) rather than the
 - **DRY & SOLID Principles:** Keep the code modular. Reusable components in React, fat models/thin views in Django.
 - **Agile/Scrum Iterations:** Develop in atomic, functional increments. Do not over-engineer features that are not explicitly required by the current Sprint TODO.
 - **English First:** All code, variables, database schemas, docstrings, and commits MUST be in professional technical English. No exceptions.
+- **Strict TypeScript:** All frontend code MUST be written in TypeScript (`.ts` or `.tsx`). The use of `any` is strictly forbidden. Define explicit interfaces for all API payloads and component props.
+- **Frontend Component Structure:** Keep logic and styling strictly separated. Every component must have its own folder containing `index.ts`, `ComponentName.tsx`, and `ComponentName.styles.ts`.
