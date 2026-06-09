@@ -114,3 +114,29 @@ export const FullWidthAlert = styled(Alert)`
   width: 100% !important;
 `;
 
+export const TabContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+`;
+
+export const TabButton = styled.button<{ $active: boolean }>`
+  background: ${({ $active }) => ($active ? 'var(--primary)' : 'rgba(255, 255, 255, 0.03)')};
+  color: ${({ $active }) => ($active ? 'white' : '#a09cb4')};
+  border: 1px solid ${({ $active }) => ($active ? 'var(--primary)' : 'rgba(255, 255, 255, 0.08)')};
+  padding: 10px 24px;
+  border-radius: 9999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  
+  &:hover {
+    background: ${({ $active }) => ($active ? 'var(--primary-hover)' : 'rgba(255, 255, 255, 0.06)')};
+    border-color: ${({ $active }) => ($active ? 'var(--primary-hover)' : 'rgba(255, 255, 255, 0.15)')};
+    color: white;
+  }
+`;
+

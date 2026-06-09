@@ -61,3 +61,24 @@ class IssueSerializer(serializers.ModelSerializer):
         # Remove write_only UUID key and inject resolved object
         validated_data.pop('tenant_id', None)
         return Issue.objects.create(**validated_data)
+
+
+class IssueListSerializer(serializers.ModelSerializer):
+    """
+    Serializer for paginated read-only list of issues, exposing the tenant UUID.
+    """
+    tenant_id = serializers.UUIDField(source='tenant.id', read_only=True)
+
+    class Meta:
+        model = Issue
+        fields = ('id', 'tenant_id', 'status', 'description', 'photo_url', 'extra_data', 'created_at', 'updated_at')
+
+
+class IssueStatusUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer restricting updates exclusively to the status field.
+    """
+    class Meta:
+        model = Issue
+        fields = ('status',)
+

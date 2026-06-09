@@ -3,6 +3,7 @@ import { getTenantConfig, createIssue } from './services/api';
 import type { TenantConfig, IssuePayload } from './services/types';
 import { TenantForm } from './components/TenantForm';
 import { DynamicIssueForm } from './components/DynamicIssueForm';
+import { Dashboard } from './pages/Dashboard';
 import { Snackbar } from '@mui/material';
 import {
   AppContainer,
@@ -21,6 +22,8 @@ import {
   BrandingImage,
   BrandingJSONTitle,
   FullWidthAlert,
+  TabContainer,
+  TabButton,
 } from './App.styles';
 
 function App() {
@@ -30,6 +33,7 @@ function App() {
 
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [successOpen, setSuccessOpen] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<'report' | 'dashboard'>('report');
 
   // Apply dynamic tenant color configuration to root stylesheet variables
   useEffect(() => {
@@ -71,6 +75,7 @@ function App() {
     setLoading(true);
     setError(null);
     setConfig(null);
+    setActiveTab('report');
 
     try {
       const data = await getTenantConfig(uuid);
@@ -110,7 +115,7 @@ function App() {
       <AppHeader className="animate-fade-in">
         <AppTitle>Issue Tracker SaaS</AppTitle>
         <AppSubtitle>
-          Sprint 5: Dynamic Form Engine & Custom Fields
+          Tenant Dashboard & Dynamic Issue Management
         </AppSubtitle>
       </AppHeader>
 
@@ -145,7 +150,28 @@ function App() {
               </div>
             </BrandingSection>
 
-            <DynamicIssueForm tenant={config} onSubmit={handleCreateIssue} submitting={submitting} />
+            <TabContainer>
+              <TabButton
+                $active={activeTab === 'report'}
+                onClick={() => setActiveTab('report')}
+                data-testid="tab-report"
+              >
+                Report Issue
+              </TabButton>
+              <TabButton
+                $active={activeTab === 'dashboard'}
+                onClick={() => setActiveTab('dashboard')}
+                data-testid="tab-dashboard"
+              >
+                Manager Dashboard
+              </TabButton>
+            </TabContainer>
+
+            {activeTab === 'report' ? (
+              <DynamicIssueForm tenant={config} onSubmit={handleCreateIssue} submitting={submitting} />
+            ) : (
+              <Dashboard tenant={config} />
+            )}
           </>
         )}
       </AppMain>

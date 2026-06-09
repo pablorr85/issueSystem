@@ -25,3 +25,22 @@ export interface IssuePayload {
   photo_url?: string;
   extra_data: Record<string, any>;
 }
+
+export interface Issue {
+  id: number;
+  tenant_id: string;
+  status: string;
+  description: string;
+  photo_url?: string;
+  extra_data: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
+

@@ -91,3 +91,29 @@
 - [x] End-users can see a form that perfectly matches the Tenant's database configuration.
 - [x] Submitting the form creates a new `Issue` row in PostgreSQL.
 - [x] The Django Admin panel displays the new `Issue` with the custom fields correctly saved inside the `extra_data` JSONB column.
+
+# SPRINT 6: Tenant Dashboard & Issue Management
+
+## [x] Backend Tasks (Django API)
+
+- [x] **List Endpoint:** Create a `GET` endpoint for issues (e.g., `/api/issues/`). It must accept query parameters to filter by `tenant_id` and `status`.
+- [x] **Pagination:** Implement Django REST Framework pagination on the issue list to ensure performance as the database grows (e.g., 20 items per page).
+- [x] **Update Endpoint:** Create a `PATCH` endpoint (e.g., `/api/issues/<uuid>/status/`) to allow the Tenant Admin to change the status of an issue (e.g., from 'open' to 'in_progress' or 'resolved').
+
+## [x] Frontend Tasks (React + TypeScript + MUI)
+
+- [x] **API Integration:** Add the corresponding Axios calls in `src/services/api.ts` for fetching the paginated issues and updating an issue's status.
+- [x] **Dashboard Layout:** Create a `Dashboard.tsx` view. Use MUI layout components (`Container`, `Grid`, `Typography`) to build a professional B2B interface.
+- [x] **Data Table/List:** Implement a data presentation component (using MUI `Table` or `@mui/x-data-grid`). It should display the standard fields (`status`, `created_at`, `description`) and dynamically flatten/display the key-value pairs from the `extra_data` JSON payload.
+- [x] **Action Handlers:** Add a dropdown or action buttons in the table rows to quickly update the `status` of an issue. Ensure the UI optimistically updates or re-fetches the list upon success.
+
+## [x] Testing Tasks
+
+- [x] **Unit Tests:** Write a test for `Dashboard.tsx` to verify it correctly parses and renders mocked `extra_data` fields.
+- [x] **E2E Tests:** Add a Cypress scenario (`manage_issue.cy.ts`) that visits the dashboard, locates an open issue, changes its status to 'resolved', and asserts the UI reflects the change.
+
+## [x] Acceptance Criteria
+
+- [x] A manager can view a paginated list of all issues for their specific Tenant.
+- [x] The custom fields (e.g., "zona_parque", "urgencia") are clearly visible in the dashboard.
+- [x] The manager can successfully change the status of an issue, and the update persists in the database.
