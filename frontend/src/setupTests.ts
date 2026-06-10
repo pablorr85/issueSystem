@@ -46,6 +46,12 @@ vi.mock('react-i18next', () => ({
         'dashboard.actionOpen': 'open',
         'dashboard.actionInProgress': 'in progress',
         'dashboard.actionResolved': 'resolved',
+        'dashboard.qrTitle': 'Share Public Reporting Form',
+        'dashboard.qrDescription': 'Place this QR code on physical stickers, posters, or equipment around your site. Users can scan the QR code to instantly submit issues to your system without signing in.',
+        'dashboard.copyLink': 'Copy Link',
+        'dashboard.copied': 'Copied!',
+        'dashboard.downloadQR': 'Download QR (PNG)',
+        'dashboard.qrDownloadTaintedWarning': 'The logo image is hosted on an external server that does not allow downloads. The QR code has been downloaded successfully, but without the logo. To include the logo, please upload it to your local server or use a CORS-enabled URL.',
       };
       
       let translation = translations[key] || key;

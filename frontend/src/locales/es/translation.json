@@ -51,7 +51,13 @@
     "loadingIssues": "Cargando incidencias del panel...",
     "noIssuesFiltered": "No se encontraron incidencias bajo estos criterios.",
     "yes": "Sí",
-    "no": "No"
+    "no": "No",
+    "qrTitle": "Compartir Formulario de Reporte Público",
+    "qrDescription": "Coloque este código QR en pegatinas físicas, carteles o equipos en su instalación. Los usuarios pueden escanear el código QR para enviar incidencias instantáneamente al sistema sin iniciar sesión.",
+    "copyLink": "Copiar Enlace",
+    "copied": "¡Copiado!",
+    "downloadQR": "Descargar QR (PNG)",
+    "qrDownloadTaintedWarning": "La imagen del logotipo está alojada en un servidor externo que no permite descargas. El código QR se ha descargado correctamente, pero sin el logotipo. Para incluir el logotipo, súbelo a tu servidor local o utiliza una URL con CORS habilitado."
   },
   "app": {
     "appTitle": "SaaS de Gestión de Incidencias",

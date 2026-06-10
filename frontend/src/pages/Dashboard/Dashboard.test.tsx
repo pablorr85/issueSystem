@@ -146,4 +146,24 @@ describe('Dashboard Page Component', () => {
       expect(screen.getAllByText('in progress')[0]).toBeInTheDocument();
     });
   });
+
+  test('renders Share Public Reporting Form section with copy and download buttons', async () => {
+    vi.mocked(getIssues).mockResolvedValue(mockIssuesResponse);
+
+    render(
+      <MemoryRouter>
+        <Dashboard tenant={mockTenant} />
+      </MemoryRouter>
+    );
+
+    // Verify QR section elements are rendered
+    expect(screen.getByText(/Share Public Reporting Form/i)).toBeInTheDocument();
+    
+    const urlInput = screen.getByTestId('qr-url-input') as HTMLInputElement;
+    expect(urlInput).toBeInTheDocument();
+    expect(urlInput.value).toContain(mockTenant.id);
+
+    expect(screen.getByTestId('copy-qr-link-button')).toBeInTheDocument();
+    expect(screen.getByTestId('download-qr-button')).toBeInTheDocument();
+  });
 });

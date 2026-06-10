@@ -49,7 +49,13 @@
     "loadingIssues": "Loading dashboard issues...",
     "noIssuesFiltered": "No issues reported under these criteria.",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "qrTitle": "Share Public Reporting Form",
+    "qrDescription": "Place this QR code on physical stickers, posters, or equipment around your site. Users can scan the QR code to instantly submit issues to your system without signing in.",
+    "copyLink": "Copy Link",
+    "copied": "Copied!",
+    "downloadQR": "Download QR (PNG)",
+    "qrDownloadTaintedWarning": "The logo image is hosted on an external server that does not allow downloads. The QR code has been downloaded successfully, but without the logo. To include the logo, please upload it to your local server or use a CORS-enabled URL."
   },
   "app": {
     "appTitle": "Issue Tracker SaaS",

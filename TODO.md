@@ -191,3 +191,23 @@
 - Navigating to `/:tenant_id/report` renders only the reporting form, preventing any access to other parts of the application.
 - Navigating to `/dashboard` without an active, valid session automatically redirects the user to `/login`.
 - The root component (`App.tsx`) acts purely as a router, containing no direct UI layout or business logic.
+
+# SPRINT 10: Dynamic QR Code Generator
+
+## [x] Backend Tasks (Django)
+
+- [x] No immediate backend tasks required. The QR code will be generated on the client side. Ensure the frontend environment variables hold the correct base URL for production/localhost.
+
+## [x] Frontend Tasks (React + TypeScript)
+
+- [x] **Dependencies:** Install a QR code generation library (e.g., `npm install qrcode.react`).
+- [x] **UI Integration:** Add a "Generate/Download QR" section within the `DashboardView` or Tenant settings panel.
+- [x] **URL Construction:** Write the logic to dynamically construct the public reporting URL using the current Tenant's ID (e.g., `https://yourdomain.com/${tenant_id}/report`).
+- [x] **QR Rendering:** Render the QR code component on the screen using the constructed URL as its value.
+- [x] **Download Functionality:** Implement a function to convert the rendered QR code canvas into an image file (PNG) and trigger a download so the administrator can print it on stickers.
+
+## [x] Acceptance Criteria
+
+- [x] The administrator can see a QR code that accurately points to their specific public reporting form.
+- [x] The QR code can be successfully downloaded as a standard image file.
+- [x] Scanning the generated QR code with a mobile device correctly routes the user directly to the isolated `ReportIssueView`.
