@@ -6,6 +6,11 @@ from .views import (
     IssueListView,
     IssueStatusUpdateView,
     CustomTokenObtainPairView,
+    OperatorListView,
+    IssueAssignmentView,
+    OperatorTaskView,
+    OperatorHubView,
+    IssueUpdateView,
 )
 
 urlpatterns = [
@@ -15,4 +20,10 @@ urlpatterns = [
     path('issues/', IssueListView.as_view(), name='issue-list'),
     path('issues/create/', IssueCreateView.as_view(), name='issue-create'),
     path('issues/<int:pk>/status/', IssueStatusUpdateView.as_view(), name='issue-status-update'),
+    path('operators/', OperatorListView.as_view(), name='operator-list'),
+    path('issues/<int:pk>/assign/', IssueAssignmentView.as_view(), name='issue-assign'),
+    path('tasks/<uuid:secure_token>/', OperatorTaskView.as_view(), name='operator-task-detail'),
+    path('operator/hub/', OperatorHubView.as_view(), name='operator-hub'),
+    path('issues/<int:pk>/', IssueUpdateView.as_view(), name='issue-detail-update'),
 ]
+

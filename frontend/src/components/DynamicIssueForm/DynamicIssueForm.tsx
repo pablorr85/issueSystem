@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { InputLabel, Select, MenuItem } from '@mui/material';
+import React, { useState, useRef, useEffect } from 'react';
+import { InputLabel, Select, MenuItem, Typography, CircularProgress } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import DeleteIcon from '@mui/icons-material/Delete';
 import type { TenantConfig, IssuePayload } from '../../services/types';
 import {
   StyledCard,
@@ -14,7 +16,12 @@ import {
   SectionSubtitle,
   StyledCheckbox,
   StyledFormControlLabel,
-  StyledErrorText
+  StyledErrorText,
+  UploadZone,
+  UploadIcon,
+  PreviewContainer,
+  PreviewImage,
+  RemoveButton
 } from './DynamicIssueForm.styles';
 
 type CustomFieldValue = string | number | boolean;
@@ -41,14 +48,75 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
   const { t } = useTranslation();
   const [prevTenant, setPrevTenant] = useState<TenantConfig>(tenant);
   const [description, setDescription] = useState<string>('');
-  const [photoUrl, setPhotoUrl] = useState<string>('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isDragActive, setIsDragActive] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [extraData, setExtraData] = useState<Record<string, CustomFieldValue>>(() => getInitialExtraData(tenant));
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
+  const handleFileChange = (file: File | null) => {
+    if (file) {
+      setImageFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+    } else {
+      setImageFile(null);
+      setImagePreview(null);
+    }
+  };
+
+  const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFileChange(e.target.files[0]);
+    }
+  };
+
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragActive(true);
+  };
+
+  const onDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragActive(false);
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileChange(e.dataTransfer.files[0]);
+    }
+  };
+
+  const onZoneClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const removeSelectedImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   if (tenant !== prevTenant) {
     setPrevTenant(tenant);
     setExtraData(getInitialExtraData(tenant));
     setErrors({});
+    setImageFile(null);
+    setImagePreview(null);
   }
 
   const handleExtraChange = (name: string, value: CustomFieldValue) => {
@@ -104,14 +172,15 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
     const payload: IssuePayload = {
       tenant_id: tenant.id,
       description: description.trim(),
-      photo_url: photoUrl.trim() || undefined,
+      image: imageFile,
       extra_data: processedExtra
     };
 
     onSubmit(payload).then(() => {
       // Reset form on success
       setDescription('');
-      setPhotoUrl('');
+      setImageFile(null);
+      setImagePreview(null);
       const resetExtra: Record<string, CustomFieldValue> = {};
       (tenant.custom_fields || []).forEach(field => {
         if (field.field_type === 'boolean') {
@@ -155,14 +224,48 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
           required
         />
 
-        {/* Photo URL */}
-        <StyledTextField
-          label={t('dynamicIssueForm.photoLabel')}
-          variant="outlined"
-          value={photoUrl}
-          onChange={(e) => setPhotoUrl(e.target.value)}
-          disabled={submitting}
-        />
+        {/* File input and upload zone with preview */}
+        <div>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={onFileSelect}
+            accept="image/*"
+            style={{ display: 'none' }}
+            data-testid="file-input"
+          />
+          
+          {!imagePreview ? (
+            <UploadZone
+              $isDragActive={isDragActive}
+              onDragOver={onDragOver}
+              onDragLeave={onDragLeave}
+              onDrop={onDrop}
+              onClick={onZoneClick}
+              data-testid="upload-zone"
+            >
+              <UploadIcon>
+                <CloudUploadIcon />
+              </UploadIcon>
+              <Typography variant="body1" sx={{ color: 'white', fontWeight: 500 }}>
+                {t('dynamicIssueForm.dragDropText', 'Drag and drop an image here, or click to browse')}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#a09cb4' }}>
+                {t('dynamicIssueForm.fileSizeLimit', 'Supports PNG, JPG, GIF up to 5MB')}
+              </Typography>
+            </UploadZone>
+          ) : (
+            <PreviewContainer data-testid="preview-container">
+              <PreviewImage src={imagePreview} alt="Selected preview" />
+              <RemoveButton
+                onClick={removeSelectedImage}
+                data-testid="remove-image-button"
+              >
+                <DeleteIcon />
+              </RemoveButton>
+            </PreviewContainer>
+          )}
+        </div>
 
         {/* Dynamic Fields */}
         {(tenant.custom_fields || []).length > 0 && (
@@ -241,7 +344,14 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
           variant="contained"
           disabled={submitting}
         >
-          {submitting ? t('dynamicIssueForm.submitting') : t('dynamicIssueForm.button')}
+          {submitting ? (
+            <>
+              <CircularProgress size={20} color="inherit" style={{ marginRight: '8px' }} />
+              {t('dynamicIssueForm.submitting')}
+            </>
+          ) : (
+            t('dynamicIssueForm.button')
+          )}
         </SubmitButton>
       </FormContainer>
     </StyledCard>

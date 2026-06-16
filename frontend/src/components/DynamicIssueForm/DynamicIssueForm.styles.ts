@@ -157,3 +157,90 @@ export const StyledErrorText = styled.p`
   margin: 4px 0 0 0 !important;
 `;
 
+export const UploadZone = styled.div<{ $isDragActive?: boolean }>`
+  border: 2px dashed ${props => props.$isDragActive ? 'var(--primary)' : 'rgba(255, 255, 255, 0.15)'};
+  background: ${props => props.$isDragActive ? 'rgba(var(--primary-hue), 85%, 60%, 0.08)' : 'rgba(255, 255, 255, 0.02)'};
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+
+  &:hover {
+    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.04);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
+export const UploadIcon = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  color: #a09cb4;
+  transition: color 0.3s;
+
+  ${UploadZone}:hover & {
+    color: var(--primary);
+  }
+`;
+
+export const PreviewContainer = styled.div`
+  position: relative;
+  margin-top: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  max-width: 100%;
+  aspect-ratio: 16/9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  animation: fadeIn 0.3s ease forwards;
+`;
+
+export const PreviewImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+`;
+
+export const RemoveButton = styled(Button)`
+  position: absolute !important;
+  top: 10px !important;
+  right: 10px !important;
+  background: rgba(0, 0, 0, 0.6) !important;
+  color: white !important;
+  min-width: unset !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  backdrop-filter: blur(4px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  
+  &:hover {
+    background: rgba(255, 0, 0, 0.8) !important;
+    border-color: rgba(255, 0, 0, 1) !important;
+  }
+`;
+
+

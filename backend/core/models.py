@@ -84,6 +84,12 @@ class Issue(models.Model):
     """
     The core entity representing a reported maintenance or repair problem.
     """
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('in_progress', 'In Progress'),
+        ('resolved', 'Resolved'),
+    ]
+
     tenant: Tenant = models.ForeignKey(
         Tenant,
         on_delete=models.CASCADE,
@@ -93,8 +99,9 @@ class Issue(models.Model):
     )
     status: str = models.CharField(
         max_length=50,
-        default='open',
-        help_text="Status of the issue (e.g. open, in_progress, resolved)."
+        default='pending',
+        choices=STATUS_CHOICES,
+        help_text="Status of the issue (e.g. pending, in_progress, resolved)."
     )
     description: str = models.TextField(
         help_text="Detailed description of the issue."
@@ -105,16 +112,44 @@ class Issue(models.Model):
         null=True,
         help_text="Optional link to a uploaded photo showing the issue."
     )
+    image = models.ImageField(
+        upload_to='issues/',
+        blank=True,
+        null=True,
+        help_text="Uploaded photo evidence of the issue."
+    )
     extra_data: Dict[str, Any] = models.JSONField(
         default=dict,
         blank=True,
         help_text="Tenant-specific dynamic key-value fields."
     )
+    assigned_to = models.ForeignKey(
+        'User',
+        on_delete=models.SET_NULL,
+        related_name='assigned_issues',
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Employee user (operator) assigned to resolve this issue."
+    )
+    secure_token = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        null=True,
+        blank=True,
+        help_text="Secure passwordless lookup token for operators."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        if not self.secure_token:
+            self.secure_token = uuid.uuid4()
+        super().save(*args, **kwargs)
+
     def __str__(self) -> str:
         return f"Issue #{self.id} ({self.tenant.name}) - {self.status}"
+
 
 
 class User(AbstractUser):
@@ -136,4 +171,32 @@ class User(AbstractUser):
         if self.tenant:
             return f"{self.username} ({self.tenant.name})"
         return self.username
+
+
+class OperatorProfile(models.Model):
+    """
+    Profile for an operator, linked to a custom User, containing their contact details.
+    """
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='operator_profile',
+        help_text="User associated with this operator profile."
+    )
+    phone_number = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        help_text="Phone number for notification/integration (e.g. WhatsApp)."
+    )
+    hub_token = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        help_text="Unique UUID token for passwordless operator dashboard access."
+    )
+
+    def __str__(self) -> str:
+        return f"Operator Profile for {self.user.username}"
+
 

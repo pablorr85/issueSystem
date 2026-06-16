@@ -2,13 +2,16 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { Dashboard } from './Dashboard';
-import { getIssues, updateIssueStatus } from '../../services/api';
+import { getIssues, getOperators, assignIssue } from '../../services/api';
 import type { TenantConfig, PaginatedResponse, Issue } from '../../services/types';
 
 // Mock the API helpers
 vi.mock('../../services/api', () => ({
   getIssues: vi.fn(),
-  updateIssueStatus: vi.fn()
+  getOperators: vi.fn(),
+  assignIssue: vi.fn(),
+  updateIssueStatus: vi.fn(),
+  updateIssue: vi.fn()
 }));
 
 const mockTenant: TenantConfig = {
@@ -34,6 +37,11 @@ const mockTenant: TenantConfig = {
   ]
 };
 
+const mockOperators = [
+  { id: 10, username: 'operator1', email: 'op1@example.com', phone_number: '+123' },
+  { id: 11, username: 'operator2', email: 'op2@example.com', phone_number: '+456' }
+];
+
 const mockIssuesResponse: PaginatedResponse<Issue> = {
   count: 1,
   next: null,
@@ -42,12 +50,15 @@ const mockIssuesResponse: PaginatedResponse<Issue> = {
     {
       id: 101,
       tenant_id: 'f818979b-2ea0-43cb-8dd1-7c1729ee1fea',
-      status: 'open',
+      status: 'pending',
       description: 'Broken handrail near marine pool',
       extra_data: {
         zona_parque: 'Zona Marina',
         urgencia: 'Media'
       },
+      assigned_to: 10,
+      assigned_to_name: 'operator1',
+      secure_token: '12345678-1234-1234-1234-123456789012',
       created_at: '2026-06-09T12:00:00Z',
       updated_at: '2026-06-09T12:00:00Z'
     }
@@ -57,6 +68,7 @@ const mockIssuesResponse: PaginatedResponse<Issue> = {
 describe('Dashboard Page Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(getOperators).mockResolvedValue(mockOperators);
   });
 
   test('renders header title and dynamically maps custom fields columns', async () => {
@@ -86,7 +98,7 @@ describe('Dashboard Page Component', () => {
 
     // Standard fields verify
     expect(screen.getByText('101')).toBeInTheDocument(); // ID cell
-    expect(screen.getAllByText('open')[0]).toBeInTheDocument(); // Status badge
+    expect(screen.getAllByText('Pending')[0]).toBeInTheDocument(); // Status badge
   });
 
   test('filters list when status filter selection is changed', async () => {
@@ -115,11 +127,12 @@ describe('Dashboard Page Component', () => {
     });
   });
 
-  test('calls updateIssueStatus API and updates UI optimistically on status change', async () => {
+  test('calls assignIssue API and updates UI optimistically on operator assignment change', async () => {
     vi.mocked(getIssues).mockResolvedValue(mockIssuesResponse);
-    vi.mocked(updateIssueStatus).mockResolvedValue({
+    vi.mocked(assignIssue).mockResolvedValue({
       ...mockIssuesResponse.results[0],
-      status: 'in_progress'
+      assigned_to: 11,
+      assigned_to_name: 'operator2'
     });
 
     render(
@@ -130,20 +143,21 @@ describe('Dashboard Page Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Broken handrail near marine pool')).toBeInTheDocument();
+      expect(screen.getByText('operator1')).toBeInTheDocument();
     });
 
     // Find row action select dropdown
-    const actionSelect = screen.getByTestId('action-status-select-101');
+    const actionSelect = screen.getByTestId('action-assign-select-101');
     
-    // Change value from 'open' to 'in_progress'
-    fireEvent.change(actionSelect, { target: { value: 'in_progress' } });
+    // Change assigned operator to operator2 (value 11)
+    fireEvent.change(actionSelect, { target: { value: '11' } });
 
     // API callback verification
-    expect(updateIssueStatus).toHaveBeenCalledWith(101, 'in_progress');
+    expect(assignIssue).toHaveBeenCalledWith(101, 11);
 
     // UI optimistic status rendering check
     await waitFor(() => {
-      expect(screen.getAllByText('in progress')[0]).toBeInTheDocument();
+      expect(actionSelect).toHaveValue('11');
     });
   });
 
@@ -165,5 +179,56 @@ describe('Dashboard Page Component', () => {
 
     expect(screen.getByTestId('copy-qr-link-button')).toBeInTheDocument();
     expect(screen.getByTestId('download-qr-button')).toBeInTheDocument();
+  });
+
+  test('opens EditIssueModal on click of issue ID and updates issue description', async () => {
+    const { updateIssue } = await import('../../services/api');
+    vi.mocked(getIssues).mockResolvedValue(mockIssuesResponse);
+    vi.mocked(updateIssue).mockResolvedValue({
+      ...mockIssuesResponse.results[0],
+      description: 'Updated leaky faucet description'
+    });
+
+    render(
+      <MemoryRouter>
+        <Dashboard tenant={mockTenant} />
+      </MemoryRouter>
+    );
+
+    // Wait for initial issues to load
+    await waitFor(() => {
+      expect(screen.getByText('Broken handrail near marine pool')).toBeInTheDocument();
+    });
+
+    // Click on the ID cell to edit the issue
+    const idCell = screen.getByTestId('edit-issue-id-101');
+    fireEvent.click(idCell);
+
+    // Modal should render
+    expect(screen.getByText(/Edit Issue/i)).toBeInTheDocument();
+
+    // Verify description field is prefilled
+    const descInput = screen.getByTestId('edit-description-input') as HTMLTextAreaElement;
+    expect(descInput.value).toBe('Broken handrail near marine pool');
+
+    // Change description
+    fireEvent.change(descInput, { target: { value: 'Updated leaky faucet description' } });
+
+    // Click save changes
+    const saveButton = screen.getByTestId('save-edit-btn');
+    fireEvent.click(saveButton);
+
+    // Verify API is called with updated details
+    await waitFor(() => {
+      expect(updateIssue).toHaveBeenCalledWith(101, expect.objectContaining({
+        description: 'Updated leaky faucet description'
+      }));
+    });
+
+    // Verify Dashboard shows updated description
+    await waitFor(() => {
+      expect(screen.getByText('Updated leaky faucet description')).toBeInTheDocument();
+      expect(screen.queryByText('Broken handrail near marine pool')).not.toBeInTheDocument();
+    });
   });
 });

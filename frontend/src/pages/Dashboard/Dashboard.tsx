@@ -7,10 +7,12 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DownloadIcon from '@mui/icons-material/Download';
 import CheckIcon from '@mui/icons-material/Check';
 import QrCodeIcon from '@mui/icons-material/QrCode';
+import LaunchIcon from '@mui/icons-material/Launch';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
-import { getIssues, updateIssueStatus } from '../../services/api';
-import type { TenantConfig, Issue } from '../../services/types';
+import { getIssues, getOperators, assignIssue } from '../../services/api';
+import type { TenantConfig, Issue, Operator } from '../../services/types';
+import { EditIssueModal } from '../../components/EditIssueModal/EditIssueModal';
 import {
   DashboardContainer,
   DashboardHeader,
@@ -60,9 +62,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
     statusFilter
   });
   const [issues, setIssues] = useState<Issue[]>([]);
+  const [operators, setOperators] = useState<Operator[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [copied, setCopied] = useState<boolean>(false);
+  const [editingIssue, setEditingIssue] = useState<Issue | null>(null);
   const reportingUrl = `${window.location.origin}/${tenant.id}/report`;
 
   const copyToClipboard = async () => {
@@ -109,6 +113,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
     setLoading(true);
   }
 
+  // Fetch operators on mount/tenant change
+  useEffect(() => {
+    getOperators()
+      .then(res => setOperators(res))
+      .catch(err => console.error('Failed to fetch operators:', err));
+  }, [tenant.id]);
+
   // Fetch issues whenever tenant, page, or status filter changes
   useEffect(() => {
     let active = true;
@@ -140,23 +151,36 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
     setCurrentPage(1);
   };
 
-  const handleStatusChange = (issueId: number, newStatus: string) => {
-    // Store original list to revert in case of failure
+  const handleAssignOperator = (issueId: number, operatorIdVal: number | string) => {
+    const operatorId = operatorIdVal === '' ? null : Number(operatorIdVal);
     const originalIssues = [...issues];
 
     // Optimistic UI Update
     setIssues(prev =>
       prev.map(issue =>
-        issue.id === issueId ? { ...issue, status: newStatus } : issue
+        issue.id === issueId
+          ? {
+              ...issue,
+              assigned_to: operatorId,
+              assigned_to_name: operatorId
+                ? operators.find(op => op.id === operatorId)?.username || ''
+                : '',
+            }
+          : issue
       )
     );
 
-    updateIssueStatus(issueId, newStatus).catch(err => {
-      console.error('Failed to update status:', err);
-      // Revert UI to previous state on error
-      setIssues(originalIssues);
-      alert(t('dashboard.errorUpdate'));
-    });
+    assignIssue(issueId, operatorId)
+      .then(updatedIssue => {
+        setIssues(prev =>
+          prev.map(issue => (issue.id === issueId ? { ...issue, ...updatedIssue } : issue))
+        );
+      })
+      .catch(err => {
+        console.error('Failed to assign operator:', err);
+        setIssues(originalIssues);
+        alert(t('dashboard.errorAssign', 'Failed to assign operator'));
+      });
   };
 
   // Helper to format date
@@ -209,7 +233,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
               inputProps={{ 'data-testid': 'dashboard-status-filter' }}
             >
               <MenuItem value=""><em>{t('dashboard.filterAll')}</em></MenuItem>
-              <MenuItem value="open">{t('dashboard.filterOpen')}</MenuItem>
+              <MenuItem value="pending">{t('dashboard.filterPending')}</MenuItem>
               <MenuItem value="in_progress">{t('dashboard.filterInProgress')}</MenuItem>
               <MenuItem value="resolved">{t('dashboard.filterResolved')}</MenuItem>
             </FilterSelect>
@@ -300,7 +324,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
                 ))}
                 
                 <StyledTableHeadCell>{t('dashboard.tableCreatedAt')}</StyledTableHeadCell>
-                <StyledTableHeadCell align="center">{t('dashboard.tableActions')}</StyledTableHeadCell>
+                <StyledTableHeadCell align="center">{t('dashboard.tableAssignOperator', 'Assign Operator')}</StyledTableHeadCell>
               </StyledTableRow>
             </StyledTableHead>
             <StyledTableBody>
@@ -321,17 +345,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
               ) : (
                 issues.map((issue) => (
                   <StyledTableRow key={issue.id} data-testid={`issue-row-${issue.id}`}>
-                    <StyledTableCell>{issue.id}</StyledTableCell>
+                    <StyledTableCell
+                      onClick={() => setEditingIssue(issue)}
+                      style={{ cursor: 'pointer', fontWeight: 'bold', color: 'var(--primary)' }}
+                      data-testid={`edit-issue-id-${issue.id}`}
+                    >
+                      {issue.id}
+                    </StyledTableCell>
                     <StyledTableCell>
                       <StatusBadge $status={issue.status}>
-                        {issue.status === 'open'
-                          ? t('dashboard.actionOpen')
+                        {issue.status === 'pending'
+                          ? t('dashboard.actionPending', 'Pending')
                           : issue.status === 'in_progress'
                           ? t('dashboard.actionInProgress')
                           : t('dashboard.actionResolved')}
                       </StatusBadge>
                     </StyledTableCell>
-                    <StyledTableCell>{issue.description}</StyledTableCell>
+                    <StyledTableCell
+                      onClick={() => setEditingIssue(issue)}
+                      style={{ cursor: 'pointer' }}
+                      data-testid={`edit-issue-desc-${issue.id}`}
+                    >
+                      {issue.description}
+                    </StyledTableCell>
                     
                     {/* Render the flattened dynamic custom fields values */}
                     {customFields.map(field => {
@@ -356,14 +392,48 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
                     <StyledTableCell>{formatDate(issue.created_at)}</StyledTableCell>
                     <StyledTableCell align="center">
                       <TableSelect
-                        value={issue.status}
-                        onChange={(e) => handleStatusChange(issue.id, e.target.value as string)}
-                        inputProps={{ 'data-testid': `action-status-select-${issue.id}` }}
+                        value={issue.assigned_to !== null && issue.assigned_to !== undefined ? String(issue.assigned_to) : ''}
+                        onChange={(e) => handleAssignOperator(issue.id, e.target.value as string)}
+                        inputProps={{ 'data-testid': `action-assign-select-${issue.id}` }}
+                        displayEmpty
                       >
-                        <MenuItem value="open">{t('dashboard.actionOpen')}</MenuItem>
-                        <MenuItem value="in_progress">{t('dashboard.actionInProgress')}</MenuItem>
-                        <MenuItem value="resolved">{t('dashboard.actionResolved')}</MenuItem>
+                        <MenuItem value="">
+                          <em>{t('dashboard.unassigned', 'Unassigned')}</em>
+                        </MenuItem>
+                        {operators.map((op) => (
+                          <MenuItem key={op.id} value={String(op.id)}>
+                            {op.username}
+                          </MenuItem>
+                        ))}
                       </TableSelect>
+                      {(() => {
+                        const assignedOp = operators.find(op => op.id === issue.assigned_to);
+                        if (assignedOp && assignedOp.hub_token) {
+                          return (
+                            <div style={{ marginTop: 6 }}>
+                              <a
+                                href={`/work/hub?token=${assignedOp.hub_token}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  fontSize: '0.75rem',
+                                  color: 'var(--primary)',
+                                  textDecoration: 'none',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 4,
+                                  fontWeight: 600
+                                }}
+                                data-testid={`operator-hub-link-${issue.id}`}
+                              >
+                                <LaunchIcon sx={{ fontSize: '0.85rem' }} />
+                                {t('operatorHub.viewTask', 'View Workload')}
+                              </a>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
                     </StyledTableCell>
                   </StyledTableRow>
                 ))
@@ -401,6 +471,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
           </PaginationFooter>
         )}
       </DashboardCard>
+
+      {editingIssue && (
+        <EditIssueModal
+          open={!!editingIssue}
+          issue={editingIssue}
+          tenant={tenant}
+          operators={operators}
+          onClose={() => setEditingIssue(null)}
+          onSuccess={(updatedIssue) => {
+            setIssues(prev =>
+              prev.map(item => item.id === updatedIssue.id ? updatedIssue : item)
+            );
+            setEditingIssue(null);
+          }}
+        />
+      )}
     </DashboardContainer>
   );
 };

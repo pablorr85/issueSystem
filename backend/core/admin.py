@@ -29,7 +29,7 @@ class IssueAdmin(admin.ModelAdmin):
 
 
 from django.contrib.auth.admin import UserAdmin
-from .models import User
+from .models import User, OperatorProfile
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
@@ -41,4 +41,11 @@ class CustomUserAdmin(UserAdmin):
     )
     list_display = UserAdmin.list_display + ('tenant',)
     list_filter = UserAdmin.list_filter + ('tenant',)
+
+
+@admin.register(OperatorProfile)
+class OperatorProfileAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'phone_number')
+    search_fields = ('user__username', 'phone_number')
+
 

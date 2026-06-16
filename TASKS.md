@@ -88,3 +88,36 @@ class Command(BaseCommand):
 ## [x] Frontend Tasks (React)
 
 - [x] Create Issue Link: Add a button or link inside the Dashboard panel to allow authenticated users to easily navigate to the issue reporting form.
+
+# TASK 2: Migrate Media Storage to Google Cloud Storage (GCS)
+
+## 🎯 Objective
+
+Update the application's media storage backend to use Google Cloud Storage (GCS) instead of AWS S3. This will unify our infrastructure with existing projects, centralize billing, and maintain a clean, backend-agnostic model structure using Django's built-in storage abstraction.
+
+## [x] Backend Tasks (Django)
+
+- [x] **Dependencies Update:** Remove `boto3` from the project if it was previously added. Install the Google Cloud storage extension by running `pip install django-storages[google]`.
+- [x] **Requirements Tracking:** Update the `requirements.txt` file to reflect the new `django-storages` and `google-cloud-storage` dependencies.
+- [x] **Settings Configuration (`settings.py`):** Update the `STORAGES` dictionary (Django 4.2+) to set the `default` backend to `'storages.backends.gcloud.GoogleCloudStorage'`. (If using an older Django version, update `DEFAULT_FILE_STORAGE`).
+- [x] **Environment Variables:** Add the required GCS variables to `settings.py` (e.g., mapping `GS_BUCKET_NAME` to an environment variable).
+- [x] **Authentication:** Ensure the configuration relies on the standard `GOOGLE_APPLICATION_CREDENTIALS` environment variable to locate the service account JSON, keeping secrets out of the codebase.
+- [x] **Model Validation:** Verify that the `ImageField` inside the `Issue` model remains untouched. The field should automatically route file uploads to GCS based solely on the new `settings.py` configuration.
+
+# TASK 3: WhatsApp Service Integration
+
+Please execute the following changes in the Django backend (`core` app):
+
+1. **WhatsApp Service (`core/services/whatsapp.py`):**
+   - [x] Create a new service module to handle Meta's WhatsApp Cloud API.
+   - [x] Implement a function `send_whatsapp_message(to_number, message_text)`.
+   - [x] Use the `requests` library to send a POST request to `https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages`.
+   - [x] Fetch the `WHATSAPP_PHONE_NUMBER_ID` and `WHATSAPP_ACCESS_TOKEN` securely from environment variables / Django settings.
+   - [x] Ensure the payload is formatted correctly for a standard WhatsApp text message and include basic error handling/logging so failed requests don't crash the server.
+
+2. **Notification Trigger Logic:**
+   - [x] Update the Issue assignment flow. You can do this by either updating the relevant REST API View/ViewSet (e.g., the `PATCH` or assign endpoint) OR by creating a Django `post_save` signal in `core/signals.py`.
+   - [x] **Condition:** The trigger should ONLY fire when an `Issue` transitions from having no operator assigned to having an operator assigned.
+   - [x] **Action:** Fetch the assigned operator's phone number.
+   - [x] **Message Formulation:** Construct a notification string that includes the issue description and a placeholder "Magic Link" URL (e.g., `http://localhost:5173/work/task/{issue.id}?token=temp_token`).
+   - [x] Call the `send_whatsapp_message` function asynchronously or safely handle it so it doesn't block the HTTP response to the frontend.

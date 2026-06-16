@@ -50,7 +50,7 @@ describe('DynamicIssueForm Component', () => {
 
     // Standard fields
     expect(screen.getByLabelText(/Problem Description \*/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Photo URL/i)).toBeInTheDocument();
+    expect(screen.getByTestId('upload-zone')).toBeInTheDocument();
 
     // Dynamic fields
     expect(screen.getByLabelText(/Zone \*/i)).toBeInTheDocument();
@@ -116,7 +116,7 @@ describe('DynamicIssueForm Component', () => {
     expect(mockOnSubmit).toHaveBeenCalledWith({
       tenant_id: 'f818979b-2ea0-43cb-8dd1-7c1729ee1fea',
       description: 'Water leak in bear enclosure',
-      photo_url: undefined,
+      image: null,
       extra_data: {
         'Zone': 'North Sector',
         'Cage Number': 42,
@@ -124,5 +124,37 @@ describe('DynamicIssueForm Component', () => {
         'Category': 'Maintenance'
       }
     });
+  });
+
+  test('allows selecting and removing a file', async () => {
+    // Mock URL methods
+    const createObjectURLMock = vi.fn().mockReturnValue('mock-object-url');
+    const revokeObjectURLMock = vi.fn();
+    global.URL.createObjectURL = createObjectURLMock;
+    global.URL.revokeObjectURL = revokeObjectURLMock;
+
+    render(
+      <DynamicIssueForm
+        tenant={mockTenant}
+        onSubmit={async () => {}}
+        submitting={false}
+      />
+    );
+
+    const fileInput = screen.getByTestId('file-input');
+    const file = new File(['dummy content'], 'test.png', { type: 'image/png' });
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    // Preview container should appear
+    expect(screen.getByTestId('preview-container')).toBeInTheDocument();
+    expect(screen.getByAltText('Selected preview')).toHaveAttribute('src', 'mock-object-url');
+
+    // Remove file
+    const removeButton = screen.getByTestId('remove-image-button');
+    fireEvent.click(removeButton);
+
+    // Upload zone should appear back
+    expect(screen.getByTestId('upload-zone')).toBeInTheDocument();
   });
 });

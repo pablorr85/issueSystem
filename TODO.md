@@ -211,3 +211,80 @@
 - [x] The administrator can see a QR code that accurately points to their specific public reporting form.
 - [x] The QR code can be successfully downloaded as a standard image file.
 - [x] Scanning the generated QR code with a mobile device correctly routes the user directly to the isolated `ReportIssueView`.
+
+# SPRINT 11: Operator Assignment & Task Workflow
+
+## [x] Backend Tasks (Django)
+
+- [x] **Operator Profile Model:** Create an `OperatorProfile` model in `core/models.py` linked to the Django `User` model, including a `phone_number` field for WhatsApp integration.
+- [x] **Issue Model Update:** Add an `assigned_to` field (ForeignKey to `User`/`OperatorProfile`, nullable) and a `status` field (`choices=[('pending', 'Pending'), ('in_progress', 'In Progress'), ('resolved', 'Resolved')]`, default='pending') to the `Issue` model.
+- [x] **Assignment API Endpoint:** Create or update a REST endpoint (e.g., `PATCH /api/issues/<uuid>/assign/`) to allow administrators to assign an operator and update the issue status.
+- [x] **Operator Task Endpoint:** Implement a secure, tokenized endpoint (or standard authenticated view) to fetch details for a specific assigned task without requiring a full password login if a valid secure token is provided.
+
+## [x] Frontend Tasks (React + TypeScript)
+
+- [x] **Admin Assignment UI:** Add an "Assign Operator" dropdown menu inside the `DashboardView` issue detail panel, populated with available operators fetched from the backend.
+- [x] **Status Badges:** Update the issue table/list in the dashboard to display the current status (`Pending`, `In Progress`, `Resolved`) and the assigned operator's name.
+- [x] **Operator Mobile View (`/work/task`):** Create a minimal, mobile-first view (`src/views/OperatorTaskView.tsx`) optimized for field workers. It should display the issue description, submitted photos, and a prominent action button to change the status.
+- [x] **Status Update Logic:** Connect the action buttons in the operator view to send status update requests (`in_progress`, `resolved`) back to the Django API.
+
+## [x] Acceptance Criteria
+
+- [x] Administrators can select and assign a specific operator to any pending issue from the main dashboard.
+- [x] The issue status dynamically changes reflecting the progress (e.g., updates to 'In Progress' when the operator accepts it).
+- [x] Operators can access their specific assigned task via a clean, mobile-friendly interface and successfully mark it as resolved.
+- [x] Changing an issue's assignment or status updates the records instantly in the database with proper data integrity.
+
+# SPRINT 12: Media Uploads & WhatsApp Notifications
+
+## [x] Backend Tasks (Django)
+
+- [x] **Storage Configuration:** Install `django-storages` and `boto3` (for AWS S3) or `cloudinary` to handle media files. Configure `settings.py` to route uploaded files securely to the cloud provider.
+- [x] **Issue Model Media Update:** Add an `image` or `evidence` field (`models.ImageField`, nullable) to the `Issue` model.
+- [x] **WhatsApp Service Integration:** Create a dedicated notification service/utility (using Twilio or Meta's official API). Store API keys and credentials securely in environment variables.
+- [x] **Trigger Notification:** Implement a Django signal or utility function so that when an administrator assigns an operator to an issue, an automated WhatsApp message is automatically triggered containing the task details and the secure mobile view link (Magic Link).
+
+## [x] Frontend Tasks (React + TypeScript)
+
+- [x] **Form File Input:** Update `ReportIssueView.tsx` (the public QR form) to include a file input field allowing users to take or upload a photo of the incident.
+- [x] **API Payload Update:** Modify the submission logic in the frontend to use `FormData` instead of a standard JSON payload, enabling the multi-part transfer of both text data and the image file to the Django API.
+- [x] **Operator View Images:** Update `OperatorTaskView.tsx` to safely render the submitted image/evidence if it exists, so the operator can inspect the damage visually before arriving.
+- [x] **Loading & Upload States:** Add visual loading spinners or progress bars in the UI to ensure users know their media is being uploaded during submission.
+
+## [x] Acceptance Criteria
+
+- [x] Public users can successfully attach a photo when reporting an issue from their phone via the QR view.
+- [x] Images are stored securely in cloud storage (AWS S3/Cloudinary) and are referenced via dynamic, absolute URLs in the database.
+- [x] Assigning an issue to an operator sends an instant WhatsApp message to their registered phone number.
+- [x] The WhatsApp notification contains a functional, secure link that opens the operator's mobile view directly, showing both the description and the uploaded photo.
+
+# SPRINT 13: Operator Hub & Localized Dual-Link Notifications
+
+## 🎯 Objective
+
+Implement a centralized, passwordless task dashboard (Operator Hub) for field workers using persistent secure tokens. Update the WhatsApp notification system to dispatch messages strictly in Spanish, utilizing localized templates and providing two distinct navigation links (specific task vs. general hub).
+
+## [x] Backend Tasks (Django)
+
+- [x] **Operator Model Update:** Add a `hub_token` field (`models.UUIDField`, default=`uuid.uuid4`, unique=True) to the `OperatorProfile` model in `core/models.py` to act as a permanent secure access key for their dashboard.
+- [x] **Hub API Endpoint:** Create a secure REST endpoint (e.g., `GET /api/operator/hub/`) that accepts the `hub_token` as a query parameter and returns a list of all active issues assigned to that specific operator.
+- [x] **Localized Message Templates:** Define the notification string templates in Spanish within the backend service, ensuring all text aligns with the application's default localization strategy.
+- [x] **Dual-Link Payload Construction:** Update the notification trigger logic to dynamically generate two separate URLs:
+  1. Specific Task Link: `http://localhost:5173/work/task/<issue_id>?token=<dynamic_task_token>`
+  2. General Hub Link: `http://localhost:5173/work/hub?token=<operator_hub_token>`
+- [x] **WhatsApp Dispatch Update:** Update the payload sent to Meta's Cloud API so the single WhatsApp message combines both links cleanly in the Spanish message body.
+
+## [x] Frontend Tasks (React + TypeScript)
+
+- [x] **Translation Files Update:** Add the new UI keys for the operator dashboard and notifications into `src/locales/es/translation.json` and `src/locales/en/translation.json` to keep all text decoupled.
+- [x] **Operator Hub View (`/work/hub`):** Create a new mobile-first component `src/views/OperatorHubView.tsx`.
+- [x] **Hub Data Fetching:** Implement logic in `OperatorHubView` to parse the `token` parameter from the URL, call the `api/operator/hub/` endpoint, and handle loading or unauthorized states if the token is invalid.
+- [x] **Task List Layout:** Design a clean, high-contrast list view within the Hub showing all assigned jobs grouped or sorted by urgency level (`Critical`, `High`, etc.).
+- [x] **Navigation Links:** Ensure each task item in the Hub list links directly to its corresponding individual `OperatorTaskView`.
+
+## [x] Acceptance Criteria
+
+- [x] High-priority automated WhatsApp notifications are generated and delivered strictly in Spanish.
+- [x] The dispatch message contains two fully operational links: one for immediate access to the reported incident and another pointing to the operator's total pending workload.
+- [x] Navigating to `/work/hub?token=<valid_uuid>` successfully retrieves and displays all tasks matching that operator profile without requiring an email or password login.
+- [x] Invalid or missing hub tokens securely reject access to the backend data and show an error view.
