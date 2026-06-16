@@ -45,3 +45,8 @@ frontend/dist/
 .vscode/
 .idea/
 .DS_Store
+
+# Environment variables
+.env
+*.env
+
