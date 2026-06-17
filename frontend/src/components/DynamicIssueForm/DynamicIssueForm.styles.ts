@@ -243,4 +243,13 @@ export const RemoveButton = styled(Button)`
   }
 `;
 
+export const UploadText = styled(Typography)`
+  color: white !important;
+  font-weight: 500 !important;
+`;
+
+export const UploadCaption = styled(Typography)`
+  color: #a09cb4 !important;
+`;
+
 

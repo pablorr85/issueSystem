@@ -288,3 +288,20 @@ Implement a centralized, passwordless task dashboard (Operator Hub) for field wo
 - [x] The dispatch message contains two fully operational links: one for immediate access to the reported incident and another pointing to the operator's total pending workload.
 - [x] Navigating to `/work/hub?token=<valid_uuid>` successfully retrieves and displays all tasks matching that operator profile without requiring an email or password login.
 - [x] Invalid or missing hub tokens securely reject access to the backend data and show an error view.
+
+# SPRINT 12.5: Image Uploads (Frontend) & UX Quick Wins
+
+## 🎯 Objective
+
+Connect the React frontend to the new Google Cloud Storage backend to allow mobile photo uploads. Apply quick UX/UI fixes reported by park management to improve the dashboard experience.
+
+## [ ] Frontend Tasks: Media Uploads (React)
+
+- [ ] **Mobile Camera Integration:** Update the `ReportIssueView.tsx` form. Ensure the file input includes `accept="image/*" capture="environment"` so mobile phones natively open the camera when tapped.
+- [ ] **FormData Submission:** Refactor the API call in `ReportIssueView.tsx` to use `FormData` instead of a JSON payload, allowing the image file and text data to be sent together to Django.
+- [ ] **Edit Form Consistency:** Add the same `FormData` logic and file input to the Issue Edit modal/page in the Dashboard, so managers can also upload or replace photos after the issue is created.
+
+## [ ] Frontend Tasks: UX/UI Quick Wins
+
+- [ ] **Fix Status Badge Overflow:** Inspect the `span` showing the issue status in `DashboardView.tsx`. Apply CSS fixes (e.g., `text-overflow: ellipsis`, `white-space: nowrap`, or flexbox adjustments) to ensure long status names don't break the layout.
+- [ ] **Critical Urgency Highlighting:** Update the urgency rendering logic in the Dashboard table. If `urgency === 'critical'`, apply a prominent red styling (background/text) to immediately draw the manager's attention.

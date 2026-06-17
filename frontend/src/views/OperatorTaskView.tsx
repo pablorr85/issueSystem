@@ -1,259 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import styled from 'styled-components';
-import { Card, Typography, Button, CircularProgress, Alert } from '@mui/material';
-import BuildCircleIcon from '@mui/icons-material/BuildCircle';
+import { CircularProgress, Alert } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import CheckIcon from '@mui/icons-material/Check';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import WarningIcon from '@mui/icons-material/Warning';
+import ErrorIcon from '@mui/icons-material/Error';
 import InfoIcon from '@mui/icons-material/Info';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { getOperatorTask, updateOperatorTaskStatus } from '../services/api';
 import type { OperatorTask } from '../services/types';
-
-const Container = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 16px;
-  min-height: 100vh;
-  width: 100%;
-`;
-
-const MobileCard = styled(Card)`
-  width: 100%;
-  max-width: 500px;
-  background: rgba(255, 255, 255, 0.03) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: 24px !important;
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4) !important;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-top: 16px;
-  animation: fadeIn 0.5s ease forwards;
-`;
-
-const BrandHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 16px;
-`;
-
-const LogoImage = styled.img`
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-`;
-
-const LogoPlaceholder = styled.div`
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: var(--primary);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 20px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-`;
-
-const TenantName = styled(Typography)`
-  font-weight: 700 !important;
-  color: white !important;
-  font-size: 1.2rem !important;
-`;
-
-const Subtitle = styled(Typography)`
-  color: #a09cb4 !important;
-  font-size: 0.85rem !important;
-`;
-
-const TaskTitleRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const TaskId = styled(Typography)`
-  font-weight: 700 !important;
-  color: white !important;
-  font-size: 1.4rem !important;
-`;
-
-interface StatusPillProps {
-  $status: string;
-}
-
-const StatusPill = styled.div<StatusPillProps>`
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  
-  ${({ $status }) => {
-    switch ($status) {
-      case 'pending':
-        return `
-          background: rgba(255, 179, 0, 0.15);
-          color: #ffb300;
-          border: 1px solid rgba(255, 179, 0, 0.3);
-        `;
-      case 'in_progress':
-        return `
-          background: rgba(33, 150, 243, 0.15);
-          color: #2196f3;
-          border: 1px solid rgba(33, 150, 243, 0.3);
-        `;
-      case 'resolved':
-        return `
-          background: rgba(76, 175, 80, 0.15);
-          color: #4caf50;
-          border: 1px solid rgba(76, 175, 80, 0.3);
-        `;
-      default:
-        return `
-          background: rgba(255, 255, 255, 0.1);
-          color: white;
-          border: 1px solid rgba(255, 255, 255, 0.2);
-        `;
-    }
-  }}
-`;
-
-const SectionTitle = styled(Typography)`
-  font-weight: 600 !important;
-  color: #a09cb4 !important;
-  font-size: 0.9rem !important;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 6px !important;
-`;
-
-const DescriptionBox = styled.div`
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 14px;
-  padding: 16px;
-  color: white;
-  font-size: 1rem;
-  line-height: 1.5;
-  white-space: pre-wrap;
-`;
-
-const TaskPhoto = styled.img`
-  width: 100%;
-  max-height: 240px;
-  border-radius: 14px;
-  object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  margin-top: 8px;
-  transition: transform 0.3s ease;
-  
-  &:hover {
-    transform: scale(1.02);
-  }
-`;
-
-const MetadataGrid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 8px;
-`;
-
-const MetadataItem = styled.div`
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 12px;
-  padding: 10px 12px;
-`;
-
-const MetadataLabel = styled(Typography)`
-  color: #6b6780 !important;
-  font-size: 0.75rem !important;
-  text-transform: uppercase;
-  font-weight: 600 !important;
-`;
-
-const MetadataValue = styled(Typography)`
-  color: white !important;
-  font-size: 0.9rem !important;
-  font-weight: 500 !important;
-  margin-top: 2px !important;
-`;
-
-const ActionArea = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: 20px;
-`;
-
-const ActionButton = styled(Button)`
-  font-family: var(--font-sans) !important;
-  font-weight: 600 !important;
-  text-transform: none !important;
-  padding: 12px 24px !important;
-  border-radius: 12px !important;
-  font-size: 1rem !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
-  transition: transform 0.2s, background-color 0.2s !important;
-
-  &:hover {
-    transform: translateY(-2px);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-`;
-
-const AcceptButton = styled(ActionButton)`
-  background: var(--primary) !important;
-  color: white !important;
-
-  &:hover {
-    background: var(--primary-hover) !important;
-  }
-`;
-
-const ResolveButton = styled(ActionButton)`
-  background: #4caf50 !important;
-  color: white !important;
-
-  &:hover {
-    background: #43a047 !important;
-  }
-`;
-
-const DateRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #6b6780;
-  font-size: 0.8rem;
-  margin-top: 4px;
-`;
+import {
+  Container,
+  MobileCard,
+  BrandHeader,
+  LogoImage,
+  LogoPlaceholder,
+  TenantName,
+  Subtitle,
+  TaskTitleRow,
+  TaskId,
+  StatusPill,
+  SectionTitle,
+  DescriptionBox,
+  TaskPhoto,
+  MetadataGrid,
+  MetadataItem,
+  MetadataLabel,
+  MetadataValue,
+  ActionArea,
+  AcceptButton,
+  ResolveButton,
+  DateRow,
+  HomeButton,
+  BackToHubButton,
+  UrgencyPill
+} from './OperatorTaskView.styles';
 
 const isUUID = (str: string) => {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -266,7 +49,42 @@ export const OperatorTaskView: React.FC = () => {
   const secure_token = (pathToken && isUUID(pathToken))
     ? pathToken
     : (searchParams.get('token') || '');
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+
+  const getUrgencyLevel = (tTask: OperatorTask) => {
+    const extra = tTask.extra_data || {};
+    const key = Object.keys(extra).find(k => k.toLowerCase() === 'urgency' || k.toLowerCase() === 'urgencia');
+    const val = key ? String(extra[key]).toLowerCase() : 'normal';
+
+    if (val.includes('critical') || val.includes('crítica') || val.includes('critica')) {
+      return { key: 'critical', label: t('operatorHub.urgencyCritical', 'Critical') };
+    }
+    if (val.includes('high') || val.includes('alta')) {
+      return { key: 'high', label: t('operatorHub.urgencyHigh', 'High') };
+    }
+    if (val.includes('medium') || val.includes('media')) {
+      return { key: 'medium', label: t('operatorHub.urgencyMedium', 'Medium') };
+    }
+    if (val.includes('low') || val.includes('baja')) {
+      return { key: 'low', label: t('operatorHub.urgencyLow', 'Low') };
+    }
+    return { key: 'normal', label: t('operatorHub.urgencyNone', 'Normal') };
+  };
+
+  const getUrgencyIcon = (levelKey: string) => {
+    switch (levelKey) {
+      case 'critical':
+        return <ErrorIcon style={{ fontSize: '0.9rem' }} />;
+      case 'high':
+        return <WarningIcon style={{ fontSize: '0.9rem' }} />;
+      case 'medium':
+        return <InfoIcon style={{ fontSize: '0.9rem' }} />;
+      case 'low':
+        return <ArrowDownwardIcon style={{ fontSize: '0.9rem' }} />;
+      default:
+        return null;
+    }
+  };
   const navigate = useNavigate();
   const [task, setTask] = useState<OperatorTask | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -367,18 +185,12 @@ export const OperatorTaskView: React.FC = () => {
       <Container style={{ alignItems: 'center' }}>
         <MobileCard>
           <Alert severity="error">{error || t('dashboard.errorUpdateTask')}</Alert>
-          <Button
+          <HomeButton
             variant="outlined"
             onClick={() => navigate('/')}
-            sx={{
-              borderColor: 'rgba(255,255,255,0.1) !important',
-              color: 'white !important',
-              textTransform: 'none !important',
-              borderRadius: '12px !important'
-            }}
           >
             Go to Home
-          </Button>
+          </HomeButton>
         </MobileCard>
       </Container>
     );
@@ -414,13 +226,19 @@ export const OperatorTaskView: React.FC = () => {
 
         <TaskTitleRow>
           <TaskId>Task #{task.id}</TaskId>
-          <StatusPill $status={task.status}>
-            {task.status === 'pending'
-              ? t('dashboard.actionPending', 'Pending')
-              : task.status === 'in_progress'
-              ? t('dashboard.actionInProgress', 'In Progress')
-              : t('dashboard.actionResolved', 'Resolved')}
-          </StatusPill>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <UrgencyPill $level={getUrgencyLevel(task).key}>
+              {getUrgencyIcon(getUrgencyLevel(task).key)}
+              {getUrgencyLevel(task).label}
+            </UrgencyPill>
+            <StatusPill $status={task.status}>
+              {task.status === 'pending'
+                ? t('dashboard.actionPending', 'Pending')
+                : task.status === 'in_progress'
+                ? t('dashboard.actionInProgress', 'In Progress')
+                : t('dashboard.actionResolved', 'Resolved')}
+            </StatusPill>
+          </div>
         </TaskTitleRow>
 
         <div>
@@ -499,25 +317,13 @@ export const OperatorTaskView: React.FC = () => {
                 </Alert>
               )}
               {task.operator_hub_token && (
-                <Button
+                <BackToHubButton
                   variant="text"
                   onClick={() => navigate(`/work/hub?token=${task.operator_hub_token}`)}
-                  sx={{
-                    color: '#a09cb4 !important',
-                    textTransform: 'none !important',
-                    marginTop: '12px !important',
-                    fontWeight: '600 !important',
-                    width: '100%',
-                    borderRadius: '8px !important',
-                    '&:hover': {
-                      color: 'white !important',
-                      background: 'rgba(255,255,255,0.05) !important'
-                    }
-                  }}
                   data-testid="back-to-hub-btn"
                 >
                   {t('operatorHub.backToHub', 'Back to My Workload')}
-                </Button>
+                </BackToHubButton>
               )}
             </>
           )}

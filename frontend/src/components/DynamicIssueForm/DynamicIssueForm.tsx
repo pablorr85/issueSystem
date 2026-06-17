@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { InputLabel, Select, MenuItem, Typography, CircularProgress } from '@mui/material';
+import { InputLabel, Select, MenuItem, CircularProgress } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -21,7 +21,9 @@ import {
   UploadIcon,
   PreviewContainer,
   PreviewImage,
-  RemoveButton
+  RemoveButton,
+  UploadText,
+  UploadCaption
 } from './DynamicIssueForm.styles';
 
 type CustomFieldValue = string | number | boolean;
@@ -231,6 +233,7 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
             ref={fileInputRef}
             onChange={onFileSelect}
             accept="image/*"
+            capture="environment"
             style={{ display: 'none' }}
             data-testid="file-input"
           />
@@ -247,12 +250,12 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
               <UploadIcon>
                 <CloudUploadIcon />
               </UploadIcon>
-              <Typography variant="body1" sx={{ color: 'white', fontWeight: 500 }}>
+              <UploadText variant="body1">
                 {t('dynamicIssueForm.dragDropText', 'Drag and drop an image here, or click to browse')}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#a09cb4' }}>
+              </UploadText>
+              <UploadCaption variant="caption">
                 {t('dynamicIssueForm.fileSizeLimit', 'Supports PNG, JPG, GIF up to 5MB')}
-              </Typography>
+              </UploadCaption>
             </UploadZone>
           ) : (
             <PreviewContainer data-testid="preview-container">

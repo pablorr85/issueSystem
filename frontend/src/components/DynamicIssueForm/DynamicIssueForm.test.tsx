@@ -130,8 +130,8 @@ describe('DynamicIssueForm Component', () => {
     // Mock URL methods
     const createObjectURLMock = vi.fn().mockReturnValue('mock-object-url');
     const revokeObjectURLMock = vi.fn();
-    global.URL.createObjectURL = createObjectURLMock;
-    global.URL.revokeObjectURL = revokeObjectURLMock;
+    window.URL.createObjectURL = createObjectURLMock;
+    window.URL.revokeObjectURL = revokeObjectURLMock;
 
     render(
       <DynamicIssueForm
@@ -156,5 +156,19 @@ describe('DynamicIssueForm Component', () => {
 
     // Upload zone should appear back
     expect(screen.getByTestId('upload-zone')).toBeInTheDocument();
+  });
+
+  test('file input has camera capture attributes for mobile integration', () => {
+    render(
+      <DynamicIssueForm
+        tenant={mockTenant}
+        onSubmit={async () => {}}
+        submitting={false}
+      />
+    );
+
+    const fileInput = screen.getByTestId('file-input');
+    expect(fileInput).toHaveAttribute('accept', 'image/*');
+    expect(fileInput).toHaveAttribute('capture', 'environment');
   });
 });

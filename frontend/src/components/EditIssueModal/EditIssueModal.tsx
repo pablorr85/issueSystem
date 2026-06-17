@@ -1,17 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import styled from 'styled-components';
 import {
-  Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
-  Button,
-  TextField,
   Select,
   MenuItem,
   InputLabel,
-  FormControl,
   CircularProgress,
   Alert,
   Switch,
@@ -19,99 +12,23 @@ import {
   Typography
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { updateIssue } from '../../services/api';
 import type { Issue, Operator, TenantConfig, CustomField } from '../../services/types';
-
-const StyledDialog = styled(Dialog)`
-  .MuiPaper-root {
-    background: rgba(30, 30, 45, 0.85) !important;
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 20px !important;
-    color: white !important;
-    width: 100%;
-    max-width: 550px !important;
-    padding: 10px;
-    box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.5) !important;
-  }
-`;
-
-const StyledDialogTitle = styled(DialogTitle)`
-  font-weight: 700 !important;
-  font-family: var(--font-sans) !important;
-  font-size: 1.3rem !important;
-  color: white !important;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 16px !important;
-`;
-
-const FormContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-top: 20px;
-`;
-
-const StyledTextField = styled(TextField)`
-  & .MuiInputLabel-root {
-    color: #a09cb4 !important;
-  }
-  & .MuiOutlinedInput-root {
-    color: white !important;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 12px;
-    & fieldset {
-      border-color: rgba(255, 255, 255, 0.1);
-    }
-    &:hover fieldset {
-      border-color: var(--primary, HSL(260, 85%, 60%));
-    }
-    &.Mui-focused fieldset {
-      border-color: var(--primary, HSL(260, 85%, 60%));
-    }
-  }
-`;
-
-const StyledFormControl = styled(FormControl)`
-  & .MuiInputLabel-root {
-    color: #a09cb4 !important;
-  }
-  & .MuiOutlinedInput-root {
-    color: white !important;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 12px;
-    & fieldset {
-      border-color: rgba(255, 255, 255, 0.1);
-    }
-    &:hover fieldset {
-      border-color: var(--primary, HSL(260, 85%, 60%));
-    }
-    &.Mui-focused fieldset {
-      border-color: var(--primary, HSL(260, 85%, 60%));
-    }
-  }
-  & .MuiSelect-icon {
-    color: #a09cb4 !important;
-  }
-`;
-
-const StyledDialogActions = styled(DialogActions)`
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: 16px !important;
-  gap: 12px;
-`;
-
-const ActionButton = styled(Button)`
-  font-family: var(--font-sans) !important;
-  font-weight: 600 !important;
-  text-transform: none !important;
-  padding: 10px 20px !important;
-  border-radius: 12px !important;
-`;
+import {
+  StyledDialog,
+  StyledDialogTitle,
+  FormContainer,
+  StyledTextField,
+  StyledFormControl,
+  StyledDialogActions,
+  ActionButton,
+  UploadZone,
+  PreviewContainer,
+  PreviewImage,
+  RemoveButton
+} from './EditIssueModal.styles';
 
 export interface EditIssueModalProps {
   open: boolean;
@@ -140,23 +57,70 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
   // Dynamic fields state
   const [extraData, setExtraData] = useState<Record<string, unknown>>(issue.extra_data || {});
   
+  // Image states
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(issue.image || null);
+  const [imageChanged, setImageChanged] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [saving, setSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Reset state when a new issue is loaded
+  const [prevIssueId, setPrevIssueId] = useState<number>(issue.id);
+
+  if (issue.id !== prevIssueId) {
+    setPrevIssueId(issue.id);
     setDescription(issue.description);
     setStatusVal(issue.status);
     setAssignedTo(issue.assigned_to !== null && issue.assigned_to !== undefined ? String(issue.assigned_to) : '');
     setExtraData(issue.extra_data || {});
+    setImageFile(null);
+    setImagePreview(issue.image || null);
+    setImageChanged(false);
     setError(null);
-  }, [issue]);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview && imagePreview.startsWith('blob:')) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
   const handleDynamicFieldChange = (name: string, value: unknown) => {
     setExtraData(prev => ({
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleFileChange = (file: File | null) => {
+    if (file) {
+      setImageFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+    } else {
+      setImageFile(null);
+      setImagePreview(null);
+    }
+    setImageChanged(true);
+  };
+
+  const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFileChange(e.target.files[0]);
+    }
+  };
+
+  const removeSelectedImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setImageFile(null);
+    setImagePreview(null);
+    setImageChanged(true);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSave = async () => {
@@ -171,12 +135,23 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
     const operatorId = assignedTo === '' ? null : Number(assignedTo);
 
     try {
-      const payload = {
+      const payload: {
+        description: string;
+        status: string;
+        assigned_to: number | null;
+        extra_data: Record<string, unknown>;
+        image?: File | null;
+      } = {
         description,
         status: statusVal,
         assigned_to: operatorId,
         extra_data: extraData
       };
+
+      if (imageChanged) {
+        payload.image = imageFile;
+      }
+
       const updated = await updateIssue(issue.id, payload);
       setSaving(false);
       onSuccess(updated);
@@ -228,9 +203,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
               label={t('dashboard.tableStatus', 'Status')}
               onChange={(e) => setStatusVal(e.target.value as string)}
               disabled={saving}
-              slotProps={{
-                input: { 'data-testid': 'edit-status-select' }
-              }}
+              inputProps={{ 'data-testid': 'edit-status-select' }}
             >
               <MenuItem value="pending">{t('dashboard.filterPending', 'Pending')}</MenuItem>
               <MenuItem value="in_progress">{t('dashboard.filterInProgress', 'In Progress')}</MenuItem>
@@ -248,9 +221,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
               onChange={(e) => setAssignedTo(e.target.value as string)}
               disabled={saving}
               displayEmpty
-              slotProps={{
-                input: { 'data-testid': 'edit-operator-select' }
-              }}
+              inputProps={{ 'data-testid': 'edit-operator-select' }}
             >
               <MenuItem value="">
                 <em>{t('dashboard.unassigned', 'Unassigned')}</em>
@@ -336,6 +307,48 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
               </div>
             </div>
           )}
+
+          {/* Photo/Evidence Upload */}
+          <div>
+            <Typography variant="subtitle2" sx={{ color: '#a09cb4', mb: 1.5, fontWeight: 600, textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '0.5px' }}>
+              {t('dynamicIssueForm.photoLabel', 'Evidence Photo')}
+            </Typography>
+            
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={onFileSelect}
+              accept="image/*"
+              capture="environment"
+              style={{ display: 'none' }}
+              data-testid="edit-file-input"
+            />
+            
+            {!imagePreview ? (
+              <UploadZone
+                onClick={() => fileInputRef.current?.click()}
+                data-testid="edit-upload-zone"
+              >
+                <CloudUploadIcon sx={{ color: 'var(--primary)', fontSize: 32, mb: 1 }} />
+                <Typography variant="body2" sx={{ color: 'white', fontWeight: 500 }}>
+                  {t('dynamicIssueForm.dragDropText', 'Click to upload or capture photo')}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#a09cb4', mt: 0.5 }}>
+                  {t('dynamicIssueForm.fileSizeLimit', 'Supports PNG, JPG, GIF up to 5MB')}
+                </Typography>
+              </UploadZone>
+            ) : (
+              <PreviewContainer data-testid="edit-preview-container">
+                <PreviewImage src={imagePreview} alt="Selected preview" />
+                <RemoveButton
+                  onClick={removeSelectedImage}
+                  data-testid="edit-remove-image-button"
+                >
+                  <DeleteIcon />
+                </RemoveButton>
+              </PreviewContainer>
+            )}
+          </div>
         </FormContainer>
       </DialogContent>
 

@@ -97,8 +97,6 @@ describe('OperatorHubView Component', () => {
   test('navigates to individual OperatorTaskView when card is clicked', async () => {
     vi.mocked(getOperatorHub).mockResolvedValue([mockTasks[1]]); // Critical task only
 
-    let testLocation: any = null;
-
     render(
       <MemoryRouter initialEntries={['/work/hub?token=12345678-1234-1234-1234-123456789012']}>
         <Routes>

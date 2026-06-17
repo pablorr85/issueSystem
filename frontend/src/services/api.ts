@@ -60,9 +60,38 @@ export const updateIssue = async (
     status?: string;
     assigned_to?: number | null;
     extra_data?: Record<string, unknown>;
+    image?: File | null;
   }
 ): Promise<Issue> => {
-  const response = await api.patch<Issue>(`/issues/${id}/`, payload);
+  if (payload.image === undefined) {
+    const response = await api.patch<Issue>(`/issues/${id}/`, payload);
+    return response.data;
+  }
+
+  const formData = new FormData();
+  if (payload.description !== undefined) {
+    formData.append('description', payload.description);
+  }
+  if (payload.status !== undefined) {
+    formData.append('status', payload.status);
+  }
+  if (payload.assigned_to !== undefined) {
+    formData.append('assigned_to', payload.assigned_to !== null ? String(payload.assigned_to) : '');
+  }
+  if (payload.extra_data !== undefined) {
+    formData.append('extra_data', JSON.stringify(payload.extra_data));
+  }
+  if (payload.image !== null) {
+    formData.append('image', payload.image);
+  } else {
+    formData.append('image', '');
+  }
+
+  const response = await api.patch<Issue>(`/issues/${id}/`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
   return response.data;
 };
 

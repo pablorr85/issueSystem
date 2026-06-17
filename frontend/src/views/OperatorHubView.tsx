@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import styled from 'styled-components';
-import { Card, Typography, CircularProgress, Alert, Button } from '@mui/material';
+import { CircularProgress, Alert, Button } from '@mui/material';
 import BuildCircleIcon from '@mui/icons-material/BuildCircle';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import WarningIcon from '@mui/icons-material/Warning';
@@ -11,227 +10,26 @@ import InfoIcon from '@mui/icons-material/Info';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { getOperatorHub } from '../services/api';
 import type { OperatorTask } from '../services/types';
-
-const Container = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 16px;
-  min-height: 100vh;
-  width: 100%;
-`;
-
-const MobileCard = styled(Card)`
-  width: 100%;
-  max-width: 500px;
-  background: rgba(255, 255, 255, 0.03) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: 24px !important;
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4) !important;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-top: 16px;
-  animation: fadeIn 0.5s ease forwards;
-`;
-
-const BrandHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 16px;
-`;
-
-const LogoImage = styled.img`
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-`;
-
-const LogoPlaceholder = styled.div`
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: var(--primary, HSL(260, 85%, 60%));
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 20px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-`;
-
-const TenantName = styled(Typography)`
-  font-weight: 700 !important;
-  color: white !important;
-  font-size: 1.2rem !important;
-`;
-
-const Subtitle = styled(Typography)`
-  color: #a09cb4 !important;
-  font-size: 0.85rem !important;
-`;
-
-const TaskList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-`;
-
-const TaskCard = styled.div`
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  padding: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  transition: transform 0.2s, background-color 0.2s, border-color 0.2s;
-  
-  &:hover {
-    transform: translateY(-2px);
-    background: rgba(255, 255, 255, 0.04);
-    border-color: var(--primary, HSL(260, 85%, 60%));
-  }
-`;
-
-const TaskInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
-  min-width: 0;
-  margin-right: 12px;
-`;
-
-const TaskTitleRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-`;
-
-const TaskId = styled(Typography)`
-  font-weight: 700 !important;
-  color: white !important;
-  font-size: 0.95rem !important;
-`;
-
-const TaskDescription = styled(Typography)`
-  color: #d1cfe0 !important;
-  font-size: 0.9rem !important;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-
-interface PillProps {
-  $level: string;
-}
-
-const UrgencyPill = styled.span<PillProps>`
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  text-transform: uppercase;
-
-  ${({ $level }) => {
-    switch ($level) {
-      case 'critical':
-        return `
-          background: rgba(244, 67, 54, 0.15);
-          color: #ef5350;
-          border: 1px solid rgba(244, 67, 54, 0.3);
-          animation: pulse 2s infinite;
-        `;
-      case 'high':
-        return `
-          background: rgba(255, 152, 0, 0.15);
-          color: #ffb74d;
-          border: 1px solid rgba(255, 152, 0, 0.3);
-        `;
-      case 'medium':
-        return `
-          background: rgba(33, 150, 243, 0.15);
-          color: #64b5f6;
-          border: 1px solid rgba(33, 150, 243, 0.3);
-        `;
-      case 'low':
-        return `
-          background: rgba(76, 175, 80, 0.15);
-          color: #81c784;
-          border: 1px solid rgba(76, 175, 80, 0.3);
-        `;
-      default:
-        return `
-          background: rgba(255, 255, 255, 0.08);
-          color: #e0e0e0;
-          border: 1px solid rgba(255, 255, 255, 0.15);
-        `;
-    }
-  }}
-
-  @keyframes pulse {
-    0% {
-      box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4);
-    }
-    70% {
-      box-shadow: 0 0 0 6px rgba(244, 67, 54, 0);
-    }
-    100% {
-      box-shadow: 0 0 0 0 rgba(244, 67, 54, 0);
-    }
-  }
-`;
-
-const StatusPill = styled.span<{ $status: string }>`
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  
-  ${({ $status }) => {
-    if ($status === 'in_progress') {
-      return `
-        background: rgba(33, 150, 243, 0.12);
-        color: #2196f3;
-        border: 1px solid rgba(33, 150, 243, 0.2);
-      `;
-    }
-    return `
-      background: rgba(255, 179, 0, 0.12);
-      color: #ffb300;
-      border: 1px solid rgba(255, 179, 0, 0.2);
-    `;
-  }}
-`;
-
-const EmptyContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  text-align: center;
-  gap: 16px;
-  background: rgba(255, 255, 255, 0.01);
-  border: 1px dashed rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-`;
+import {
+  Container,
+  MobileCard,
+  BrandHeader,
+  LogoImage,
+  LogoPlaceholder,
+  TenantName,
+  Subtitle,
+  TaskList,
+  TaskCard,
+  TaskInfo,
+  TaskTitleRow,
+  TaskId,
+  TaskDescription,
+  UrgencyPill,
+  StatusPill,
+  EmptyContainer,
+  HubSubtitle,
+  EmptyText
+} from './OperatorHubView.styles';
 
 const isUUID = (str: string) => {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -246,11 +44,10 @@ export const OperatorHubView: React.FC = () => {
   const [tasks, setTasks] = useState<OperatorTask[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const hasInvalidToken = !token || !isUUID(token);
 
   useEffect(() => {
-    if (!token || !isUUID(token)) {
-      setError(t('operatorHub.errorLoad', 'Failed to load task hub. Invalid or missing token.'));
-      setLoading(false);
+    if (hasInvalidToken) {
       return;
     }
 
@@ -271,7 +68,7 @@ export const OperatorHubView: React.FC = () => {
     return () => {
       active = false;
     };
-  }, [token, t]);
+  }, [token, t, hasInvalidToken]);
 
   // Dynamic branding theme hook
   useEffect(() => {
@@ -313,16 +110,16 @@ export const OperatorHubView: React.FC = () => {
     const key = Object.keys(extra).find(k => k.toLowerCase() === 'urgency' || k.toLowerCase() === 'urgencia');
     const val = key ? String(extra[key]).toLowerCase() : 'normal';
 
-    if (val === 'critical' || val === 'crítica' || val === 'critica') {
+    if (val.includes('critical') || val.includes('crítica') || val.includes('critica')) {
       return { key: 'critical', label: t('operatorHub.urgencyCritical', 'Critical'), order: 0 };
     }
-    if (val === 'high' || val === 'alta') {
+    if (val.includes('high') || val.includes('alta')) {
       return { key: 'high', label: t('operatorHub.urgencyHigh', 'High'), order: 1 };
     }
-    if (val === 'medium' || val === 'media') {
+    if (val.includes('medium') || val.includes('media')) {
       return { key: 'medium', label: t('operatorHub.urgencyMedium', 'Medium'), order: 2 };
     }
-    if (val === 'low' || val === 'baja') {
+    if (val.includes('low') || val.includes('baja')) {
       return { key: 'low', label: t('operatorHub.urgencyLow', 'Low'), order: 3 };
     }
     return { key: 'normal', label: t('operatorHub.urgencyNone', 'Normal'), order: 4 };
@@ -343,7 +140,7 @@ export const OperatorHubView: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (loading && !hasInvalidToken) {
     return (
       <Container style={{ alignItems: 'center', justifyContent: 'center' }}>
         <CircularProgress sx={{ color: 'var(--primary, HSL(260, 85%, 60%))' }} />
@@ -351,11 +148,11 @@ export const OperatorHubView: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (error || hasInvalidToken) {
     return (
       <Container style={{ alignItems: 'center' }}>
         <MobileCard>
-          <Alert severity="error">{error}</Alert>
+          <Alert severity="error">{error || t('operatorHub.errorLoad', 'Failed to load task hub. Invalid or missing token.')}</Alert>
           <Button
             variant="outlined"
             onClick={() => navigate('/')}
@@ -402,17 +199,17 @@ export const OperatorHubView: React.FC = () => {
         </BrandHeader>
 
         <div>
-          <Typography variant="h6" sx={{ color: 'white', fontWeight: 600, mb: 1, fontSize: '1.1rem' }}>
+          <HubSubtitle variant="h6">
             {t('operatorHub.subtitle')}
-          </Typography>
+          </HubSubtitle>
         </div>
 
         {sortedTasks.length === 0 ? (
           <EmptyContainer>
             <BuildCircleIcon sx={{ fontSize: '3rem', color: 'rgba(255,255,255,0.2)' }} />
-            <Typography sx={{ color: '#a09cb4', fontSize: '0.95rem' }}>
+            <EmptyText>
               {t('operatorHub.noTasks')}
-            </Typography>
+            </EmptyText>
           </EmptyContainer>
         ) : (
           <TaskList>

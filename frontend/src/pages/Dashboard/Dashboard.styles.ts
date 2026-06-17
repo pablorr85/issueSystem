@@ -103,12 +103,19 @@ export const StyledTableHeadCell = styled(TableCell)`
   padding: 16px !important;
 `;
 
-export const StyledTableRow = styled(TableRow)`
-  background: transparent;
+export const StyledTableRow = styled(TableRow)<{ $isCritical?: boolean }>`
+  background: ${({ $isCritical }) => $isCritical ? 'rgba(239, 83, 80, 0.08) !important' : 'transparent'};
   transition: background 0.2s ease-in-out;
   
+  & td {
+    background: ${({ $isCritical }) => $isCritical ? 'rgba(239, 83, 80, 0.08) !important' : 'transparent'};
+  }
+  
   &:hover {
-    background: rgba(255, 255, 255, 0.02) !important;
+    background: ${({ $isCritical }) => $isCritical ? 'rgba(239, 83, 80, 0.14) !important' : 'rgba(255, 255, 255, 0.02) !important'};
+    & td {
+      background: ${({ $isCritical }) => $isCritical ? 'rgba(239, 83, 80, 0.14) !important' : 'rgba(255, 255, 255, 0.02) !important'};
+    }
   }
 `;
 
@@ -122,12 +129,18 @@ export const StyledTableCell = styled(TableCell)`
 export const StatusBadge = styled.span<{ $status: string }>`
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   padding: 4px 10px;
   border-radius: 9999px;
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+  box-sizing: border-box;
   
   ${({ $status }) => {
     switch ($status) {
@@ -140,6 +153,71 @@ export const StatusBadge = styled.span<{ $status: string }>`
         return 'background-color: rgba(0, 229, 255, 0.12); color: #33eaff; border: 1px solid rgba(0, 229, 255, 0.3);';
     }
   }}
+`;
+
+export const UrgencyPill = styled.span<{ $level: string }>`
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+  box-sizing: border-box;
+
+  ${({ $level }) => {
+    switch ($level) {
+      case 'critical':
+        return `
+          background: rgba(244, 67, 54, 0.15);
+          color: #ef5350;
+          border: 1px solid rgba(244, 67, 54, 0.3);
+          animation: pulse 2s infinite;
+        `;
+      case 'high':
+        return `
+          background: rgba(255, 152, 0, 0.15);
+          color: #ffb74d;
+          border: 1px solid rgba(255, 152, 0, 0.3);
+        `;
+      case 'medium':
+        return `
+          background: rgba(33, 150, 243, 0.15);
+          color: #64b5f6;
+          border: 1px solid rgba(33, 150, 243, 0.3);
+        `;
+      case 'low':
+        return `
+          background: rgba(76, 175, 80, 0.15);
+          color: #81c784;
+          border: 1px solid rgba(76, 175, 80, 0.3);
+        `;
+      default:
+        return `
+          background: rgba(255, 255, 255, 0.08);
+          color: #e0e0e0;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+        `;
+    }
+  }}
+
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4);
+    }
+    70% {
+      box-shadow: 0 0 0 6px rgba(244, 67, 54, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(244, 67, 54, 0);
+    }
+  }
 `;
 
 export const TableSelect = styled(Select)`

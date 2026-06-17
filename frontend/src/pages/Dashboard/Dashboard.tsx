@@ -1,18 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { MenuItem, InputLabel } from '@mui/material';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import AddIcon from '@mui/icons-material/Add';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import DownloadIcon from '@mui/icons-material/Download';
-import CheckIcon from '@mui/icons-material/Check';
-import QrCodeIcon from '@mui/icons-material/QrCode';
-import LaunchIcon from '@mui/icons-material/Launch';
-import { QRCodeCanvas } from 'qrcode.react';
-import { useTranslation } from 'react-i18next';
-import { getIssues, getOperators, assignIssue } from '../../services/api';
-import type { TenantConfig, Issue, Operator } from '../../services/types';
-import { EditIssueModal } from '../../components/EditIssueModal/EditIssueModal';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { MenuItem, InputLabel } from "@mui/material";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import AddIcon from "@mui/icons-material/Add";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import DownloadIcon from "@mui/icons-material/Download";
+import CheckIcon from "@mui/icons-material/Check";
+import QrCodeIcon from "@mui/icons-material/QrCode";
+import LaunchIcon from "@mui/icons-material/Launch";
+import WarningIcon from "@mui/icons-material/Warning";
+import ErrorIcon from "@mui/icons-material/Error";
+import InfoIcon from "@mui/icons-material/Info";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import { QRCodeCanvas } from "qrcode.react";
+import { useTranslation } from "react-i18next";
+import { getIssues, getOperators, assignIssue } from "../../services/api";
+import type { TenantConfig, Issue, Operator } from "../../services/types";
+import { EditIssueModal } from "../../components/EditIssueModal/EditIssueModal";
 import {
   DashboardContainer,
   DashboardHeader,
@@ -44,8 +48,66 @@ import {
   LinkInputContainer,
   ReadOnlyInput,
   ActionButtonsGroup,
-  SecondaryActionButton
-} from './Dashboard.styles';
+  SecondaryActionButton,
+  UrgencyPill,
+} from "./Dashboard.styles";
+
+const isCriticalUrgency = (issue: Issue): boolean => {
+  if (!issue.extra_data) return false;
+  const urgencyKeys = ["urgency", "urgencia"];
+  for (const key of Object.keys(issue.extra_data)) {
+    if (urgencyKeys.includes(key.toLowerCase())) {
+      const val = issue.extra_data[key];
+      if (typeof val === "string") {
+        const lowerVal = val.toLowerCase().trim();
+        if (
+          lowerVal.includes("critical") ||
+          lowerVal.includes("crítica") ||
+          lowerVal.includes("critica")
+        ) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+};
+
+const getUrgencyLevelKey = (valStr: string): string => {
+  const val = valStr.toLowerCase().trim();
+  if (
+    val.includes("critical") ||
+    val.includes("crítica") ||
+    val.includes("critica")
+  ) {
+    return "critical";
+  }
+  if (val.includes("high") || val.includes("alta")) {
+    return "high";
+  }
+  if (val.includes("medium") || val.includes("media")) {
+    return "medium";
+  }
+  if (val.includes("low") || val.includes("baja")) {
+    return "low";
+  }
+  return "normal";
+};
+
+const getUrgencyIcon = (levelKey: string) => {
+  switch (levelKey) {
+    case "critical":
+      return <ErrorIcon style={{ fontSize: "0.9rem" }} />;
+    case "high":
+      return <WarningIcon style={{ fontSize: "0.9rem" }} />;
+    case "medium":
+      return <InfoIcon style={{ fontSize: "0.9rem" }} />;
+    case "low":
+      return <ArrowDownwardIcon style={{ fontSize: "0.9rem" }} />;
+    default:
+      return null;
+  }
+};
 
 export interface DashboardProps {
   tenant: TenantConfig;
@@ -55,11 +117,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>("");
   const [prevParams, setPrevParams] = useState({
     tenantId: tenant.id,
     page: currentPage,
-    statusFilter
+    statusFilter,
   });
   const [issues, setIssues] = useState<Issue[]>([]);
   const [operators, setOperators] = useState<Operator[]>([]);
@@ -75,28 +137,46 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy text:', err);
+      console.error("Failed to copy text:", err);
     }
   };
 
   const downloadQR = () => {
     try {
-      const canvas = document.getElementById('tenant-qr-code') as HTMLCanvasElement | null;
+      const canvas = document.getElementById(
+        "tenant-qr-code",
+      ) as HTMLCanvasElement | null;
       if (!canvas) return;
-      const pngUrl = canvas.toDataURL('image/png');
-      triggerDownload(pngUrl, `${tenant.name.toLowerCase().replace(/\s+/g, '-')}-qr.png`);
+      const pngUrl = canvas.toDataURL("image/png");
+      triggerDownload(
+        pngUrl,
+        `${tenant.name.toLowerCase().replace(/\s+/g, "-")}-qr.png`,
+      );
     } catch (err) {
-      console.warn('Canvas is tainted by cross-origin logo. Falling back to QR code without logo.', err);
-      const fallbackCanvas = document.getElementById('tenant-qr-code-fallback') as HTMLCanvasElement | null;
+      console.warn(
+        "Canvas is tainted by cross-origin logo. Falling back to QR code without logo.",
+        err,
+      );
+      const fallbackCanvas = document.getElementById(
+        "tenant-qr-code-fallback",
+      ) as HTMLCanvasElement | null;
       if (!fallbackCanvas) return;
-      const pngUrl = fallbackCanvas.toDataURL('image/png');
-      triggerDownload(pngUrl, `${tenant.name.toLowerCase().replace(/\s+/g, '-')}-qr-no-logo.png`);
-      alert(t('dashboard.qrDownloadTaintedWarning', 'The logo image is hosted on an external server that does not allow downloads. The QR code has been downloaded successfully, but without the logo. To include the logo, please upload it to your local server or use a CORS-enabled URL.'));
+      const pngUrl = fallbackCanvas.toDataURL("image/png");
+      triggerDownload(
+        pngUrl,
+        `${tenant.name.toLowerCase().replace(/\s+/g, "-")}-qr-no-logo.png`,
+      );
+      alert(
+        t(
+          "dashboard.qrDownloadTaintedWarning",
+          "The logo image is hosted on an external server that does not allow downloads. The QR code has been downloaded successfully, but without the logo. To include the logo, please upload it to your local server or use a CORS-enabled URL.",
+        ),
+      );
     }
   };
 
   const triggerDownload = (url: string, filename: string) => {
-    const downloadLink = document.createElement('a');
+    const downloadLink = document.createElement("a");
     downloadLink.href = url;
     downloadLink.download = filename;
     document.body.appendChild(downloadLink);
@@ -116,23 +196,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
   // Fetch operators on mount/tenant change
   useEffect(() => {
     getOperators()
-      .then(res => setOperators(res))
-      .catch(err => console.error('Failed to fetch operators:', err));
+      .then((res) => setOperators(res))
+      .catch((err) => console.error("Failed to fetch operators:", err));
   }, [tenant.id]);
 
   // Fetch issues whenever tenant, page, or status filter changes
   useEffect(() => {
     let active = true;
-    
+
     // Page is 1-indexed for the API pagination
     getIssues(tenant.id, statusFilter || undefined, currentPage)
-      .then(res => {
+      .then((res) => {
         if (!active) return;
         setIssues(res.results || []);
         setTotalCount(res.count || 0);
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         if (!active) return;
         console.error(err);
         setIssues([]);
@@ -151,35 +231,40 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
     setCurrentPage(1);
   };
 
-  const handleAssignOperator = (issueId: number, operatorIdVal: number | string) => {
-    const operatorId = operatorIdVal === '' ? null : Number(operatorIdVal);
+  const handleAssignOperator = (
+    issueId: number,
+    operatorIdVal: number | string,
+  ) => {
+    const operatorId = operatorIdVal === "" ? null : Number(operatorIdVal);
     const originalIssues = [...issues];
 
     // Optimistic UI Update
-    setIssues(prev =>
-      prev.map(issue =>
+    setIssues((prev) =>
+      prev.map((issue) =>
         issue.id === issueId
           ? {
               ...issue,
               assigned_to: operatorId,
               assigned_to_name: operatorId
-                ? operators.find(op => op.id === operatorId)?.username || ''
-                : '',
+                ? operators.find((op) => op.id === operatorId)?.username || ""
+                : "",
             }
-          : issue
-      )
+          : issue,
+      ),
     );
 
     assignIssue(issueId, operatorId)
-      .then(updatedIssue => {
-        setIssues(prev =>
-          prev.map(issue => (issue.id === issueId ? { ...issue, ...updatedIssue } : issue))
+      .then((updatedIssue) => {
+        setIssues((prev) =>
+          prev.map((issue) =>
+            issue.id === issueId ? { ...issue, ...updatedIssue } : issue,
+          ),
         );
       })
-      .catch(err => {
-        console.error('Failed to assign operator:', err);
+      .catch((err) => {
+        console.error("Failed to assign operator:", err);
         setIssues(originalIssues);
-        alert(t('dashboard.errorAssign', 'Failed to assign operator'));
+        alert(t("dashboard.errorAssign", "Failed to assign operator"));
       });
   };
 
@@ -188,11 +273,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     } catch {
       return dateString;
@@ -208,8 +293,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
     <DashboardContainer className="animate-fade-in">
       <DashboardHeader>
         <DashboardTitle variant="h5" as="h2">
-          <DashboardIcon sx={{ color: 'var(--primary)' }} />
-          {t('dashboard.title')}
+          <DashboardIcon sx={{ color: "var(--primary)" }} />
+          {t("dashboard.title")}
         </DashboardTitle>
 
         <FilterSection>
@@ -219,23 +304,33 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
             data-testid="create-issue-link"
           >
             <AddIcon />
-            {t('app.tabReport')}
+            {t("app.tabReport")}
           </ReportButton>
 
           <StyledFormControl variant="outlined" size="small">
-            <InputLabel id="filter-status-label">{t('dashboard.statusFilterLabel')}</InputLabel>
+            <InputLabel id="filter-status-label">
+              {t("dashboard.statusFilterLabel")}
+            </InputLabel>
             <FilterSelect
               labelId="filter-status-label"
               value={statusFilter}
-              label={t('dashboard.statusFilterLabel')}
+              label={t("dashboard.statusFilterLabel")}
               onChange={(e) => handleFilterChange(e.target.value as string)}
               disabled={loading}
-              inputProps={{ 'data-testid': 'dashboard-status-filter' }}
+              inputProps={{ "data-testid": "dashboard-status-filter" }}
             >
-              <MenuItem value=""><em>{t('dashboard.filterAll')}</em></MenuItem>
-              <MenuItem value="pending">{t('dashboard.filterPending')}</MenuItem>
-              <MenuItem value="in_progress">{t('dashboard.filterInProgress')}</MenuItem>
-              <MenuItem value="resolved">{t('dashboard.filterResolved')}</MenuItem>
+              <MenuItem value="">
+                <em>{t("dashboard.filterAll")}</em>
+              </MenuItem>
+              <MenuItem value="pending">
+                {t("dashboard.filterPending")}
+              </MenuItem>
+              <MenuItem value="in_progress">
+                {t("dashboard.filterInProgress")}
+              </MenuItem>
+              <MenuItem value="resolved">
+                {t("dashboard.filterResolved")}
+              </MenuItem>
             </FilterSelect>
           </StyledFormControl>
         </FilterSection>
@@ -249,16 +344,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
             size={160}
             level="H"
             includeMargin={true}
-            imageSettings={tenant.logo_url ? {
-              src: tenant.logo_url,
-              height: 32,
-              width: 32,
-              excavate: true,
-            } : undefined}
+            imageSettings={
+              tenant.logo_url
+                ? {
+                    src: tenant.logo_url,
+                    height: 32,
+                    width: 32,
+                    excavate: true,
+                  }
+                : undefined
+            }
           />
         </QRContainer>
         {/* Hidden fallback QR code without logo for tainted canvas downloads */}
-        <div style={{ display: 'none' }}>
+        <div style={{ display: "none" }}>
           <QRCodeCanvas
             id="tenant-qr-code-fallback"
             value={reportingUrl}
@@ -268,14 +367,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
           />
         </div>
         <QRInfo>
-          <QRTitle variant="h6" as="h3" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <QrCodeIcon sx={{ color: 'var(--primary)' }} />
-            {t('dashboard.qrTitle', 'Share Public Reporting Form')}
+          <QRTitle
+            variant="h6"
+            as="h3"
+            style={{ display: "flex", alignItems: "center", gap: "8px" }}
+          >
+            <QrCodeIcon sx={{ color: "var(--primary)" }} />
+            {t("dashboard.qrTitle", "Share Public Reporting Form")}
           </QRTitle>
           <QRDescription variant="body2">
-            {t('dashboard.qrDescription', 'Place this QR code on physical stickers, posters, or equipment around your site. Users can scan the QR code to instantly submit issues to your system without signing in.')}
+            {t(
+              "dashboard.qrDescription",
+              "Place this QR code on physical stickers, posters, or equipment around your site. Users can scan the QR code to instantly submit issues to your system without signing in.",
+            )}
           </QRDescription>
-          
+
           <LinkInputContainer>
             <ReadOnlyInput
               type="text"
@@ -290,17 +396,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
                 onClick={copyToClipboard}
                 data-testid="copy-qr-link-button"
               >
-                {copied ? <CheckIcon sx={{ color: '#81c784' }} /> : <ContentCopyIcon />}
-                {copied ? t('dashboard.copied', 'Copied!') : t('dashboard.copyLink', 'Copy Link')}
+                {copied ? (
+                  <CheckIcon sx={{ color: "#81c784" }} />
+                ) : (
+                  <ContentCopyIcon />
+                )}
+                {copied
+                  ? t("dashboard.copied", "Copied!")
+                  : t("dashboard.copyLink", "Copy Link")}
               </SecondaryActionButton>
-              
+
               <SecondaryActionButton
                 variant="outlined"
                 onClick={downloadQR}
                 data-testid="download-qr-button"
               >
                 <DownloadIcon />
-                {t('dashboard.downloadQR', 'Download QR (PNG)')}
+                {t("dashboard.downloadQR", "Download QR (PNG)")}
               </SecondaryActionButton>
             </ActionButtonsGroup>
           </LinkInputContainer>
@@ -312,93 +424,151 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
           <StyledTable aria-label="issues table">
             <StyledTableHead>
               <StyledTableRow>
-                <StyledTableHeadCell>{t('dashboard.tableID')}</StyledTableHeadCell>
-                <StyledTableHeadCell>{t('dashboard.tableStatus')}</StyledTableHeadCell>
-                <StyledTableHeadCell>{t('dashboard.tableDescription')}</StyledTableHeadCell>
-                
+                <StyledTableHeadCell>
+                  {t("dashboard.tableID")}
+                </StyledTableHeadCell>
+                <StyledTableHeadCell>
+                  {t("dashboard.tableStatus")}
+                </StyledTableHeadCell>
+                <StyledTableHeadCell>
+                  {t("dashboard.tableDescription")}
+                </StyledTableHeadCell>
+
                 {/* Dynamically render header columns for each tenant custom field */}
-                {customFields.map(field => (
+                {customFields.map((field) => (
                   <StyledTableHeadCell key={field.name}>
-                    {field.name.replace(/_/g, ' ')}
+                    {field.name.replace(/_/g, " ")}
                   </StyledTableHeadCell>
                 ))}
-                
-                <StyledTableHeadCell>{t('dashboard.tableCreatedAt')}</StyledTableHeadCell>
-                <StyledTableHeadCell align="center">{t('dashboard.tableAssignOperator', 'Assign Operator')}</StyledTableHeadCell>
+
+                <StyledTableHeadCell>
+                  {t("dashboard.tableCreatedAt")}
+                </StyledTableHeadCell>
+                <StyledTableHeadCell align="center">
+                  {t("dashboard.tableAssignOperator", "Assign Operator")}
+                </StyledTableHeadCell>
               </StyledTableRow>
             </StyledTableHead>
             <StyledTableBody>
               {loading && issues.length === 0 ? (
                 <StyledTableRow>
-                  <StyledTableCell colSpan={5 + customFields.length} align="center">
-                    {t('dashboard.loadingIssues')}
+                  <StyledTableCell
+                    colSpan={5 + customFields.length}
+                    align="center"
+                  >
+                    {t("dashboard.loadingIssues")}
                   </StyledTableCell>
                 </StyledTableRow>
               ) : issues.length === 0 ? (
                 <StyledTableRow>
-                  <StyledTableCell colSpan={5 + customFields.length} padding="none">
-                    <EmptyState>
-                      {t('dashboard.noIssuesFiltered')}
-                    </EmptyState>
+                  <StyledTableCell
+                    colSpan={5 + customFields.length}
+                    padding="none"
+                  >
+                    <EmptyState>{t("dashboard.noIssuesFiltered")}</EmptyState>
                   </StyledTableCell>
                 </StyledTableRow>
               ) : (
                 issues.map((issue) => (
-                  <StyledTableRow key={issue.id} data-testid={`issue-row-${issue.id}`}>
+                  <StyledTableRow
+                    key={issue.id}
+                    data-testid={`issue-row-${issue.id}`}
+                    $isCritical={isCriticalUrgency(issue)}
+                  >
                     <StyledTableCell
                       onClick={() => setEditingIssue(issue)}
-                      style={{ cursor: 'pointer', fontWeight: 'bold', color: 'var(--primary)' }}
+                      style={{
+                        cursor: "pointer",
+                        fontWeight: "bold",
+                        color: "var(--primary)",
+                      }}
                       data-testid={`edit-issue-id-${issue.id}`}
                     >
                       {issue.id}
                     </StyledTableCell>
                     <StyledTableCell>
                       <StatusBadge $status={issue.status}>
-                        {issue.status === 'pending'
-                          ? t('dashboard.actionPending', 'Pending')
-                          : issue.status === 'in_progress'
-                          ? t('dashboard.actionInProgress')
-                          : t('dashboard.actionResolved')}
+                        {issue.status === "pending"
+                          ? t("dashboard.actionPending", "Pending")
+                          : issue.status === "in_progress"
+                            ? t("dashboard.actionInProgress")
+                            : t("dashboard.actionResolved")}
                       </StatusBadge>
                     </StyledTableCell>
                     <StyledTableCell
                       onClick={() => setEditingIssue(issue)}
-                      style={{ cursor: 'pointer' }}
+                      style={{ cursor: "pointer" }}
                       data-testid={`edit-issue-desc-${issue.id}`}
                     >
                       {issue.description}
                     </StyledTableCell>
-                    
+
                     {/* Render the flattened dynamic custom fields values */}
-                    {customFields.map(field => {
+                    {customFields.map((field) => {
                       const rawVal = issue.extra_data?.[field.name];
-                      let displayVal = '-';
-                      
-                      if (rawVal !== undefined && rawVal !== null && rawVal !== '') {
-                        if (typeof rawVal === 'boolean') {
-                          displayVal = rawVal ? t('dashboard.yes') : t('dashboard.no');
+                      let displayVal = "-";
+
+                      if (
+                        rawVal !== undefined &&
+                        rawVal !== null &&
+                        rawVal !== ""
+                      ) {
+                        if (typeof rawVal === "boolean") {
+                          displayVal = rawVal
+                            ? t("dashboard.yes")
+                            : t("dashboard.no");
                         } else {
                           displayVal = String(rawVal);
                         }
                       }
-                      
+
+                      const isUrgencyField = ["urgency", "urgencia"].includes(
+                        field.name.toLowerCase(),
+                      );
+
                       return (
                         <StyledTableCell key={field.name}>
-                          {displayVal}
+                          {isUrgencyField &&
+                          typeof rawVal === "string" &&
+                          rawVal.trim() !== ""
+                            ? (() => {
+                                const levelKey = getUrgencyLevelKey(rawVal);
+                                return (
+                                  <UrgencyPill $level={levelKey}>
+                                    {getUrgencyIcon(levelKey)}
+                                    {displayVal}
+                                  </UrgencyPill>
+                                );
+                              })()
+                            : displayVal}
                         </StyledTableCell>
                       );
                     })}
-                    
-                    <StyledTableCell>{formatDate(issue.created_at)}</StyledTableCell>
+
+                    <StyledTableCell>
+                      {formatDate(issue.created_at)}
+                    </StyledTableCell>
                     <StyledTableCell align="center">
                       <TableSelect
-                        value={issue.assigned_to !== null && issue.assigned_to !== undefined ? String(issue.assigned_to) : ''}
-                        onChange={(e) => handleAssignOperator(issue.id, e.target.value as string)}
-                        inputProps={{ 'data-testid': `action-assign-select-${issue.id}` }}
+                        value={
+                          issue.assigned_to !== null &&
+                          issue.assigned_to !== undefined
+                            ? String(issue.assigned_to)
+                            : ""
+                        }
+                        onChange={(e) =>
+                          handleAssignOperator(
+                            issue.id,
+                            e.target.value as string,
+                          )
+                        }
+                        inputProps={{
+                          "data-testid": `action-assign-select-${issue.id}`,
+                        }}
                         displayEmpty
                       >
                         <MenuItem value="">
-                          <em>{t('dashboard.unassigned', 'Unassigned')}</em>
+                          <em>{t("dashboard.unassigned", "Unassigned")}</em>
                         </MenuItem>
                         {operators.map((op) => (
                           <MenuItem key={op.id} value={String(op.id)}>
@@ -407,7 +577,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
                         ))}
                       </TableSelect>
                       {(() => {
-                        const assignedOp = operators.find(op => op.id === issue.assigned_to);
+                        const assignedOp = operators.find(
+                          (op) => op.id === issue.assigned_to,
+                        );
                         if (assignedOp && assignedOp.hub_token) {
                           return (
                             <div style={{ marginTop: 6 }}>
@@ -416,18 +588,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 style={{
-                                  fontSize: '0.75rem',
-                                  color: 'var(--primary)',
-                                  textDecoration: 'none',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
+                                  fontSize: "0.75rem",
+                                  color: "var(--primary)",
+                                  textDecoration: "none",
+                                  display: "inline-flex",
+                                  alignItems: "center",
                                   gap: 4,
-                                  fontWeight: 600
+                                  fontWeight: 600,
                                 }}
                                 data-testid={`operator-hub-link-${issue.id}`}
                               >
-                                <LaunchIcon sx={{ fontSize: '0.85rem' }} />
-                                {t('operatorHub.viewTask', 'View Workload')}
+                                <LaunchIcon sx={{ fontSize: "0.85rem" }} />
+                                {t("operatorHub.viewTask", "View Workload")}
                               </a>
                             </div>
                           );
@@ -446,26 +618,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
         {totalCount > 0 && (
           <PaginationFooter>
             <PaginationInfo>
-              {t('dashboard.paginationInfo', { page: currentPage, totalPages, totalCount })}
+              {t("dashboard.paginationInfo", {
+                page: currentPage,
+                totalPages,
+                totalCount,
+              })}
             </PaginationInfo>
             <PaginationButtons>
               <PaginationButton
                 variant="outlined"
                 size="small"
                 disabled={currentPage <= 1 || loading}
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 data-testid="pagination-prev"
               >
-                {t('dashboard.paginationPrev')}
+                {t("dashboard.paginationPrev")}
               </PaginationButton>
               <PaginationButton
                 variant="outlined"
                 size="small"
                 disabled={currentPage >= totalPages || loading}
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
                 data-testid="pagination-next"
               >
-                {t('dashboard.paginationNext')}
+                {t("dashboard.paginationNext")}
               </PaginationButton>
             </PaginationButtons>
           </PaginationFooter>
@@ -480,8 +658,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
           operators={operators}
           onClose={() => setEditingIssue(null)}
           onSuccess={(updatedIssue) => {
-            setIssues(prev =>
-              prev.map(item => item.id === updatedIssue.id ? updatedIssue : item)
+            setIssues((prev) =>
+              prev.map((item) =>
+                item.id === updatedIssue.id ? updatedIssue : item,
+              ),
             );
             setEditingIssue(null);
           }}
