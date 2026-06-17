@@ -15,7 +15,6 @@
     "errorEmpty": "Por favor, rellene los campos de usuario y contraseña.",
     "errorDefault": "Credenciales inválidas. Por favor, verifique su usuario y contraseña."
   },
-
   "dynamicIssueForm": {
     "title": "Reportar una Incidencia ({{name}})",
     "descriptionLabel": "Descripción de la Incidencia",
@@ -29,7 +28,6 @@
     "dragDropText": "Arrastre y suelte una imagen aquí, o haga clic para buscar",
     "fileSizeLimit": "Soporta PNG, JPG, GIF hasta 5MB"
   },
-
   "dashboard": {
     "title": "Panel de Gestión de Incidencias",
     "filterAll": "Todos",

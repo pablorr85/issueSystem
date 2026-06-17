@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Dashboard } from '../pages/Dashboard';
 import { useAuth } from '../context/AuthContext';
-import { getTenantConfig } from '../services/api';
-import type { TenantConfig } from '../services/types';
+import { getTenantConfig, getIssues, getOperators } from '../services/api';
+import type { TenantConfig, Issue, Operator } from '../services/types';
+import { EditIssueModal } from '../components/EditIssueModal/EditIssueModal';
 import {
   AppContainer,
   AppMain,
@@ -22,6 +23,14 @@ export const DashboardView: React.FC = () => {
   const [prevTenantId, setPrevTenantId] = useState<string | null>(tenantId);
   const [config, setConfig] = useState<TenantConfig | null>(null);
   const [loading, setLoading] = useState<boolean>(!!tenantId);
+
+  const [issues, setIssues] = useState<Issue[]>([]);
+  const [operators, setOperators] = useState<Operator[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [issuesLoading, setIssuesLoading] = useState<boolean>(true);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [editingIssue, setEditingIssue] = useState<Issue | null>(null);
 
   if (tenantId !== prevTenantId) {
     setPrevTenantId(tenantId);
@@ -88,6 +97,40 @@ export const DashboardView: React.FC = () => {
     }
   }, [config]);
 
+  // Fetch operators when config is loaded
+  useEffect(() => {
+    if (!config) return;
+    getOperators()
+      .then((res) => setOperators(res))
+      .catch((err) => console.error("Failed to fetch operators:", err));
+  }, [config]);
+
+  // Fetch issues whenever tenant config, page, or status filter changes
+  useEffect(() => {
+    if (!config) return;
+    let active = true;
+    setIssuesLoading(true);
+
+    getIssues(config.id, statusFilter || undefined, currentPage)
+      .then((res) => {
+        if (!active) return;
+        setIssues(res.results || []);
+        setTotalCount(res.count || 0);
+        setIssuesLoading(false);
+      })
+      .catch((err) => {
+        if (!active) return;
+        console.error("Failed to fetch issues:", err);
+        setIssues([]);
+        setTotalCount(0);
+        setIssuesLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [config, currentPage, statusFilter]);
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -114,7 +157,39 @@ export const DashboardView: React.FC = () => {
           <LogoutButton onClick={handleLogout} data-testid="logout-button">{t('app.logout')}</LogoutButton>
         </AuthStatusContainer>
 
-        {config && <Dashboard tenant={config} />}
+        {config && (
+          <Dashboard
+            tenant={config}
+            issues={issues}
+            setIssues={setIssues}
+            operators={operators}
+            loading={issuesLoading}
+            totalCount={totalCount}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            onEditIssue={setEditingIssue}
+          />
+        )}
+
+        {editingIssue && config && (
+          <EditIssueModal
+            open={!!editingIssue}
+            issue={editingIssue}
+            tenant={config}
+            operators={operators}
+            onClose={() => setEditingIssue(null)}
+            onSuccess={(updatedIssue) => {
+              setIssues((prev) =>
+                prev.map((item) =>
+                  item.id === updatedIssue.id ? updatedIssue : item
+                )
+              );
+              setEditingIssue(null);
+            }}
+          />
+        )}
       </AppMain>
     </AppContainer>
   );

@@ -5,11 +5,8 @@ import { CircularProgress, Alert } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import CheckIcon from '@mui/icons-material/Check';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import WarningIcon from '@mui/icons-material/Warning';
-import ErrorIcon from '@mui/icons-material/Error';
-import InfoIcon from '@mui/icons-material/Info';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { getOperatorTask, updateOperatorTaskStatus } from '../services/api';
+import { getUrgencyLevel, getUrgencyIcon } from '../utils/urgency';
 import type { OperatorTask } from '../services/types';
 import {
   Container,
@@ -51,40 +48,7 @@ export const OperatorTaskView: React.FC = () => {
     : (searchParams.get('token') || '');
   const { t } = useTranslation();
 
-  const getUrgencyLevel = (tTask: OperatorTask) => {
-    const extra = tTask.extra_data || {};
-    const key = Object.keys(extra).find(k => k.toLowerCase() === 'urgency' || k.toLowerCase() === 'urgencia');
-    const val = key ? String(extra[key]).toLowerCase() : 'normal';
 
-    if (val.includes('critical') || val.includes('crítica') || val.includes('critica')) {
-      return { key: 'critical', label: t('operatorHub.urgencyCritical', 'Critical') };
-    }
-    if (val.includes('high') || val.includes('alta')) {
-      return { key: 'high', label: t('operatorHub.urgencyHigh', 'High') };
-    }
-    if (val.includes('medium') || val.includes('media')) {
-      return { key: 'medium', label: t('operatorHub.urgencyMedium', 'Medium') };
-    }
-    if (val.includes('low') || val.includes('baja')) {
-      return { key: 'low', label: t('operatorHub.urgencyLow', 'Low') };
-    }
-    return { key: 'normal', label: t('operatorHub.urgencyNone', 'Normal') };
-  };
-
-  const getUrgencyIcon = (levelKey: string) => {
-    switch (levelKey) {
-      case 'critical':
-        return <ErrorIcon style={{ fontSize: '0.9rem' }} />;
-      case 'high':
-        return <WarningIcon style={{ fontSize: '0.9rem' }} />;
-      case 'medium':
-        return <InfoIcon style={{ fontSize: '0.9rem' }} />;
-      case 'low':
-        return <ArrowDownwardIcon style={{ fontSize: '0.9rem' }} />;
-      default:
-        return null;
-    }
-  };
   const navigate = useNavigate();
   const [task, setTask] = useState<OperatorTask | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -208,6 +172,7 @@ export const OperatorTaskView: React.FC = () => {
 
   const metadata = task.extra_data || {};
   const metadataKeys = Object.keys(metadata);
+  const urgency = getUrgencyLevel(task, t);
 
   return (
     <Container>
@@ -227,9 +192,9 @@ export const OperatorTaskView: React.FC = () => {
         <TaskTitleRow>
           <TaskId>Task #{task.id}</TaskId>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <UrgencyPill $level={getUrgencyLevel(task).key}>
-              {getUrgencyIcon(getUrgencyLevel(task).key)}
-              {getUrgencyLevel(task).label}
+            <UrgencyPill $level={urgency.key}>
+              {getUrgencyIcon(urgency.key)}
+              {urgency.label}
             </UrgencyPill>
             <StatusPill $status={task.status}>
               {task.status === 'pending'

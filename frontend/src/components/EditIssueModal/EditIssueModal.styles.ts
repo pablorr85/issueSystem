@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { Dialog, DialogTitle, DialogActions, Button, TextField, FormControl } from '@mui/material';
+import { Dialog, DialogTitle, DialogActions, Button, TextField, FormControl, Typography } from '@mui/material';
 
 export const StyledDialog = styled(Dialog)`
   .MuiPaper-root {
@@ -150,5 +150,53 @@ export const RemoveButton = styled.button`
   &:hover {
     background: #ef5350;
     transform: scale(1.05);
+  }
+`;
+
+export const CustomFieldsHeader = styled(Typography)`
+  color: #a09cb4 !important;
+  margin-bottom: 16px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  font-size: 0.8rem !important;
+  letter-spacing: 0.5px !important;
+`;
+
+export const ExtraFieldsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+export const CheckboxLabelSpan = styled.span`
+  color: white;
+  font-size: 0.95rem;
+`;
+
+export const HiddenFileInput = styled.input`
+  display: none;
+`;
+
+export const UploadTitle = styled(Typography)`
+  color: white !important;
+  font-weight: 500 !important;
+`;
+
+export const UploadSubtitle = styled(Typography)`
+  color: #a09cb4 !important;
+  margin-top: 4px !important;
+`;
+
+export const CancelButton = styled(ActionButton)`
+  color: rgba(255, 255, 255, 0.6) !important;
+`;
+
+export const SaveButton = styled(ActionButton)`
+  background: var(--primary) !important;
+  color: white !important;
+  min-width: 120px !important;
+  
+  &:hover {
+    background: var(--primary-hover) !important;
   }
 `;

@@ -16,6 +16,7 @@ import {
   ReadOnlyInput,
   ActionButtonsGroup,
   SecondaryActionButton,
+  HiddenContainer,
 } from "./ShareQRSection.styles";
 
 interface ShareQRSectionProps {
@@ -91,7 +92,7 @@ export const ShareQRSection: React.FC<ShareQRSectionProps> = ({
           value={reportingUrl}
           size={160}
           level="H"
-          includeMargin={true}
+          marginSize={4}
           imageSettings={
             tenant.logo_url
               ? {
@@ -105,20 +106,19 @@ export const ShareQRSection: React.FC<ShareQRSectionProps> = ({
         />
       </QRContainer>
       {/* Hidden fallback QR code without logo for tainted canvas downloads */}
-      <div style={{ display: "none" }}>
+      <HiddenContainer>
         <QRCodeCanvas
           id="tenant-qr-code-fallback"
           value={reportingUrl}
           size={160}
           level="L"
-          includeMargin={true}
+          marginSize={4}
         />
-      </div>
+      </HiddenContainer>
       <QRInfo>
         <QRTitle
           variant="h6"
           as="h3"
-          style={{ display: "flex", alignItems: "center", gap: "8px" }}
         >
           <QrCodeIcon sx={{ color: "var(--primary)" }} />
           {t("dashboard.qrTitle", "Share Public Reporting Form")}

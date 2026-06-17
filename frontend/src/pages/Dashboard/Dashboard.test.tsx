@@ -1,12 +1,22 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { Dashboard } from './Dashboard';
-import { getIssues, getOperators, assignIssue } from '../../services/api';
+import { DashboardView } from '../../views/DashboardView';
+import { getTenantConfig, getIssues, getOperators, assignIssue } from '../../services/api';
 import type { TenantConfig, PaginatedResponse, Issue } from '../../services/types';
+
+// Mock Auth Context
+vi.mock('../../context/AuthContext', () => ({
+  useAuth: () => ({
+    tenantId: 'f818979b-2ea0-43cb-8dd1-7c1729ee1fea',
+    user: 'operator1',
+    logout: vi.fn(),
+  })
+}));
 
 // Mock the API helpers
 vi.mock('../../services/api', () => ({
+  getTenantConfig: vi.fn(),
   getIssues: vi.fn(),
   getOperators: vi.fn(),
   assignIssue: vi.fn(),
@@ -68,6 +78,7 @@ const mockIssuesResponse: PaginatedResponse<Issue> = {
 describe('Dashboard Page Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(getTenantConfig).mockResolvedValue(mockTenant);
     vi.mocked(getOperators).mockResolvedValue(mockOperators);
   });
 
@@ -76,12 +87,12 @@ describe('Dashboard Page Component', () => {
 
     render(
       <MemoryRouter>
-        <Dashboard tenant={mockTenant} />
+        <DashboardView />
       </MemoryRouter>
     );
 
-    // Check title renders
-    expect(screen.getByText(/Tenant Manager Dashboard/i)).toBeInTheDocument();
+    // Wait for the dashboard to finish loading
+    await screen.findByText(/Tenant Manager Dashboard/i);
 
     // Wait for issues to load
     await waitFor(() => {
@@ -106,11 +117,14 @@ describe('Dashboard Page Component', () => {
 
     render(
       <MemoryRouter>
-        <Dashboard tenant={mockTenant} />
+        <DashboardView />
       </MemoryRouter>
     );
 
-    // Wait for initial load
+    // Wait for the dashboard to finish loading
+    await screen.findByText(/Tenant Manager Dashboard/i);
+
+    // Wait for initial load call
     await waitFor(() => {
       expect(getIssues).toHaveBeenCalledWith(mockTenant.id, undefined, 1);
     });
@@ -137,17 +151,20 @@ describe('Dashboard Page Component', () => {
 
     render(
       <MemoryRouter>
-        <Dashboard tenant={mockTenant} />
+        <DashboardView />
       </MemoryRouter>
     );
 
+    // Wait for the dashboard to finish loading
+    await screen.findByText(/Tenant Manager Dashboard/i);
+
     await waitFor(() => {
       expect(screen.getByText('Broken handrail near marine pool')).toBeInTheDocument();
-      expect(screen.getByText('operator1')).toBeInTheDocument();
     });
 
     // Find row action select dropdown
     const actionSelect = screen.getByTestId('action-assign-select-101');
+    expect(actionSelect).toHaveValue('10');
     
     // Change assigned operator to operator2 (value 11)
     fireEvent.change(actionSelect, { target: { value: '11' } });
@@ -166,9 +183,12 @@ describe('Dashboard Page Component', () => {
 
     render(
       <MemoryRouter>
-        <Dashboard tenant={mockTenant} />
+        <DashboardView />
       </MemoryRouter>
     );
+
+    // Wait for the dashboard to finish loading
+    await screen.findByText(/Tenant Manager Dashboard/i);
 
     // Verify QR section elements are rendered
     expect(screen.getByText(/Share Public Reporting Form/i)).toBeInTheDocument();
@@ -191,9 +211,12 @@ describe('Dashboard Page Component', () => {
 
     render(
       <MemoryRouter>
-        <Dashboard tenant={mockTenant} />
+        <DashboardView />
       </MemoryRouter>
     );
+
+    // Wait for the dashboard to finish loading
+    await screen.findByText(/Tenant Manager Dashboard/i);
 
     // Wait for initial issues to load
     await waitFor(() => {

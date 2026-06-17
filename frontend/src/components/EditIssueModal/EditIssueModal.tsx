@@ -8,8 +8,7 @@ import {
   CircularProgress,
   Alert,
   Switch,
-  FormControlLabel,
-  Typography
+  FormControlLabel
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -23,11 +22,18 @@ import {
   StyledTextField,
   StyledFormControl,
   StyledDialogActions,
-  ActionButton,
   UploadZone,
   PreviewContainer,
   PreviewImage,
-  RemoveButton
+  RemoveButton,
+  CustomFieldsHeader,
+  ExtraFieldsContainer,
+  CheckboxLabelSpan,
+  HiddenFileInput,
+  UploadTitle,
+  UploadSubtitle,
+  CancelButton,
+  SaveButton
 } from './EditIssueModal.styles';
 
 export interface EditIssueModalProps {
@@ -237,15 +243,15 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
           {/* Render Dynamic Custom Fields */}
           {customFields.length > 0 && (
             <div>
-              <Typography variant="subtitle2" sx={{ color: '#a09cb4', mb: 2, fontWeight: 600, textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '0.5px' }}>
+              <CustomFieldsHeader variant="subtitle2">
                 {t('dynamicIssueForm.detailsHeader', 'Tenant Specific Details')}
-              </Typography>
+              </CustomFieldsHeader>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <ExtraFieldsContainer>
                 {customFields.map((field) => {
                   const label = field.name.replace(/_/g, ' ') + (field.required ? ' *' : '');
                   const currentVal = extraData[field.name];
-
+ 
                   if (field.field_type === 'boolean') {
                     return (
                       <FormControlLabel
@@ -258,7 +264,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
                             color="primary"
                           />
                         }
-                        label={<span style={{ color: 'white', fontSize: '0.95rem' }}>{label}</span>}
+                        label={<CheckboxLabelSpan>{label}</CheckboxLabelSpan>}
                       />
                     );
                   }
@@ -304,23 +310,22 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
                     />
                   );
                 })}
-              </div>
+              </ExtraFieldsContainer>
             </div>
           )}
 
           {/* Photo/Evidence Upload */}
           <div>
-            <Typography variant="subtitle2" sx={{ color: '#a09cb4', mb: 1.5, fontWeight: 600, textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '0.5px' }}>
+            <CustomFieldsHeader variant="subtitle2">
               {t('dynamicIssueForm.photoLabel', 'Evidence Photo')}
-            </Typography>
+            </CustomFieldsHeader>
             
-            <input
+            <HiddenFileInput
               type="file"
               ref={fileInputRef}
               onChange={onFileSelect}
               accept="image/*"
               capture="environment"
-              style={{ display: 'none' }}
               data-testid="edit-file-input"
             />
             
@@ -330,12 +335,12 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
                 data-testid="edit-upload-zone"
               >
                 <CloudUploadIcon sx={{ color: 'var(--primary)', fontSize: 32, mb: 1 }} />
-                <Typography variant="body2" sx={{ color: 'white', fontWeight: 500 }}>
+                <UploadTitle variant="body2">
                   {t('dynamicIssueForm.dragDropText', 'Click to upload or capture photo')}
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#a09cb4', mt: 0.5 }}>
+                </UploadTitle>
+                <UploadSubtitle variant="caption">
                   {t('dynamicIssueForm.fileSizeLimit', 'Supports PNG, JPG, GIF up to 5MB')}
-                </Typography>
+                </UploadSubtitle>
               </UploadZone>
             ) : (
               <PreviewContainer data-testid="edit-preview-container">
@@ -351,27 +356,19 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
           </div>
         </FormContainer>
       </DialogContent>
-
+ 
       <StyledDialogActions>
-        <ActionButton onClick={onClose} disabled={saving} sx={{ color: 'rgba(255,255,255,0.6) !important' }}>
+        <CancelButton onClick={onClose} disabled={saving}>
           {t('dashboard.cancel', 'Cancel')}
-        </ActionButton>
-        <ActionButton
+        </CancelButton>
+        <SaveButton
           onClick={handleSave}
           disabled={saving}
           variant="contained"
-          sx={{
-            background: 'var(--primary) !important',
-            color: 'white !important',
-            minWidth: 120,
-            '&:hover': {
-              background: 'var(--primary-hover) !important'
-            }
-          }}
           data-testid="save-edit-btn"
         >
           {saving ? <CircularProgress size={20} sx={{ color: 'white' }} /> : t('dashboard.saveChanges', 'Save Changes')}
-        </ActionButton>
+        </SaveButton>
       </StyledDialogActions>
     </StyledDialog>
   );

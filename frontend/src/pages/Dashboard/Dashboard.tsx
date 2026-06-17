@@ -4,10 +4,6 @@ import { MenuItem, InputLabel } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import AddIcon from "@mui/icons-material/Add";
 import LaunchIcon from "@mui/icons-material/Launch";
-import WarningIcon from "@mui/icons-material/Warning";
-import ErrorIcon from "@mui/icons-material/Error";
-import InfoIcon from "@mui/icons-material/Info";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { useTranslation } from "react-i18next";
 import {
   createColumnHelper,
@@ -17,9 +13,9 @@ import {
   getFilteredRowModel,
 } from "@tanstack/react-table";
 import type { ColumnFiltersState } from "@tanstack/react-table";
-import { getIssues, getOperators, assignIssue } from "../../services/api";
+import { assignIssue } from "../../services/api";
 import type { TenantConfig, Issue, Operator } from "../../services/types";
-import { EditIssueModal } from "../../components/EditIssueModal/EditIssueModal";
+import { getUrgencyLevelKey, getUrgencyIcon } from "../../utils/urgency";
 import { ShareQRSection } from "../../components/ShareQRSection/ShareQRSection";
 
 const columnHelper = createColumnHelper<Issue>();
@@ -70,41 +66,7 @@ const isCriticalUrgency = (issue: Issue): boolean => {
   return false;
 };
 
-const getUrgencyLevelKey = (valStr: string): string => {
-  const val = valStr.toLowerCase().trim();
-  if (
-    val.includes("critical") ||
-    val.includes("crítica") ||
-    val.includes("critica")
-  ) {
-    return "critical";
-  }
-  if (val.includes("high") || val.includes("alta")) {
-    return "high";
-  }
-  if (val.includes("medium") || val.includes("media")) {
-    return "medium";
-  }
-  if (val.includes("low") || val.includes("baja")) {
-    return "low";
-  }
-  return "normal";
-};
 
-const getUrgencyIcon = (levelKey: string) => {
-  switch (levelKey) {
-    case "critical":
-      return <ErrorIcon style={{ fontSize: "0.9rem" }} />;
-    case "high":
-      return <WarningIcon style={{ fontSize: "0.9rem" }} />;
-    case "medium":
-      return <InfoIcon style={{ fontSize: "0.9rem" }} />;
-    case "low":
-      return <ArrowDownwardIcon style={{ fontSize: "0.9rem" }} />;
-    default:
-      return null;
-  }
-};
 
 // Helper to format date
 const formatDate = (dateString: string) => {
@@ -124,23 +86,33 @@ const formatDate = (dateString: string) => {
 
 export interface DashboardProps {
   tenant: TenantConfig;
+  issues: Issue[];
+  setIssues: React.Dispatch<React.SetStateAction<Issue[]>>;
+  operators: Operator[];
+  loading: boolean;
+  totalCount: number;
+  currentPage: number;
+  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
+  statusFilter: string;
+  setStatusFilter: (status: string) => void;
+  onEditIssue: (issue: Issue) => void;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
+export const Dashboard: React.FC<DashboardProps> = ({
+  tenant,
+  issues,
+  setIssues,
+  operators,
+  loading,
+  totalCount,
+  currentPage,
+  setCurrentPage,
+  statusFilter,
+  setStatusFilter,
+  onEditIssue,
+}) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [prevParams, setPrevParams] = useState({
-    tenantId: tenant.id,
-    page: currentPage,
-    statusFilter,
-  });
-  const [issues, setIssues] = useState<Issue[]>([]);
-  const [operators, setOperators] = useState<Operator[]>([]);
-  const [totalCount, setTotalCount] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [editingIssue, setEditingIssue] = useState<Issue | null>(null);
   const reportingUrl = `${window.location.origin}/${tenant.id}/report`;
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -204,7 +176,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
           const issue = info.row.original;
           return (
             <span
-              onClick={() => setEditingIssue(issue)}
+              onClick={() => onEditIssue(issue)}
               style={{
                 cursor: "pointer",
                 fontWeight: "bold",
@@ -244,7 +216,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
           const issue = info.row.original;
           return (
             <span
-              onClick={() => setEditingIssue(issue)}
+              onClick={() => onEditIssue(issue)}
               style={{ cursor: "pointer", display: "block", width: "100%" }}
               data-testid={`edit-issue-desc-${issue.id}`}
             >
@@ -420,46 +392,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
     });
   };
 
-  if (
-    tenant.id !== prevParams.tenantId ||
-    currentPage !== prevParams.page ||
-    statusFilter !== prevParams.statusFilter
-  ) {
-    setPrevParams({ tenantId: tenant.id, page: currentPage, statusFilter });
-    setLoading(true);
-  }
 
-  // Fetch operators on mount/tenant change
-  useEffect(() => {
-    getOperators()
-      .then((res) => setOperators(res))
-      .catch((err) => console.error("Failed to fetch operators:", err));
-  }, [tenant.id]);
-
-  // Fetch issues whenever tenant, page, or status filter changes
-  useEffect(() => {
-    let active = true;
-
-    // Page is 1-indexed for the API pagination
-    getIssues(tenant.id, statusFilter || undefined, currentPage)
-      .then((res) => {
-        if (!active) return;
-        setIssues(res.results || []);
-        setTotalCount(res.count || 0);
-        setLoading(false);
-      })
-      .catch((err) => {
-        if (!active) return;
-        console.error(err);
-        setIssues([]);
-        setTotalCount(0);
-        setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [tenant.id, currentPage, statusFilter]);
 
   // Reset page when filter changes
   const handleFilterChange = (val: string) => {
@@ -674,23 +607,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
         )}
       </DashboardCard>
 
-      {editingIssue && (
-        <EditIssueModal
-          open={!!editingIssue}
-          issue={editingIssue}
-          tenant={tenant}
-          operators={operators}
-          onClose={() => setEditingIssue(null)}
-          onSuccess={(updatedIssue) => {
-            setIssues((prev) =>
-              prev.map((item) =>
-                item.id === updatedIssue.id ? updatedIssue : item,
-              ),
-            );
-            setEditingIssue(null);
-          }}
-        />
-      )}
+
     </DashboardContainer>
   );
 };

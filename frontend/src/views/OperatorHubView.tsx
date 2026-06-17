@@ -4,11 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { CircularProgress, Alert, Button } from '@mui/material';
 import BuildCircleIcon from '@mui/icons-material/BuildCircle';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import WarningIcon from '@mui/icons-material/Warning';
-import ErrorIcon from '@mui/icons-material/Error';
-import InfoIcon from '@mui/icons-material/Info';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { getOperatorHub } from '../services/api';
+import { getUrgencyLevel, getUrgencyIcon } from '../utils/urgency';
 import type { OperatorTask } from '../services/types';
 import {
   Container,
@@ -105,40 +102,7 @@ export const OperatorHubView: React.FC = () => {
     }
   }, [tasks]);
 
-  const getUrgencyLevel = (task: OperatorTask): { key: string; label: string; order: number } => {
-    const extra = task.extra_data || {};
-    const key = Object.keys(extra).find(k => k.toLowerCase() === 'urgency' || k.toLowerCase() === 'urgencia');
-    const val = key ? String(extra[key]).toLowerCase() : 'normal';
 
-    if (val.includes('critical') || val.includes('crítica') || val.includes('critica')) {
-      return { key: 'critical', label: t('operatorHub.urgencyCritical', 'Critical'), order: 0 };
-    }
-    if (val.includes('high') || val.includes('alta')) {
-      return { key: 'high', label: t('operatorHub.urgencyHigh', 'High'), order: 1 };
-    }
-    if (val.includes('medium') || val.includes('media')) {
-      return { key: 'medium', label: t('operatorHub.urgencyMedium', 'Medium'), order: 2 };
-    }
-    if (val.includes('low') || val.includes('baja')) {
-      return { key: 'low', label: t('operatorHub.urgencyLow', 'Low'), order: 3 };
-    }
-    return { key: 'normal', label: t('operatorHub.urgencyNone', 'Normal'), order: 4 };
-  };
-
-  const getUrgencyIcon = (levelKey: string) => {
-    switch (levelKey) {
-      case 'critical':
-        return <ErrorIcon style={{ fontSize: '0.9rem' }} />;
-      case 'high':
-        return <WarningIcon style={{ fontSize: '0.9rem' }} />;
-      case 'medium':
-        return <InfoIcon style={{ fontSize: '0.9rem' }} />;
-      case 'low':
-        return <ArrowDownwardIcon style={{ fontSize: '0.9rem' }} />;
-      default:
-        return null;
-    }
-  };
 
   if (loading && !hasInvalidToken) {
     return (
@@ -172,8 +136,8 @@ export const OperatorHubView: React.FC = () => {
 
   // Sort tasks by urgency level, then by creation date (newest first)
   const sortedTasks = [...tasks].sort((a, b) => {
-    const urgencyA = getUrgencyLevel(a);
-    const urgencyB = getUrgencyLevel(b);
+    const urgencyA = getUrgencyLevel(a, t);
+    const urgencyB = getUrgencyLevel(b, t);
     if (urgencyA.order !== urgencyB.order) {
       return urgencyA.order - urgencyB.order;
     }
@@ -214,7 +178,7 @@ export const OperatorHubView: React.FC = () => {
         ) : (
           <TaskList>
             {sortedTasks.map(task => {
-              const urgency = getUrgencyLevel(task);
+              const urgency = getUrgencyLevel(task, t);
               return (
                 <TaskCard
                   key={task.id}

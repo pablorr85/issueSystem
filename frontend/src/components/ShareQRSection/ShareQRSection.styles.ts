@@ -44,6 +44,13 @@ export const QRInfo = styled.div`
 export const QRTitle = styled(Typography)`
   font-weight: 600 !important;
   color: white !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+export const HiddenContainer = styled.div`
+  display: none;
 `;
 
 export const QRDescription = styled(Typography)`
