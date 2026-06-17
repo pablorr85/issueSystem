@@ -1,22 +1,28 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { MenuItem, InputLabel } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import AddIcon from "@mui/icons-material/Add";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import DownloadIcon from "@mui/icons-material/Download";
-import CheckIcon from "@mui/icons-material/Check";
-import QrCodeIcon from "@mui/icons-material/QrCode";
 import LaunchIcon from "@mui/icons-material/Launch";
 import WarningIcon from "@mui/icons-material/Warning";
 import ErrorIcon from "@mui/icons-material/Error";
 import InfoIcon from "@mui/icons-material/Info";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import { QRCodeCanvas } from "qrcode.react";
 import { useTranslation } from "react-i18next";
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  getFilteredRowModel,
+} from "@tanstack/react-table";
+import type { ColumnFiltersState } from "@tanstack/react-table";
 import { getIssues, getOperators, assignIssue } from "../../services/api";
 import type { TenantConfig, Issue, Operator } from "../../services/types";
 import { EditIssueModal } from "../../components/EditIssueModal/EditIssueModal";
+import { ShareQRSection } from "../../components/ShareQRSection/ShareQRSection";
+
+const columnHelper = createColumnHelper<Issue>();
 import {
   DashboardContainer,
   DashboardHeader,
@@ -40,15 +46,6 @@ import {
   StyledTableBody,
   ReportButton,
   FilterSelect,
-  QRSectionCard,
-  QRContainer,
-  QRInfo,
-  QRTitle,
-  QRDescription,
-  LinkInputContainer,
-  ReadOnlyInput,
-  ActionButtonsGroup,
-  SecondaryActionButton,
   UrgencyPill,
 } from "./Dashboard.styles";
 
@@ -109,6 +106,22 @@ const getUrgencyIcon = (levelKey: string) => {
   }
 };
 
+// Helper to format date
+const formatDate = (dateString: string) => {
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return dateString;
+  }
+};
+
 export interface DashboardProps {
   tenant: TenantConfig;
 }
@@ -127,61 +140,284 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
   const [operators, setOperators] = useState<Operator[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
-  const [copied, setCopied] = useState<boolean>(false);
   const [editingIssue, setEditingIssue] = useState<Issue | null>(null);
   const reportingUrl = `${window.location.origin}/${tenant.id}/report`;
 
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(reportingUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy text:", err);
-    }
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
+  // Custom fields schemas defined for this tenant
+  const customFields = useMemo(() => tenant.custom_fields || [], [tenant.custom_fields]);
+
+  const handleAssignOperator = useCallback((
+    issueId: number,
+    operatorIdVal: number | string,
+  ) => {
+    const operatorId = operatorIdVal === "" ? null : Number(operatorIdVal);
+    const originalIssues = [...issues];
+
+    // Optimistic UI Update
+    setIssues((prev) =>
+      prev.map((issue) =>
+        issue.id === issueId
+          ? {
+              ...issue,
+              assigned_to: operatorId,
+              assigned_to_name: operatorId
+                ? operators.find((op) => op.id === operatorId)?.username || ""
+                : "",
+            }
+          : issue,
+      ),
+    );
+
+    assignIssue(issueId, operatorId)
+      .then((updatedIssue) => {
+        setIssues((prev) =>
+          prev.map((issue) =>
+            issue.id === issueId ? { ...issue, ...updatedIssue } : issue,
+          ),
+        );
+      })
+      .catch((err) => {
+        console.error("Failed to assign operator:", err);
+        setIssues(originalIssues);
+        alert(t("dashboard.errorAssign", "Failed to assign operator"));
+      });
+  }, [issues, operators, t]);
+
+  // Synchronize statusFilter to TanStack status filter
+  useEffect(() => {
+    setColumnFilters((prev) => {
+      const filtered = prev.filter((f) => f.id !== "status");
+      if (statusFilter !== "") {
+        filtered.push({ id: "status", value: statusFilter });
+      }
+      return filtered;
+    });
+  }, [statusFilter]);
+
+  const columns = useMemo(() => {
+    const baseCols = [
+      columnHelper.accessor("id", {
+        header: () => t("dashboard.tableID"),
+        cell: (info) => {
+          const issue = info.row.original;
+          return (
+            <span
+              onClick={() => setEditingIssue(issue)}
+              style={{
+                cursor: "pointer",
+                fontWeight: "bold",
+                color: "var(--primary)",
+              }}
+              data-testid={`edit-issue-id-${issue.id}`}
+            >
+              {issue.id}
+            </span>
+          );
+        },
+      }),
+      columnHelper.accessor("status", {
+        id: "status",
+        header: () => t("dashboard.tableStatus"),
+        cell: (info) => {
+          const status = info.getValue();
+          return (
+            <StatusBadge $status={status}>
+              {status === "pending"
+                ? t("dashboard.actionPending", "Pending")
+                : status === "in_progress"
+                  ? t("dashboard.actionInProgress")
+                  : t("dashboard.actionResolved")}
+            </StatusBadge>
+          );
+        },
+        filterFn: (row, columnId, filterValue) => {
+          if (!filterValue || filterValue === "") return true;
+          const val = row.getValue(columnId);
+          return val === filterValue;
+        },
+      }),
+      columnHelper.accessor("description", {
+        header: () => t("dashboard.tableDescription"),
+        cell: (info) => {
+          const issue = info.row.original;
+          return (
+            <span
+              onClick={() => setEditingIssue(issue)}
+              style={{ cursor: "pointer", display: "block", width: "100%" }}
+              data-testid={`edit-issue-desc-${issue.id}`}
+            >
+              {issue.description}
+            </span>
+          );
+        },
+      }),
+    ];
+
+    const dynamicCols = customFields.map((field) => {
+      const isUrgencyField = ["urgency", "urgencia"].includes(
+        field.name.toLowerCase()
+      );
+
+      return columnHelper.accessor<(row: Issue) => unknown, unknown>(
+        (row: Issue) => row.extra_data?.[field.name],
+        {
+          id: field.name,
+          header: () => field.name.replace(/_/g, " "),
+          cell: (info) => {
+            const rawVal = info.getValue();
+            let displayVal = "-";
+
+            if (
+              rawVal !== undefined &&
+              rawVal !== null &&
+              rawVal !== ""
+            ) {
+              if (typeof rawVal === "boolean") {
+                displayVal = rawVal
+                  ? t("dashboard.yes")
+                  : t("dashboard.no");
+              } else {
+                displayVal = String(rawVal);
+              }
+            }
+
+            if (isUrgencyField && typeof rawVal === "string" && rawVal.trim() !== "") {
+              const levelKey = getUrgencyLevelKey(rawVal);
+              return (
+                <UrgencyPill $level={levelKey}>
+                  {getUrgencyIcon(levelKey)}
+                  {displayVal}
+                </UrgencyPill>
+              );
+            }
+
+            return displayVal;
+          },
+          filterFn: isUrgencyField
+            ? (row, columnId, filterValue) => {
+                if (!filterValue || filterValue === "") return true;
+                const rawVal = row.getValue(columnId);
+                if (typeof rawVal !== "string") return false;
+                const levelKey = getUrgencyLevelKey(rawVal);
+                return levelKey === filterValue;
+              }
+            : undefined,
+        }
+      );
+    });
+
+    const endCols = [
+      columnHelper.accessor("created_at", {
+        header: () => t("dashboard.tableCreatedAt"),
+        cell: (info) => formatDate(info.getValue()),
+      }),
+      columnHelper.accessor<(row: Issue) => number | null, number | null>(
+        (row: Issue) => row.assigned_to,
+        {
+          id: "assigned_to",
+          header: () => t("dashboard.tableAssignOperator", "Assign Operator"),
+          cell: (info) => {
+            const issue = info.row.original;
+            const assignedVal = info.getValue() !== null && info.getValue() !== undefined ? String(info.getValue()) : "";
+            const assignedOp = operators.find((op) => op.id === issue.assigned_to);
+            return (
+              <>
+                <TableSelect
+                  value={assignedVal}
+                  onChange={(e) =>
+                    handleAssignOperator(issue.id, e.target.value as string)
+                  }
+                  inputProps={{
+                    "data-testid": `action-assign-select-${issue.id}`,
+                  }}
+                  displayEmpty
+                  size="small"
+                >
+                  <MenuItem value="">
+                    <em>{t("dashboard.unassigned", "Unassigned")}</em>
+                  </MenuItem>
+                  {operators.map((op) => (
+                    <MenuItem key={op.id} value={String(op.id)}>
+                      {op.username}
+                    </MenuItem>
+                  ))}
+                </TableSelect>
+                {assignedOp && assignedOp.hub_token && (
+                  <div style={{ marginTop: 6 }}>
+                    <a
+                      href={`/work/hub?token=${assignedOp.hub_token}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "var(--primary)",
+                        textDecoration: "none",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                        fontWeight: 600,
+                      }}
+                      data-testid={`operator-hub-link-${issue.id}`}
+                    >
+                      <LaunchIcon sx={{ fontSize: "0.85rem" }} />
+                      {t("operatorHub.viewTask", "View Workload")}
+                    </a>
+                  </div>
+                )}
+              </>
+            );
+          },
+          filterFn: (row, columnId, filterValue) => {
+            if (filterValue === null || filterValue === undefined || filterValue === "") return true;
+            const val = row.getValue(columnId);
+            return val === Number(filterValue);
+          },
+        }
+      )
+    ];
+
+    return [...baseCols, ...dynamicCols, ...endCols];
+  }, [customFields, operators, t, handleAssignOperator]);
+
+  const table = useReactTable({
+    data: issues,
+    columns,
+    state: {
+      columnFilters,
+    },
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+  });
+
+  const operatorFilterValue = (columnFilters.find((f) => f.id === "assigned_to")?.value as string) || "";
+  const urgencyField = customFields.find((f) =>
+    ["urgency", "urgencia"].includes(f.name.toLowerCase())
+  );
+  const urgencyColumnId = urgencyField?.name || "";
+  const urgencyFilterValue = urgencyColumnId ? (columnFilters.find((f) => f.id === urgencyColumnId)?.value as string) || "" : "";
+
+  const handleOperatorFilterChange = (val: string) => {
+    setColumnFilters((prev) => {
+      const filtered = prev.filter((f) => f.id !== "assigned_to");
+      if (val !== "") {
+        filtered.push({ id: "assigned_to", value: Number(val) });
+      }
+      return filtered;
+    });
   };
 
-  const downloadQR = () => {
-    try {
-      const canvas = document.getElementById(
-        "tenant-qr-code",
-      ) as HTMLCanvasElement | null;
-      if (!canvas) return;
-      const pngUrl = canvas.toDataURL("image/png");
-      triggerDownload(
-        pngUrl,
-        `${tenant.name.toLowerCase().replace(/\s+/g, "-")}-qr.png`,
-      );
-    } catch (err) {
-      console.warn(
-        "Canvas is tainted by cross-origin logo. Falling back to QR code without logo.",
-        err,
-      );
-      const fallbackCanvas = document.getElementById(
-        "tenant-qr-code-fallback",
-      ) as HTMLCanvasElement | null;
-      if (!fallbackCanvas) return;
-      const pngUrl = fallbackCanvas.toDataURL("image/png");
-      triggerDownload(
-        pngUrl,
-        `${tenant.name.toLowerCase().replace(/\s+/g, "-")}-qr-no-logo.png`,
-      );
-      alert(
-        t(
-          "dashboard.qrDownloadTaintedWarning",
-          "The logo image is hosted on an external server that does not allow downloads. The QR code has been downloaded successfully, but without the logo. To include the logo, please upload it to your local server or use a CORS-enabled URL.",
-        ),
-      );
-    }
-  };
-
-  const triggerDownload = (url: string, filename: string) => {
-    const downloadLink = document.createElement("a");
-    downloadLink.href = url;
-    downloadLink.download = filename;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
+  const handleUrgencyFilterChange = (val: string) => {
+    if (!urgencyColumnId) return;
+    setColumnFilters((prev) => {
+      const filtered = prev.filter((f) => f.id !== urgencyColumnId);
+      if (val !== "") {
+        filtered.push({ id: urgencyColumnId, value: val });
+      }
+      return filtered;
+    });
   };
 
   if (
@@ -231,63 +467,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
     setCurrentPage(1);
   };
 
-  const handleAssignOperator = (
-    issueId: number,
-    operatorIdVal: number | string,
-  ) => {
-    const operatorId = operatorIdVal === "" ? null : Number(operatorIdVal);
-    const originalIssues = [...issues];
-
-    // Optimistic UI Update
-    setIssues((prev) =>
-      prev.map((issue) =>
-        issue.id === issueId
-          ? {
-              ...issue,
-              assigned_to: operatorId,
-              assigned_to_name: operatorId
-                ? operators.find((op) => op.id === operatorId)?.username || ""
-                : "",
-            }
-          : issue,
-      ),
-    );
-
-    assignIssue(issueId, operatorId)
-      .then((updatedIssue) => {
-        setIssues((prev) =>
-          prev.map((issue) =>
-            issue.id === issueId ? { ...issue, ...updatedIssue } : issue,
-          ),
-        );
-      })
-      .catch((err) => {
-        console.error("Failed to assign operator:", err);
-        setIssues(originalIssues);
-        alert(t("dashboard.errorAssign", "Failed to assign operator"));
-      });
-  };
-
-  // Helper to format date
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return dateString;
-    }
-  };
-
   const totalPages = Math.ceil(totalCount / 20) || 1;
-
-  // Custom fields schemas defined for this tenant
-  const customFields = tenant.custom_fields || [];
 
   return (
     <DashboardContainer className="animate-fade-in">
@@ -296,8 +476,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
           <DashboardIcon sx={{ color: "var(--primary)" }} />
           {t("dashboard.title")}
         </DashboardTitle>
+      </DashboardHeader>
 
-        <FilterSection>
+      <ShareQRSection tenant={tenant} reportingUrl={reportingUrl} />
+
+      <DashboardCard>
+        <FilterSection style={{ padding: "16px 20px", borderBottom: "1px solid rgba(255, 255, 255, 0.06)" }}>
           <ReportButton
             variant="contained"
             onClick={() => navigate(`/${tenant.id}/report`)}
@@ -333,282 +517,122 @@ export const Dashboard: React.FC<DashboardProps> = ({ tenant }) => {
               </MenuItem>
             </FilterSelect>
           </StyledFormControl>
+
+          <StyledFormControl variant="outlined" size="small">
+            <InputLabel id="filter-operator-label">
+              {t("dashboard.operatorFilterLabel", "Operator Filter")}
+            </InputLabel>
+            <FilterSelect
+              labelId="filter-operator-label"
+              value={operatorFilterValue}
+              label={t("dashboard.operatorFilterLabel", "Operator Filter")}
+              onChange={(e) => handleOperatorFilterChange(e.target.value as string)}
+              inputProps={{ "data-testid": "dashboard-operator-filter" }}
+            >
+              <MenuItem value="">
+                <em>{t("dashboard.filterAllOperators", "All Operators")}</em>
+              </MenuItem>
+              {operators.map((op) => (
+                <MenuItem key={op.id} value={String(op.id)}>
+                  {op.username}
+                </MenuItem>
+              ))}
+            </FilterSelect>
+          </StyledFormControl>
+
+          {urgencyColumnId && (
+            <StyledFormControl variant="outlined" size="small">
+              <InputLabel id="filter-urgency-label">
+                {t("dashboard.urgencyFilterLabel", "Urgency Filter")}
+              </InputLabel>
+              <FilterSelect
+                labelId="filter-urgency-label"
+                value={urgencyFilterValue}
+                label={t("dashboard.urgencyFilterLabel", "Urgency Filter")}
+                onChange={(e) => handleUrgencyFilterChange(e.target.value as string)}
+                inputProps={{ "data-testid": "dashboard-urgency-filter" }}
+              >
+                <MenuItem value="">
+                  <em>{t("dashboard.filterAllUrgencies", "All Urgencies")}</em>
+                </MenuItem>
+                <MenuItem value="critical">{t("operatorHub.urgencyCritical", "Critical")}</MenuItem>
+                <MenuItem value="high">{t("operatorHub.urgencyHigh", "High")}</MenuItem>
+                <MenuItem value="medium">{t("operatorHub.urgencyMedium", "Medium")}</MenuItem>
+                <MenuItem value="low">{t("operatorHub.urgencyLow", "Low")}</MenuItem>
+                <MenuItem value="normal">{t("operatorHub.urgencyNone", "Normal")}</MenuItem>
+              </FilterSelect>
+            </StyledFormControl>
+          )}
         </FilterSection>
-      </DashboardHeader>
-
-      <QRSectionCard>
-        <QRContainer>
-          <QRCodeCanvas
-            id="tenant-qr-code"
-            value={reportingUrl}
-            size={160}
-            level="H"
-            includeMargin={true}
-            imageSettings={
-              tenant.logo_url
-                ? {
-                    src: tenant.logo_url,
-                    height: 32,
-                    width: 32,
-                    excavate: true,
-                  }
-                : undefined
-            }
-          />
-        </QRContainer>
-        {/* Hidden fallback QR code without logo for tainted canvas downloads */}
-        <div style={{ display: "none" }}>
-          <QRCodeCanvas
-            id="tenant-qr-code-fallback"
-            value={reportingUrl}
-            size={160}
-            level="L"
-            includeMargin={true}
-          />
-        </div>
-        <QRInfo>
-          <QRTitle
-            variant="h6"
-            as="h3"
-            style={{ display: "flex", alignItems: "center", gap: "8px" }}
-          >
-            <QrCodeIcon sx={{ color: "var(--primary)" }} />
-            {t("dashboard.qrTitle", "Share Public Reporting Form")}
-          </QRTitle>
-          <QRDescription variant="body2">
-            {t(
-              "dashboard.qrDescription",
-              "Place this QR code on physical stickers, posters, or equipment around your site. Users can scan the QR code to instantly submit issues to your system without signing in.",
-            )}
-          </QRDescription>
-
-          <LinkInputContainer>
-            <ReadOnlyInput
-              type="text"
-              readOnly
-              value={reportingUrl}
-              onClick={(e) => (e.target as HTMLInputElement).select()}
-              data-testid="qr-url-input"
-            />
-            <ActionButtonsGroup>
-              <SecondaryActionButton
-                variant="outlined"
-                onClick={copyToClipboard}
-                data-testid="copy-qr-link-button"
-              >
-                {copied ? (
-                  <CheckIcon sx={{ color: "#81c784" }} />
-                ) : (
-                  <ContentCopyIcon />
-                )}
-                {copied
-                  ? t("dashboard.copied", "Copied!")
-                  : t("dashboard.copyLink", "Copy Link")}
-              </SecondaryActionButton>
-
-              <SecondaryActionButton
-                variant="outlined"
-                onClick={downloadQR}
-                data-testid="download-qr-button"
-              >
-                <DownloadIcon />
-                {t("dashboard.downloadQR", "Download QR (PNG)")}
-              </SecondaryActionButton>
-            </ActionButtonsGroup>
-          </LinkInputContainer>
-        </QRInfo>
-      </QRSectionCard>
-
-      <DashboardCard>
         <TableWrapper>
           <StyledTable aria-label="issues table">
             <StyledTableHead>
-              <StyledTableRow>
-                <StyledTableHeadCell>
-                  {t("dashboard.tableID")}
-                </StyledTableHeadCell>
-                <StyledTableHeadCell>
-                  {t("dashboard.tableStatus")}
-                </StyledTableHeadCell>
-                <StyledTableHeadCell>
-                  {t("dashboard.tableDescription")}
-                </StyledTableHeadCell>
-
-                {/* Dynamically render header columns for each tenant custom field */}
-                {customFields.map((field) => (
-                  <StyledTableHeadCell key={field.name}>
-                    {field.name.replace(/_/g, " ")}
-                  </StyledTableHeadCell>
-                ))}
-
-                <StyledTableHeadCell>
-                  {t("dashboard.tableCreatedAt")}
-                </StyledTableHeadCell>
-                <StyledTableHeadCell align="center">
-                  {t("dashboard.tableAssignOperator", "Assign Operator")}
-                </StyledTableHeadCell>
-              </StyledTableRow>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <StyledTableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    const isAssignOperatorCol = header.column.id === "assigned_to";
+                    return (
+                      <StyledTableHeadCell
+                        key={header.id}
+                        align={isAssignOperatorCol ? "center" : "left"}
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                      </StyledTableHeadCell>
+                    );
+                  })}
+                </StyledTableRow>
+              ))}
             </StyledTableHead>
             <StyledTableBody>
-              {loading && issues.length === 0 ? (
+              {loading && table.getRowModel().rows.length === 0 ? (
                 <StyledTableRow>
                   <StyledTableCell
-                    colSpan={5 + customFields.length}
+                    colSpan={columns.length}
                     align="center"
                   >
                     {t("dashboard.loadingIssues")}
                   </StyledTableCell>
                 </StyledTableRow>
-              ) : issues.length === 0 ? (
+              ) : table.getRowModel().rows.length === 0 ? (
                 <StyledTableRow>
                   <StyledTableCell
-                    colSpan={5 + customFields.length}
+                    colSpan={columns.length}
                     padding="none"
                   >
                     <EmptyState>{t("dashboard.noIssuesFiltered")}</EmptyState>
                   </StyledTableCell>
                 </StyledTableRow>
               ) : (
-                issues.map((issue) => (
-                  <StyledTableRow
-                    key={issue.id}
-                    data-testid={`issue-row-${issue.id}`}
-                    $isCritical={isCriticalUrgency(issue)}
-                  >
-                    <StyledTableCell
-                      onClick={() => setEditingIssue(issue)}
-                      style={{
-                        cursor: "pointer",
-                        fontWeight: "bold",
-                        color: "var(--primary)",
-                      }}
-                      data-testid={`edit-issue-id-${issue.id}`}
+                table.getRowModel().rows.map((row) => {
+                  const issue = row.original;
+                  return (
+                    <StyledTableRow
+                      key={row.id}
+                      data-testid={`issue-row-${issue.id}`}
+                      $isCritical={isCriticalUrgency(issue)}
                     >
-                      {issue.id}
-                    </StyledTableCell>
-                    <StyledTableCell>
-                      <StatusBadge $status={issue.status}>
-                        {issue.status === "pending"
-                          ? t("dashboard.actionPending", "Pending")
-                          : issue.status === "in_progress"
-                            ? t("dashboard.actionInProgress")
-                            : t("dashboard.actionResolved")}
-                      </StatusBadge>
-                    </StyledTableCell>
-                    <StyledTableCell
-                      onClick={() => setEditingIssue(issue)}
-                      style={{ cursor: "pointer" }}
-                      data-testid={`edit-issue-desc-${issue.id}`}
-                    >
-                      {issue.description}
-                    </StyledTableCell>
-
-                    {/* Render the flattened dynamic custom fields values */}
-                    {customFields.map((field) => {
-                      const rawVal = issue.extra_data?.[field.name];
-                      let displayVal = "-";
-
-                      if (
-                        rawVal !== undefined &&
-                        rawVal !== null &&
-                        rawVal !== ""
-                      ) {
-                        if (typeof rawVal === "boolean") {
-                          displayVal = rawVal
-                            ? t("dashboard.yes")
-                            : t("dashboard.no");
-                        } else {
-                          displayVal = String(rawVal);
-                        }
-                      }
-
-                      const isUrgencyField = ["urgency", "urgencia"].includes(
-                        field.name.toLowerCase(),
-                      );
-
-                      return (
-                        <StyledTableCell key={field.name}>
-                          {isUrgencyField &&
-                          typeof rawVal === "string" &&
-                          rawVal.trim() !== ""
-                            ? (() => {
-                                const levelKey = getUrgencyLevelKey(rawVal);
-                                return (
-                                  <UrgencyPill $level={levelKey}>
-                                    {getUrgencyIcon(levelKey)}
-                                    {displayVal}
-                                  </UrgencyPill>
-                                );
-                              })()
-                            : displayVal}
-                        </StyledTableCell>
-                      );
-                    })}
-
-                    <StyledTableCell>
-                      {formatDate(issue.created_at)}
-                    </StyledTableCell>
-                    <StyledTableCell align="center">
-                      <TableSelect
-                        value={
-                          issue.assigned_to !== null &&
-                          issue.assigned_to !== undefined
-                            ? String(issue.assigned_to)
-                            : ""
-                        }
-                        onChange={(e) =>
-                          handleAssignOperator(
-                            issue.id,
-                            e.target.value as string,
-                          )
-                        }
-                        inputProps={{
-                          "data-testid": `action-assign-select-${issue.id}`,
-                        }}
-                        displayEmpty
-                      >
-                        <MenuItem value="">
-                          <em>{t("dashboard.unassigned", "Unassigned")}</em>
-                        </MenuItem>
-                        {operators.map((op) => (
-                          <MenuItem key={op.id} value={String(op.id)}>
-                            {op.username}
-                          </MenuItem>
-                        ))}
-                      </TableSelect>
-                      {(() => {
-                        const assignedOp = operators.find(
-                          (op) => op.id === issue.assigned_to,
+                      {row.getVisibleCells().map((cell) => {
+                        const isAssignOperatorCol = cell.column.id === "assigned_to";
+                        return (
+                          <StyledTableCell
+                            key={cell.id}
+                            align={isAssignOperatorCol ? "center" : "left"}
+                          >
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </StyledTableCell>
                         );
-                        if (assignedOp && assignedOp.hub_token) {
-                          return (
-                            <div style={{ marginTop: 6 }}>
-                              <a
-                                href={`/work/hub?token=${assignedOp.hub_token}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{
-                                  fontSize: "0.75rem",
-                                  color: "var(--primary)",
-                                  textDecoration: "none",
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: 4,
-                                  fontWeight: 600,
-                                }}
-                                data-testid={`operator-hub-link-${issue.id}`}
-                              >
-                                <LaunchIcon sx={{ fontSize: "0.85rem" }} />
-                                {t("operatorHub.viewTask", "View Workload")}
-                              </a>
-                            </div>
-                          );
-                        }
-                        return null;
-                      })()}
-                    </StyledTableCell>
-                  </StyledTableRow>
-                ))
+                      })}
+                    </StyledTableRow>
+                  );
+                })
               )}
             </StyledTableBody>
           </StyledTable>
