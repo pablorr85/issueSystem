@@ -295,13 +295,43 @@ Implement a centralized, passwordless task dashboard (Operator Hub) for field wo
 
 Connect the React frontend to the new Google Cloud Storage backend to allow mobile photo uploads. Apply quick UX/UI fixes reported by park management to improve the dashboard experience.
 
-## [ ] Frontend Tasks: Media Uploads (React)
+## [x] Frontend Tasks: Media Uploads (React)
 
-- [ ] **Mobile Camera Integration:** Update the `ReportIssueView.tsx` form. Ensure the file input includes `accept="image/*" capture="environment"` so mobile phones natively open the camera when tapped.
-- [ ] **FormData Submission:** Refactor the API call in `ReportIssueView.tsx` to use `FormData` instead of a JSON payload, allowing the image file and text data to be sent together to Django.
-- [ ] **Edit Form Consistency:** Add the same `FormData` logic and file input to the Issue Edit modal/page in the Dashboard, so managers can also upload or replace photos after the issue is created.
+- [x] **Mobile Camera Integration:** Update the `ReportIssueView.tsx` form. Ensure the file input includes `accept="image/*" capture="environment"` so mobile phones natively open the camera when tapped.
+- [x] **FormData Submission:** Refactor the API call in `ReportIssueView.tsx` to use `FormData` instead of a JSON payload, allowing the image file and text data to be sent together to Django.
+- [x] **Edit Form Consistency:** Add the same `FormData` logic and file input to the Issue Edit modal/page in the Dashboard, so managers can also upload or replace photos after the issue is created.
 
-## [ ] Frontend Tasks: UX/UI Quick Wins
+## [x] Frontend Tasks: UX/UI Quick Wins
 
-- [ ] **Fix Status Badge Overflow:** Inspect the `span` showing the issue status in `DashboardView.tsx`. Apply CSS fixes (e.g., `text-overflow: ellipsis`, `white-space: nowrap`, or flexbox adjustments) to ensure long status names don't break the layout.
-- [ ] **Critical Urgency Highlighting:** Update the urgency rendering logic in the Dashboard table. If `urgency === 'critical'`, apply a prominent red styling (background/text) to immediately draw the manager's attention.
+- [x] **Fix Status Badge Overflow:** Inspect the `span` showing the issue status in `DashboardView.tsx`. Apply CSS fixes (e.g., `text-overflow: ellipsis`, `white-space: nowrap`, or flexbox adjustments) to ensure long status names don't break the layout.
+- [x] **Critical Urgency Highlighting:** Update the urgency rendering logic in the Dashboard table. If `urgency === 'critical'`, apply a prominent red styling (background/text) to immediately draw the manager's attention.
+
+# SPRINT 13: Cloud Storage Integration & Advanced Data Tables
+
+## 🎯 Objective
+
+Migrate media storage to Google Cloud Storage (GCS) for secure mobile photo uploads. Refactor the administration table using TanStack Table to implement robust client-side filtering (by operator, urgency, and status) and fix reported UI/UX layout bugs.
+
+## [ ] Backend Tasks (Django)
+
+- [ ] **GCS Dependencies:** Install `django-storages[google]` and update `requirements.txt`. Remove `boto3` if previously present.
+- [ ] **Storage Settings:** Configure the `STORAGES` dictionary in `settings.py` to use Google Cloud Storage as the default file storage backend backend, using environment variables for `GS_BUCKET_NAME`.
+- [ ] **Authentication Setup:** Ensure the backend authenticates with GCS using the standard `GOOGLE_APPLICATION_CREDENTIALS` environment variable pathway.
+- [ ] **Multipart API Support:** Verify that both the issue creation and issue partial update (PATCH) endpoints correctly parse multipart form data to process incoming binary image files.
+
+## [ ] Frontend Tasks (React + TypeScript)
+
+- [ ] **Dependencies:** Install the headless table library via `npm install @tanstack/react-table`.
+- [ ] **TanStack Table Core Refactoring:** Replace the legacy HTML table in `DashboardView.tsx` with TanStack's `useReactTable` hook. Map existing columns (ID, description, operator, status, urgency) to the new structure.
+- [ ] **Filter Controls UI:** Add dropdown `<select>` components above the table for filtering rows by "Assigned Operator" and "Urgency Level". Link these controls directly to TanStack's column filtering state.
+- [ ] **Status Badge Layout Fix:** Apply text-overflow and layout constraint classes (e.g., `white-space: nowrap`, `overflow-hidden`) to the status `span` elements to prevent any text clipping or breaking.
+- [ ] **Critical Urgency Alert:** Conditionalize row or badge styling within the TanStack cell renderer so that if `urgency === 'critical'`, it displays a high-visibility red color palette.
+- [ ] **Mobile Camera Integration:** Add a file input field to both `ReportIssueView.tsx` and the Issue Edit interface with attributes `accept="image/*" capture="environment"` to trigger native mobile cameras.
+- [ ] **FormData Payload:** Rewrite API submission hooks for creating and editing issues to wrap text fields and the binary image file into a unified `FormData` object.
+
+## [ ] Acceptance Criteria
+
+- Table columns can be dynamically filtered by operator or urgency instantly with smooth layout handling.
+- Status strings never overflow their containment boxes, and critical tasks stand out with clear red visual indicators.
+- Submitting an issue or editing an existing one with a photo uploads the file directly to the Google Cloud Storage bucket.
+- Mobile devices automatically prompt the user to use their camera when tapping the file upload input.
