@@ -36,6 +36,7 @@ export const DashboardView: React.FC = () => {
     setPrevTenantId(tenantId);
     setConfig(null);
     setLoading(!!tenantId);
+    setIssuesLoading(true);
   }
 
   useEffect(() => {
@@ -109,7 +110,6 @@ export const DashboardView: React.FC = () => {
   useEffect(() => {
     if (!config) return;
     let active = true;
-    setIssuesLoading(true);
 
     getIssues(config.id, statusFilter || undefined, currentPage)
       .then((res) => {
@@ -130,6 +130,17 @@ export const DashboardView: React.FC = () => {
       active = false;
     };
   }, [config, currentPage, statusFilter]);
+
+  const handlePageChange = (page: React.SetStateAction<number>) => {
+    setCurrentPage(page);
+    setIssuesLoading(true);
+  };
+
+  const handleStatusFilterChange = (status: string) => {
+    setStatusFilter(status);
+    setCurrentPage(1);
+    setIssuesLoading(true);
+  };
 
   const handleLogout = () => {
     logout();
@@ -166,9 +177,9 @@ export const DashboardView: React.FC = () => {
             loading={issuesLoading}
             totalCount={totalCount}
             currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
+            setCurrentPage={handlePageChange}
             statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
+            setStatusFilter={handleStatusFilterChange}
             onEditIssue={setEditingIssue}
           />
         )}

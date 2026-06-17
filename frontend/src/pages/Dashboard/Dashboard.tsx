@@ -155,7 +155,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         setIssues(originalIssues);
         alert(t("dashboard.errorAssign", "Failed to assign operator"));
       });
-  }, [issues, operators, t]);
+  }, [issues, operators, t, setIssues]);
 
   // Synchronize statusFilter to TanStack status filter
   useEffect(() => {
@@ -351,7 +351,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     ];
 
     return [...baseCols, ...dynamicCols, ...endCols];
-  }, [customFields, operators, t, handleAssignOperator]);
+  }, [customFields, operators, t, handleAssignOperator, onEditIssue]);
 
   const table = useReactTable({
     data: issues,
