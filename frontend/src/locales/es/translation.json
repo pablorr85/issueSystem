@@ -105,6 +105,7 @@
     "urgencyMedium": "Media",
     "urgencyLow": "Baja",
     "urgencyNone": "Normal",
-    "backToHub": "Volver a mi Panel de Trabajo"
+    "backToHub": "Volver a mi Panel de Trabajo",
+    "noPhoto": "No se ha proporcionado ninguna foto"
   }
 }

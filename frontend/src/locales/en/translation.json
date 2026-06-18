@@ -105,6 +105,7 @@
     "urgencyMedium": "Medium",
     "urgencyLow": "Low",
     "urgencyNone": "Normal",
-    "backToHub": "Back to My Workload"
+    "backToHub": "Back to My Workload",
+    "noPhoto": "No photo provided"
   }
 }

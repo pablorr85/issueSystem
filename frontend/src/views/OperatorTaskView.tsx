@@ -5,6 +5,7 @@ import { CircularProgress, Alert } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import CheckIcon from '@mui/icons-material/Check';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import { getOperatorTask, updateOperatorTaskStatus } from '../services/api';
 import { getUrgencyLevel, getUrgencyIcon } from '../utils/urgency';
 import type { OperatorTask } from '../services/types';
@@ -32,7 +33,11 @@ import {
   DateRow,
   HomeButton,
   BackToHubButton,
-  UrgencyPill
+  UrgencyPill,
+  NoPhotoPlaceholder,
+  LightboxOverlay,
+  LightboxImage,
+  LightboxCloseButton
 } from './OperatorTaskView.styles';
 
 const isUUID = (str: string) => {
@@ -54,6 +59,7 @@ export const OperatorTaskView: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [updating, setUpdating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!secure_token) return;
@@ -206,15 +212,24 @@ export const OperatorTaskView: React.FC = () => {
           </div>
         </TaskTitleRow>
 
+        {getImageUrl(task.image || task.photo_url) ? (
+          <TaskPhoto
+            src={getImageUrl(task.image || task.photo_url)}
+            alt="Task image"
+            data-testid="task-image"
+            style={{ cursor: 'zoom-in', marginTop: 0 }}
+            onClick={() => setLightboxImage(getImageUrl(task.image || task.photo_url))}
+          />
+        ) : (
+          <NoPhotoPlaceholder data-testid="no-photo-placeholder">
+            <CameraAltIcon sx={{ fontSize: 40 }} />
+            <span>{t('operatorHub.noPhoto', 'No photo provided')}</span>
+          </NoPhotoPlaceholder>
+        )}
+
         <div>
           <SectionTitle>{t('dashboard.tableDescription', 'Description')}</SectionTitle>
           <DescriptionBox>{task.description}</DescriptionBox>
-          {task.image && (
-            <TaskPhoto src={getImageUrl(task.image)} alt="Task image" data-testid="task-image" />
-          )}
-          {task.photo_url && (
-            <TaskPhoto src={getImageUrl(task.photo_url)} alt="Task snapshot" />
-          )}
         </div>
 
         {metadataKeys.length > 0 && (
@@ -294,6 +309,12 @@ export const OperatorTaskView: React.FC = () => {
           )}
         </ActionArea>
       </MobileCard>
+      {lightboxImage && (
+        <LightboxOverlay onClick={() => setLightboxImage(null)} data-testid="lightbox-overlay">
+          <LightboxImage src={lightboxImage} alt="Fullscreen Preview" />
+          <LightboxCloseButton onClick={() => setLightboxImage(null)}>&times;</LightboxCloseButton>
+        </LightboxOverlay>
+      )}
     </Container>
   );
 };

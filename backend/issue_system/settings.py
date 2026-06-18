@@ -57,6 +57,7 @@ INSTALLED_APPS = [
 
     # Local apps
     'core',
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 MIDDLEWARE = [
@@ -170,7 +171,6 @@ if GS_BUCKET_NAME:
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
         },
     }
-    GS_QUERYSTRING_AUTH = False
 else:
     STORAGES = {
         "default": {

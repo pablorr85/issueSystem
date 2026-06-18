@@ -5,5 +5,4 @@ djangorestframework-simplejwt
 Pillow
 django-storages[google]
 twilio
-
-
+django-cleanup

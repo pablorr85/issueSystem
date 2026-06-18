@@ -223,7 +223,7 @@ class MediaUploadAndNotificationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('image', response.data)
         self.assertIsNotNone(response.data['image'])
-        self.assertTrue(response.data['image'].endswith('test_incident.gif'))
+        self.assertIn('test_incident.gif', response.data['image'])
         
         # Verify db persistence
         created_issue = Issue.objects.get(description='Broken window in lobby')

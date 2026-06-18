@@ -31,9 +31,11 @@ import {
   CheckboxLabelSpan,
   HiddenFileInput,
   UploadTitle,
-  UploadSubtitle,
   CancelButton,
-  SaveButton
+  SaveButton,
+  LightboxOverlay,
+  LightboxImage,
+  LightboxCloseButton
 } from './EditIssueModal.styles';
 
 export interface EditIssueModalProps {
@@ -71,6 +73,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
   
   const [saving, setSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   const [prevIssueId, setPrevIssueId] = useState<number>(issue.id);
 
@@ -189,7 +192,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
           <StyledTextField
             label={t('dashboard.tableDescription', 'Description') + ' *'}
             multiline
-            rows={3}
+            rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             disabled={saving}
@@ -199,6 +202,52 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
               htmlInput: { 'data-testid': 'edit-description-input' }
             }}
           />
+          
+          {/* Photo/Evidence Upload */}
+          <div>
+            <CustomFieldsHeader variant="subtitle2" style={{ marginBottom: '8px' }}>
+              {t('dynamicIssueForm.photoLabel', 'Evidence Photo')}
+            </CustomFieldsHeader>
+            
+            <HiddenFileInput
+              type="file"
+              ref={fileInputRef}
+              onChange={onFileSelect}
+              accept="image/*"
+              capture="environment"
+              data-testid="edit-file-input"
+            />
+            
+            {!imagePreview ? (
+              <UploadZone
+                onClick={() => fileInputRef.current?.click()}
+                data-testid="edit-upload-zone"
+              >
+                <CloudUploadIcon sx={{ color: 'var(--primary)', fontSize: 32, mb: 1 }} />
+                <UploadTitle variant="body2">
+                  {t('dynamicIssueForm.dragDropText', 'Click to upload or capture photo')}
+                </UploadTitle>
+              </UploadZone>
+            ) : (
+              <PreviewContainer 
+                data-testid="edit-preview-container" 
+                style={{ cursor: 'zoom-in' }}
+                onClick={() => setLightboxImage(imagePreview)}
+              >
+                <PreviewImage src={imagePreview} alt="Selected preview" />
+                <RemoveButton
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeSelectedImage(e);
+                  }}
+                  data-testid="edit-remove-image-button"
+                >
+                  <DeleteIcon />
+                </RemoveButton>
+              </PreviewContainer>
+            )}
+          </div>
 
           {/* Status field */}
           <StyledFormControl fullWidth variant="outlined">
@@ -314,46 +363,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
             </div>
           )}
 
-          {/* Photo/Evidence Upload */}
-          <div>
-            <CustomFieldsHeader variant="subtitle2">
-              {t('dynamicIssueForm.photoLabel', 'Evidence Photo')}
-            </CustomFieldsHeader>
-            
-            <HiddenFileInput
-              type="file"
-              ref={fileInputRef}
-              onChange={onFileSelect}
-              accept="image/*"
-              capture="environment"
-              data-testid="edit-file-input"
-            />
-            
-            {!imagePreview ? (
-              <UploadZone
-                onClick={() => fileInputRef.current?.click()}
-                data-testid="edit-upload-zone"
-              >
-                <CloudUploadIcon sx={{ color: 'var(--primary)', fontSize: 32, mb: 1 }} />
-                <UploadTitle variant="body2">
-                  {t('dynamicIssueForm.dragDropText', 'Click to upload or capture photo')}
-                </UploadTitle>
-                <UploadSubtitle variant="caption">
-                  {t('dynamicIssueForm.fileSizeLimit', 'Supports PNG, JPG, GIF up to 5MB')}
-                </UploadSubtitle>
-              </UploadZone>
-            ) : (
-              <PreviewContainer data-testid="edit-preview-container">
-                <PreviewImage src={imagePreview} alt="Selected preview" />
-                <RemoveButton
-                  onClick={removeSelectedImage}
-                  data-testid="edit-remove-image-button"
-                >
-                  <DeleteIcon />
-                </RemoveButton>
-              </PreviewContainer>
-            )}
-          </div>
+
         </FormContainer>
       </DialogContent>
  
@@ -370,6 +380,12 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
           {saving ? <CircularProgress size={20} sx={{ color: 'white' }} /> : t('dashboard.saveChanges', 'Save Changes')}
         </SaveButton>
       </StyledDialogActions>
+      {lightboxImage && (
+        <LightboxOverlay onClick={() => setLightboxImage(null)} data-testid="lightbox-overlay">
+          <LightboxImage src={lightboxImage} alt="Fullscreen Preview" />
+          <LightboxCloseButton onClick={() => setLightboxImage(null)}>&times;</LightboxCloseButton>
+        </LightboxOverlay>
+      )}
     </StyledDialog>
   );
 };

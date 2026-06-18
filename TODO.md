@@ -335,3 +335,29 @@ Migrate media storage to Google Cloud Storage (GCS) for secure mobile photo uplo
 - [x] Status strings never overflow their containment boxes, and critical tasks stand out with clear red visual indicators.
 - [x] Submitting an issue or editing an existing one with a photo uploads the file directly to the Google Cloud Storage bucket.
 - [x] Mobile devices automatically prompt the user to use their camera when tapping the file upload input.
+
+# SPRINT 14: Media Rendering & Image Management
+
+## 🎯 Objective
+
+Complete the cloud storage integration by properly rendering the uploaded images across all frontend views (Admin Dashboard and Operator Mobile View). Implement image previews before uploading, a lightbox for detailed inspection, and automated file cleanup on the backend to prevent storage bloat.
+
+## [x] Backend Tasks (Django)
+
+- [x] **URL Serialization:** Verify the Django REST Framework serializers (e.g., `IssueSerializer`). Ensure that the `image` field returns the absolute, public URL from Google Cloud Storage so the frontend can render it directly.
+- [x] **Automated Cleanup:** Install `django-cleanup` (`pip install django-cleanup`) and add it to `INSTALLED_APPS`. This ensures that when an `Issue` is deleted or an image is replaced, the actual binary file is automatically removed from the GCS bucket to save costs.
+
+## [x] Frontend Tasks (React + TypeScript)
+
+- [x] **Pre-upload Thumbnail Preview:** Update `ReportIssueView.tsx`. When a user selects a file using the camera input, use `URL.createObjectURL(file)` to display a small thumbnail preview of the photo _before_ they hit submit.
+- [x] **Admin Dashboard Rendering:** Update the Issue Detail modal/drawer in the admin dashboard. If an `image` URL exists in the issue payload, render the image prominently next to the description.
+- [x] **Operator Mobile View Rendering:** Update the `OperatorTaskView.tsx` (the magic link view from WhatsApp). Display the uploaded image at the top of the task details so the operator can visually inspect the problem before arriving at the location.
+- [x] **Lightbox / Fullscreen Modal:** Implement a simple click-to-expand feature (lightbox) for the images in both the Admin Dashboard and the Operator View. Maintenance workers need to zoom in on the photos to see specific details of the damage.
+- [x] **Placeholder / Fallback:** Add a visual fallback (e.g., a gray box with an icon or "No photo provided") for issues that were submitted without an attached image, ensuring the UI remains structurally consistent.
+
+## [x] Acceptance Criteria
+
+- [x] Users can see a preview of their photo immediately after taking it on their phone, before submitting the form.
+- [x] The admin dashboard and the operator mobile view successfully load and display the GCS image URLs.
+- [x] Clicking on an image expands it to a full-screen view for detailed inspection.
+- [x] Deleting an issue from the Django admin or API automatically deletes the corresponding file from the Google Cloud Storage bucket.
