@@ -93,7 +93,6 @@ export interface DashboardTableProps {
   operators: Operator[];
   loading: boolean;
   columnFilters: ColumnFiltersState;
-  setColumnFilters: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
   customFields: TenantConfig["custom_fields"];
   onEditIssue: (issue: Issue) => void;
   handleAssignOperator: (issueId: number, operatorIdVal: number | string) => void;
@@ -105,7 +104,6 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
   operators,
   loading,
   columnFilters,
-  setColumnFilters,
   customFields = [],
   onEditIssue,
   handleAssignOperator,
@@ -341,7 +339,6 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
     state: {
       columnFilters,
     },
-    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
   });

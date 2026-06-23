@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import { useTranslation } from "react-i18next";
 import type { ColumnFiltersState } from "@tanstack/react-table";
@@ -45,18 +45,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const { t } = useTranslation();
   const reportingUrl = `${window.location.origin}/${tenant.id}/report`;
 
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-
-  // Synchronize statusFilter to TanStack status filter
-  useEffect(() => {
-    setColumnFilters((prev) => {
-      const filtered = prev.filter((f) => f.id !== "status");
-      if (statusFilter !== "") {
-        filtered.push({ id: "status", value: statusFilter });
-      }
-      return filtered;
-    });
-  }, [statusFilter]);
+  const [operatorFilterValue, setOperatorFilterValue] = useState<string>("");
+  const [urgencyFilterValue, setUrgencyFilterValue] = useState<string>("");
 
   // Custom fields schemas defined for this tenant
   const customFields = useMemo(() => tenant.custom_fields || [], [tenant.custom_fields]);
@@ -98,36 +88,32 @@ export const Dashboard: React.FC<DashboardProps> = ({
     [issues, operators, t, setIssues]
   );
 
-  const operatorFilterValue =
-    (columnFilters.find((f) => f.id === "assigned_to")?.value as string) || "";
-  const urgencyField = customFields.find((f) =>
+  const urgencyField = useMemo(() => customFields.find((f) =>
     ["urgency", "urgencia"].includes(f.name.toLowerCase())
-  );
+  ), [customFields]);
   const urgencyColumnId = urgencyField?.name || "";
-  const urgencyFilterValue = urgencyColumnId
-    ? (columnFilters.find((f) => f.id === urgencyColumnId)?.value as string) || ""
-    : "";
 
   const handleOperatorFilterChange = (val: string) => {
-    setColumnFilters((prev) => {
-      const filtered = prev.filter((f) => f.id !== "assigned_to");
-      if (val !== "") {
-        filtered.push({ id: "assigned_to", value: Number(val) });
-      }
-      return filtered;
-    });
+    setOperatorFilterValue(val);
   };
 
   const handleUrgencyFilterChange = (val: string) => {
-    if (!urgencyColumnId) return;
-    setColumnFilters((prev) => {
-      const filtered = prev.filter((f) => f.id !== urgencyColumnId);
-      if (val !== "") {
-        filtered.push({ id: urgencyColumnId, value: val });
-      }
-      return filtered;
-    });
+    setUrgencyFilterValue(val);
   };
+
+  const tableFilters = useMemo<ColumnFiltersState>(() => {
+    const filters: ColumnFiltersState = [];
+    if (statusFilter !== "") {
+      filters.push({ id: "status", value: statusFilter });
+    }
+    if (operatorFilterValue !== "") {
+      filters.push({ id: "assigned_to", value: Number(operatorFilterValue) });
+    }
+    if (urgencyColumnId && urgencyFilterValue !== "") {
+      filters.push({ id: urgencyColumnId, value: urgencyFilterValue });
+    }
+    return filters;
+  }, [statusFilter, operatorFilterValue, urgencyFilterValue, urgencyColumnId]);
 
   // Reset page when filter changes
   const handleFilterChange = (val: string) => {
@@ -167,8 +153,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           setIssues={setIssues}
           operators={operators}
           loading={loading}
-          columnFilters={columnFilters}
-          setColumnFilters={setColumnFilters}
+          columnFilters={tableFilters}
           customFields={customFields}
           onEditIssue={onEditIssue}
           handleAssignOperator={handleAssignOperator}
