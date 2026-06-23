@@ -361,3 +361,32 @@ Complete the cloud storage integration by properly rendering the uploaded images
 - [x] The admin dashboard and the operator mobile view successfully load and display the GCS image URLs.
 - [x] Clicking on an image expands it to a full-screen view for detailed inspection.
 - [x] Deleting an issue from the Django admin or API automatically deletes the corresponding file from the Google Cloud Storage bucket.
+
+# SPRINT 15: Interactive Row Reordering & Custom Priority Sorting
+
+## 🎯 Objective
+
+Empower managers to manually prioritize tasks by clicking and dragging rows within the TanStack Table dashboard. This requires introducing a persistent positioning system in the database and integrating a robust drag-and-drop framework in the frontend.
+
+## [x] Backend Tasks (Django)
+
+- [x] **Model Field Extension:** Add an `order_index` field (`models.IntegerField`, default=0, db_index=True) to the `Issue` model in `core/models.py`.
+- [x] **Database Migration:** Generate and execute the Django migration files to apply the new field to the database.
+- [x] **Bulk Reorder Endpoint:** Create a specialized bulk update endpoint (e.g., `POST /api/issues/reorder/`) that accepts an ordered list of issue IDs: `{"ordered_ids": [5, 12, 3, 8]}`.
+- [x] **Reorder Logic Implementation:** Write the transaction-safe logic in the view to iterate through the received IDs and update their `order_index` sequentially in a single database operation.
+- [x] **Default Query Ordering:** Update the default ordering of the main Issue API/queryset to sort by `order_index` ascending, so custom priorities persist across sessions.
+
+## [x] Frontend Tasks (React + TypeScript)
+
+- [x] **Dnd-Kit Installation:** Install the core drag-and-drop modules by running `npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities` in the frontend directory.
+- [x] **Context Wrapper Setup:** Wrap the TanStack table body or container inside `DashboardView.tsx` with the `<DndContext>` and `<SortableContext>` components from `@dnd-kit`.
+- [x] **Draggable Row Refactoring:** Modify the table row renderer to use the `useSortable` hook. Apply the drag handles, attributes, and transform styles safely to each row element.
+- [x] **Optimistic State Update:** Implement the `onDragEnd` handler to instantly update the local TanStack table data array when a row is dropped, ensuring zero visual lag for the manager.
+- [x] **API Persistence Trigger:** Connect the drop event to fire a request to the new `POST /api/issues/reorder/` endpoint, saving the final sequence to the Google Cloud / Django backend.
+
+## [x] Acceptance Criteria
+
+- [x] Managers can click and drag any row in the dashboard table to shift its vertical position and priority.
+- [x] Dropping a row smoothly animate into place, and the grid reflects the new order immediately.
+- [x] The updated row sequence is successfully transmitted and saved to the backend database.
+- [x] Refreshing the browser or logging back in retains the exact custom order previously set by the manager.

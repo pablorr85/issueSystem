@@ -4,6 +4,7 @@ import { MenuItem, InputLabel } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import AddIcon from "@mui/icons-material/Add";
 import LaunchIcon from "@mui/icons-material/Launch";
+import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import { useTranslation } from "react-i18next";
 import {
   createColumnHelper,
@@ -13,10 +14,25 @@ import {
   getFilteredRowModel,
 } from "@tanstack/react-table";
 import type { ColumnFiltersState } from "@tanstack/react-table";
-import { assignIssue } from "../../services/api";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { assignIssue, reorderIssues } from "../../services/api";
 import type { TenantConfig, Issue, Operator } from "../../services/types";
 import { getUrgencyLevelKey, getUrgencyIcon } from "../../utils/urgency";
 import { ShareQRSection } from "../../components/ShareQRSection/ShareQRSection";
+import { SortableTableRow } from "./SortableTableRow";
 
 const columnHelper = createColumnHelper<Issue>();
 import {
@@ -117,6 +133,37 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = useCallback((event: any) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = issues.findIndex((item) => item.id === active.id);
+    const newIndex = issues.findIndex((item) => item.id === over.id);
+
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const newIssues = arrayMove(issues, oldIndex, newIndex);
+      setIssues(newIssues);
+
+      const orderedIds = newIssues.map((item) => item.id);
+      reorderIssues(orderedIds).catch((err) => {
+        console.error("Failed to persist reorder:", err);
+        setIssues(issues); // rollback
+        alert(t("dashboard.errorUpdate", "Failed to update priority order."));
+      });
+    }
+  }, [issues, setIssues, t]);
+
   // Custom fields schemas defined for this tenant
   const customFields = useMemo(() => tenant.custom_fields || [], [tenant.custom_fields]);
 
@@ -170,6 +217,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const columns = useMemo(() => {
     const baseCols = [
+      columnHelper.display({
+        id: "drag-handle",
+        header: () => "",
+        cell: () => (
+          <div
+            className="drag-handle"
+            style={{
+              cursor: "grab",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#6b6780",
+            }}
+          >
+            <DragIndicatorIcon style={{ fontSize: "1.2rem" }} />
+          </div>
+        ),
+      }),
       columnHelper.accessor("id", {
         header: () => t("dashboard.tableID"),
         cell: (info) => {
@@ -498,77 +563,70 @@ export const Dashboard: React.FC<DashboardProps> = ({
           )}
         </FilterSection>
         <TableWrapper>
-          <StyledTable aria-label="issues table">
-            <StyledTableHead>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <StyledTableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    const isAssignOperatorCol = header.column.id === "assigned_to";
-                    return (
-                      <StyledTableHeadCell
-                        key={header.id}
-                        align={isAssignOperatorCol ? "center" : "left"}
-                      >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                      </StyledTableHeadCell>
-                    );
-                  })}
-                </StyledTableRow>
-              ))}
-            </StyledTableHead>
-            <StyledTableBody>
-              {loading && table.getRowModel().rows.length === 0 ? (
-                <StyledTableRow>
-                  <StyledTableCell
-                    colSpan={columns.length}
-                    align="center"
-                  >
-                    {t("dashboard.loadingIssues")}
-                  </StyledTableCell>
-                </StyledTableRow>
-              ) : table.getRowModel().rows.length === 0 ? (
-                <StyledTableRow>
-                  <StyledTableCell
-                    colSpan={columns.length}
-                    padding="none"
-                  >
-                    <EmptyState>{t("dashboard.noIssuesFiltered")}</EmptyState>
-                  </StyledTableCell>
-                </StyledTableRow>
-              ) : (
-                table.getRowModel().rows.map((row) => {
-                  const issue = row.original;
-                  return (
-                    <StyledTableRow
-                      key={row.id}
-                      data-testid={`issue-row-${issue.id}`}
-                      $isCritical={isCriticalUrgency(issue)}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <StyledTable aria-label="issues table">
+              <StyledTableHead>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <StyledTableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      const isAssignOperatorCol = header.column.id === "assigned_to";
+                      return (
+                        <StyledTableHeadCell
+                          key={header.id}
+                          align={isAssignOperatorCol ? "center" : "left"}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                        </StyledTableHeadCell>
+                      );
+                    })}
+                  </StyledTableRow>
+                ))}
+              </StyledTableHead>
+              <StyledTableBody>
+                {loading && table.getRowModel().rows.length === 0 ? (
+                  <StyledTableRow>
+                    <StyledTableCell
+                      colSpan={columns.length}
+                      align="center"
                     >
-                      {row.getVisibleCells().map((cell) => {
-                        const isAssignOperatorCol = cell.column.id === "assigned_to";
-                        return (
-                          <StyledTableCell
-                            key={cell.id}
-                            align={isAssignOperatorCol ? "center" : "left"}
-                          >
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
-                            )}
-                          </StyledTableCell>
-                        );
-                      })}
-                    </StyledTableRow>
-                  );
-                })
-              )}
-            </StyledTableBody>
-          </StyledTable>
+                      {t("dashboard.loadingIssues")}
+                    </StyledTableCell>
+                  </StyledTableRow>
+                ) : table.getRowModel().rows.length === 0 ? (
+                  <StyledTableRow>
+                    <StyledTableCell
+                      colSpan={columns.length}
+                      padding="none"
+                    >
+                      <EmptyState>{t("dashboard.noIssuesFiltered")}</EmptyState>
+                    </StyledTableCell>
+                  </StyledTableRow>
+                ) : (
+                  <SortableContext
+                    items={issues.map((i) => i.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {table.getRowModel().rows.map((row) => (
+                      <SortableTableRow
+                        key={row.id}
+                        row={row}
+                        isCriticalUrgency={isCriticalUrgency}
+                      />
+                    ))}
+                  </SortableContext>
+                )}
+              </StyledTableBody>
+            </StyledTable>
+          </DndContext>
         </TableWrapper>
 
         {/* Pagination Footer */}

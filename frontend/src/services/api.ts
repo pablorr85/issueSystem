@@ -135,5 +135,11 @@ export const getOperatorHub = async (token: string): Promise<OperatorTask[]> => 
   return response.data;
 };
 
+export const reorderIssues = async (orderedIds: number[]): Promise<{ status: string }> => {
+  const response = await api.post<{ status: string }>('/issues/reorder/', { ordered_ids: orderedIds });
+  return response.data;
+};
+
 export default api;
+
 

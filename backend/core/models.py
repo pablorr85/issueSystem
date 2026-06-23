@@ -118,6 +118,11 @@ class Issue(models.Model):
         null=True,
         help_text="Uploaded photo evidence of the issue."
     )
+    order_index = models.IntegerField(
+        default=0,
+        db_index=True,
+        help_text="Custom priority ordering index."
+    )
     extra_data: Dict[str, Any] = models.JSONField(
         default=dict,
         blank=True,

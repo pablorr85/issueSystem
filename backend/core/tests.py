@@ -364,3 +364,45 @@ class OperatorHubTests(APITestCase):
         response = self.client.get(url, {'token': str(uuid.uuid4())})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+
+class IssueReorderAPITests(APITestCase):
+    def setUp(self):
+        self.tenant = Tenant.objects.create(name="Zoo Park")
+        self.user = User.objects.create_user(
+            username="manager",
+            password="password",
+            tenant=self.tenant
+        )
+        self.issue1 = Issue.objects.create(tenant=self.tenant, description="Issue 1", order_index=0)
+        self.issue2 = Issue.objects.create(tenant=self.tenant, description="Issue 2", order_index=0)
+        self.issue3 = Issue.objects.create(tenant=self.tenant, description="Issue 3", order_index=0)
+        self.client.force_authenticate(user=self.user)
+
+    def test_bulk_reorder_success(self):
+        url = reverse('issue-reorder')
+        data = {
+            'ordered_ids': [self.issue3.id, self.issue1.id, self.issue2.id]
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.issue1.refresh_from_db()
+        self.issue2.refresh_from_db()
+        self.issue3.refresh_from_db()
+
+        self.assertEqual(self.issue3.order_index, 0)
+        self.assertEqual(self.issue1.order_index, 1)
+        self.assertEqual(self.issue2.order_index, 2)
+
+    def test_bulk_reorder_invalid_tenant_issue(self):
+        other_tenant = Tenant.objects.create(name="Other Park")
+        other_issue = Issue.objects.create(tenant=other_tenant, description="Other Issue")
+
+        url = reverse('issue-reorder')
+        data = {
+            'ordered_ids': [self.issue1.id, other_issue.id]
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+

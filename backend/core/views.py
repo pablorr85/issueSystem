@@ -1,7 +1,9 @@
 from rest_framework import generics, status
+from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.db import transaction
 from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.views import TokenObtainPairView
 
@@ -92,7 +94,7 @@ class IssueListView(generics.ListAPIView):
     def get_queryset(self):
         # Enforce multi-tenant data isolation at database level
         user = self.request.user
-        queryset = Issue.objects.filter(tenant=user.tenant).order_by('-created_at')
+        queryset = Issue.objects.filter(tenant=user.tenant).order_by('order_index', '-created_at')
         
         status_param = self.request.query_params.get('status')
         if status_param:
@@ -210,6 +212,36 @@ class IssueUpdateView(generics.RetrieveUpdateAPIView):
     def get_queryset(self):
         # Enforce multi-tenant data isolation
         return Issue.objects.filter(tenant=self.request.user.tenant)
+
+
+class IssueReorderView(APIView):
+    """
+    API endpoint that allows tenant managers to reorder/prioritize issues.
+    Accepts a POST request with an ordered list of issue IDs.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        ordered_ids = request.data.get('ordered_ids')
+        if not isinstance(ordered_ids, list):
+            return Response({"detail": "ordered_ids must be a list of integers."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        tenant = request.user.tenant
+        issues = Issue.objects.filter(tenant=tenant, id__in=ordered_ids)
+        issues_dict = {issue.id: issue for issue in issues}
+
+        for issue_id in ordered_ids:
+            if issue_id not in issues_dict:
+                return Response({"detail": f"Issue #{issue_id} does not exist or does not belong to this tenant."}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            for index, issue_id in enumerate(ordered_ids):
+                issue = issues_dict[issue_id]
+                issue.order_index = index
+                issue.save(update_fields=['order_index'])
+
+        return Response({"status": "success"}, status=status.HTTP_200_OK)
+
 
 
 
