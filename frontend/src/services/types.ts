@@ -31,7 +31,7 @@ export interface IssuePayload {
 export interface Issue {
   id: number;
   tenant_id: string;
-  status: string;
+  status: 'pending' | 'in_progress' | 'resolved' | 'blocked';
   description: string;
   photo_url?: string;
   image?: string | null;
@@ -53,7 +53,7 @@ export interface Operator {
 
 export interface OperatorTask {
   id: number;
-  status: string;
+  status: 'pending' | 'in_progress' | 'resolved' | 'blocked';
   description: string;
   photo_url?: string;
   image?: string | null;
@@ -75,5 +75,16 @@ export interface PaginatedResponse<T> {
   previous: string | null;
   results: T[];
 }
+
+export interface IssueComment {
+  id: number;
+  issue: number;
+  author_name: string;
+  role: 'manager' | 'operator' | 'system';
+  comment_text: string;
+  is_system_log: boolean;
+  created_at: string;
+}
+
 
 

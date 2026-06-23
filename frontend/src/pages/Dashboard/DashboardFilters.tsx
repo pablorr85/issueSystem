@@ -74,6 +74,9 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
           <MenuItem value="resolved">
             {t("dashboard.filterResolved")}
           </MenuItem>
+          <MenuItem value="blocked">
+            {t("dashboard.filterBlocked")}
+          </MenuItem>
         </FilterSelect>
       </StyledFormControl>
 

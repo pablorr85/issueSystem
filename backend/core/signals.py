@@ -3,34 +3,40 @@ import threading
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.conf import settings
-from .models import Issue
+from .models import Issue, IssueComment
 from .services.whatsapp import send_whatsapp_message
 
 @receiver(pre_save, sender=Issue)
 def issue_pre_save(sender, instance, **kwargs):
     """
-    Store the previous assigned_to state on the instance before saving to DB
+    Store the previous assigned_to and status state on the instance before saving to DB
     so we can compare changes in the post_save signal.
     """
     if instance.pk:
         try:
             old_instance = Issue.objects.get(pk=instance.pk)
             instance._old_assigned_to = old_instance.assigned_to
+            instance._old_status = old_instance.status
         except Issue.DoesNotExist:
             instance._old_assigned_to = None
+            instance._old_status = None
     else:
         instance._old_assigned_to = None
+        instance._old_status = None
 
 @receiver(post_save, sender=Issue)
 def issue_post_save(sender, instance, created, **kwargs):
     """
-    Compare the current assigned_to state with the pre-saved state.
-    Trigger Meta WhatsApp notification when transitioning from no operator to assigned.
+    Compare the current assigned_to and status states with pre-saved values.
+    Trigger Meta WhatsApp notifications, and auto-generate audit logs.
     """
     old_assigned = getattr(instance, '_old_assigned_to', None)
     new_assigned = instance.assigned_to
+    
+    old_status = getattr(instance, '_old_status', None)
+    new_status = instance.status
 
-    # Fire when transitioning from no operator, OR when reassigned to a different operator
+    # 1. Dispatch WhatsApp notification when transitioning to an operator
     if new_assigned and (old_assigned is None or new_assigned != old_assigned):
         operator = new_assigned
         phone_number = None
@@ -64,3 +70,30 @@ def issue_post_save(sender, instance, created, **kwargs):
                 thread = threading.Thread(target=send_whatsapp_message, args=(phone_number, message_body))
                 thread.daemon = True
                 thread.start()
+
+    # 2. System audit logs for comment timeline
+    if not created:
+        comments_to_create = []
+
+        if old_assigned != new_assigned:
+            old_name = old_assigned.username if old_assigned else "Unassigned"
+            new_name = new_assigned.username if new_assigned else "Unassigned"
+            comments_to_create.append(IssueComment(
+                issue=instance,
+                comment_text=f"Task reassigned from {old_name} to {new_name}",
+                is_system_log=True
+            ))
+
+        if old_status != new_status:
+            # Transitions to or from blocked
+            if new_status == 'blocked' or old_status == 'blocked':
+                old_status_disp = old_status.replace('_', ' ').capitalize() if old_status else "Unknown"
+                new_status_disp = new_status.replace('_', ' ').capitalize()
+                comments_to_create.append(IssueComment(
+                    issue=instance,
+                    comment_text=f"Status changed from {old_status_disp} to {new_status_disp}",
+                    is_system_log=True
+                ))
+
+        if comments_to_create:
+            IssueComment.objects.bulk_create(comments_to_create)

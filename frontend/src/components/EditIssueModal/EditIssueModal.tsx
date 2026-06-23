@@ -15,6 +15,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { updateIssue } from '../../services/api';
 import type { Issue, Operator, TenantConfig, CustomField } from '../../services/types';
+import { IssueComments } from '../IssueComments/IssueComments';
 import {
   StyledDialog,
   StyledDialogTitle,
@@ -263,6 +264,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
               <MenuItem value="pending">{t('dashboard.filterPending', 'Pending')}</MenuItem>
               <MenuItem value="in_progress">{t('dashboard.filterInProgress', 'In Progress')}</MenuItem>
               <MenuItem value="resolved">{t('dashboard.filterResolved', 'Resolved')}</MenuItem>
+              <MenuItem value="blocked">{t('dashboard.filterBlocked', 'Blocked')}</MenuItem>
             </Select>
           </StyledFormControl>
 
@@ -363,7 +365,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
             </div>
           )}
 
-
+          <IssueComments issueId={issue.id} />
         </FormContainer>
       </DialogContent>
  

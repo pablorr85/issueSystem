@@ -115,6 +115,12 @@ export const StatusPill = styled.div<StatusPillProps>`
           color: #4caf50;
           border: 1px solid rgba(76, 175, 80, 0.3);
         `;
+      case 'blocked':
+        return `
+          background: rgba(239, 108, 0, 0.15);
+          color: #ff9800;
+          border: 1px solid rgba(239, 108, 0, 0.3);
+        `;
       default:
         return `
           background: rgba(255, 255, 255, 0.1);
@@ -388,4 +394,5 @@ export const LightboxCloseButton = styled.button`
     background: rgba(255, 255, 255, 0.2);
   }
 `;
+
 

@@ -12,6 +12,7 @@ from .views import (
     OperatorHubView,
     IssueUpdateView,
     IssueReorderView,
+    IssueCommentsView,
 )
 
 urlpatterns = [
@@ -27,5 +28,6 @@ urlpatterns = [
     path('tasks/<uuid:secure_token>/', OperatorTaskView.as_view(), name='operator-task-detail'),
     path('operator/hub/', OperatorHubView.as_view(), name='operator-hub'),
     path('issues/<int:pk>/', IssueUpdateView.as_view(), name='issue-detail-update'),
+    path('issues/<int:issue_id>/comments/', IssueCommentsView.as_view(), name='issue-comments'),
 ]
 

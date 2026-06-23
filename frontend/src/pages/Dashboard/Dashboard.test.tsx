@@ -2,7 +2,7 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { DashboardView } from '../../views/DashboardView';
-import { getTenantConfig, getIssues, getOperators, assignIssue } from '../../services/api';
+import { getTenantConfig, getIssues, getOperators, assignIssue, getIssueComments } from '../../services/api';
 import type { TenantConfig, PaginatedResponse, Issue } from '../../services/types';
 
 // Mock Auth Context
@@ -21,7 +21,9 @@ vi.mock('../../services/api', () => ({
   getOperators: vi.fn(),
   assignIssue: vi.fn(),
   updateIssueStatus: vi.fn(),
-  updateIssue: vi.fn()
+  updateIssue: vi.fn(),
+  getIssueComments: vi.fn(),
+  addIssueComment: vi.fn()
 }));
 
 const mockTenant: TenantConfig = {
@@ -80,6 +82,7 @@ describe('Dashboard Page Component', () => {
     vi.clearAllMocks();
     vi.mocked(getTenantConfig).mockResolvedValue(mockTenant);
     vi.mocked(getOperators).mockResolvedValue(mockOperators);
+    vi.mocked(getIssueComments).mockResolvedValue([]);
   });
 
   test('renders header title and dynamically maps custom fields columns', async () => {

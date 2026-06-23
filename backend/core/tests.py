@@ -406,3 +406,152 @@ class IssueReorderAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
+from .models import IssueComment
+
+class IssueCommentsAndBlockedAPITests(APITestCase):
+    def setUp(self):
+        self.tenant = Tenant.objects.create(name="Zoo Theme Park")
+        
+        # Managers / Users
+        self.manager = User.objects.create_user(
+            username="manager_test", password="password", tenant=self.tenant
+        )
+        self.other_manager = User.objects.create_user(
+            username="other_manager", password="password", tenant=Tenant.objects.create(name="Another Tenant")
+        )
+
+        # Operators
+        self.operator = User.objects.create_user(
+            username="op_test", password="password", tenant=self.tenant
+        )
+        self.operator_profile = OperatorProfile.objects.create(
+            user=self.operator, phone_number="+34699000111"
+        )
+        
+        self.other_operator = User.objects.create_user(
+            username="other_op", password="password", tenant=self.tenant
+        )
+        self.other_operator_profile = OperatorProfile.objects.create(
+            user=self.other_operator, phone_number="+34699000222"
+        )
+
+        # Issue
+        self.issue = Issue.objects.create(
+            tenant=self.tenant,
+            description="Broken security fence",
+            status="pending"
+        )
+
+    def test_audit_logs_created_on_operator_reassignment(self):
+        # 1. Initially unassigned
+        self.assertIsNone(self.issue.assigned_to)
+        
+        # 2. Assign to operator
+        self.issue.assigned_to = self.operator
+        self.issue.save()
+
+        # Should generate an audit log comment
+        comments = IssueComment.objects.filter(issue=self.issue, is_system_log=True)
+        self.assertEqual(comments.count(), 1)
+        self.assertIn("Task reassigned from Unassigned to op_test", comments[0].comment_text)
+
+        # 3. Reassign to other_operator
+        self.issue.assigned_to = self.other_operator
+        self.issue.save()
+
+        comments = IssueComment.objects.filter(issue=self.issue, is_system_log=True).order_by('created_at')
+        self.assertEqual(comments.count(), 2)
+        self.assertIn("Task reassigned from op_test to other_op", comments[1].comment_text)
+
+    def test_audit_logs_created_on_blocked_transition(self):
+        # 1. Change status to blocked
+        self.issue.status = "blocked"
+        self.issue.save()
+
+        comments = IssueComment.objects.filter(issue=self.issue, is_system_log=True)
+        self.assertEqual(comments.count(), 1)
+        self.assertIn("Status changed from Pending to Blocked", comments[0].comment_text)
+
+        # 2. Transition back to in_progress
+        self.issue.status = "in_progress"
+        self.issue.save()
+
+        comments = IssueComment.objects.filter(issue=self.issue, is_system_log=True).order_by('created_at')
+        self.assertEqual(comments.count(), 2)
+        self.assertIn("Status changed from Blocked to In progress", comments[1].comment_text)
+
+    def test_get_comments_jwt_authenticated(self):
+        # Create mock comments
+        IssueComment.objects.create(issue=self.issue, comment_text="Test comment 1", author_user=self.manager)
+        
+        url = reverse('issue-comments', kwargs={'issue_id': self.issue.pk})
+        
+        # Unauthorized if not logged in
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Authorized manager
+        self.client.force_authenticate(user=self.manager)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['comment_text'], "Test comment 1")
+        self.assertEqual(response.data[0]['role'], "manager")
+        self.assertEqual(response.data[0]['author_name'], "manager_test")
+
+        # Denied other manager (different tenant)
+        self.client.force_authenticate(user=self.other_manager)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_get_comments_token_authenticated(self):
+        # Create mock comments
+        IssueComment.objects.create(issue=self.issue, comment_text="Test comment 1")
+        url = reverse('issue-comments', kwargs={'issue_id': self.issue.pk})
+
+        # 1. Use secure task token
+        token = self.issue.secure_token
+        response = self.client.get(url, {'token': str(token)})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
+        # 2. Use operator hub token (must be assigned)
+        self.issue.assigned_to = self.operator
+        self.issue.save()
+        
+        hub_token = self.operator_profile.hub_token
+        response = self.client.get(url, {'token': str(hub_token)})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # If not assigned, should fail
+        self.issue.assigned_to = self.other_operator
+        self.issue.save()
+        
+        response = self.client.get(url, {'token': str(hub_token)})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_post_comments_jwt_and_tokens(self):
+        url = reverse('issue-comments', kwargs={'issue_id': self.issue.pk})
+        data = {'comment_text': "Manager note"}
+
+        # 1. JWT auth user
+        self.client.force_authenticate(user=self.manager)
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['author_name'], "manager_test")
+        self.assertEqual(response.data['role'], "manager")
+
+        # 2. Secure task token (assigned operator author resolver)
+        self.client.force_authenticate(user=None)
+        self.issue.assigned_to = self.operator
+        self.issue.save()
+
+        task_token = self.issue.secure_token
+        data = {'comment_text': "Operator note via task token"}
+        response = self.client.post(f"{url}?token={task_token}", data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['author_name'], "op_test")
+        self.assertEqual(response.data['role'], "operator")
+
+
+

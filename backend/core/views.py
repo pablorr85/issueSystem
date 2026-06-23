@@ -7,7 +7,7 @@ from django.db import transaction
 from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .models import Tenant, Issue, User, OperatorProfile
+from .models import Tenant, Issue, User, OperatorProfile, IssueComment
 from .serializers import (
     TenantConfigSerializer,
     IssueSerializer,
@@ -17,6 +17,7 @@ from .serializers import (
     UserSerializer,
     IssueAssignmentSerializer,
     OperatorTaskSerializer,
+    IssueCommentSerializer,
 )
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -172,7 +173,7 @@ class OperatorTaskView(generics.RetrieveUpdateAPIView):
     permission_classes = []  # Public access via secure token lookup
 
 
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, PermissionDenied, NotFound
 import uuid
 
 class OperatorHubView(generics.ListAPIView):
@@ -241,6 +242,103 @@ class IssueReorderView(APIView):
                 issue.save(update_fields=['order_index'])
 
         return Response({"status": "success"}, status=status.HTTP_200_OK)
+
+
+class IssueCommentsView(generics.ListCreateAPIView):
+    """
+    API view to list comments and add comments to a specific Issue.
+    Supports JWT authorization for managers and token-based checks for field operators.
+    """
+    serializer_class = IssueCommentSerializer
+    permission_classes = []  # Controlled manually in get_queryset/perform_create
+
+    def get_issue(self):
+        issue_id = self.kwargs.get('issue_id')
+        try:
+            return Issue.objects.get(pk=issue_id)
+        except (Issue.DoesNotExist, ValueError):
+            raise NotFound("Issue not found.")
+
+    def get_queryset(self):
+        issue = self.get_issue()
+        request = self.request
+        token_str = request.query_params.get('token') or request.headers.get('X-Hub-Token')
+
+        # 1. JWT authentication for managers/employees
+        if request.user and request.user.is_authenticated:
+            if request.user.tenant != issue.tenant:
+                raise PermissionDenied("You do not have permission to access comments for this issue.")
+            return issue.comments.all().order_by('created_at')
+
+        # 2. Token-based authentication for operators
+        if token_str:
+            # Secure task token
+            try:
+                task_token = uuid.UUID(token_str)
+                if issue.secure_token == task_token:
+                    return issue.comments.all().order_by('created_at')
+            except ValueError:
+                pass
+
+            # Operator hub token
+            try:
+                hub_token = uuid.UUID(token_str)
+                profile = OperatorProfile.objects.get(hub_token=hub_token)
+                if issue.assigned_to == profile.user:
+                    return issue.comments.all().order_by('created_at')
+            except (OperatorProfile.DoesNotExist, ValueError):
+                pass
+
+        raise PermissionDenied("Unauthorized access to comments.")
+
+    def perform_create(self, serializer):
+        issue = self.get_issue()
+        request = self.request
+        token_str = request.query_params.get('token') or request.headers.get('X-Hub-Token')
+
+        author_user = None
+        author_operator = None
+
+        # 1. JWT auth user
+        if request.user and request.user.is_authenticated:
+            if request.user.tenant != issue.tenant:
+                raise PermissionDenied("You do not have permission to comment on this issue.")
+            author_user = request.user
+        
+        # 2. Token auth
+        elif token_str:
+            # Secure task token
+            try:
+                task_token = uuid.UUID(token_str)
+                if issue.secure_token == task_token:
+                    if issue.assigned_to:
+                        try:
+                            author_operator = issue.assigned_to.operator_profile
+                        except OperatorProfile.DoesNotExist:
+                            pass
+            except ValueError:
+                pass
+
+            # Operator hub token
+            if not author_operator:
+                try:
+                    hub_token = uuid.UUID(token_str)
+                    profile = OperatorProfile.objects.get(hub_token=hub_token)
+                    if issue.assigned_to == profile.user:
+                        author_operator = profile
+                except (OperatorProfile.DoesNotExist, ValueError):
+                    pass
+
+        if not author_user and not author_operator:
+            raise PermissionDenied("Unauthorized to comment on this issue.")
+
+        serializer.save(
+            issue=issue,
+            author_user=author_user,
+            author_operator=author_operator,
+            is_system_log=False
+        )
+
 
 
 

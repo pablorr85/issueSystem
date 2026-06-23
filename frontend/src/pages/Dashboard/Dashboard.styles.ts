@@ -153,10 +153,13 @@ export const StatusBadge = styled.span<{ $status: string }>`
       case 'resolved':
         return 'background-color: rgba(46, 125, 50, 0.15); color: #81c784; border: 1px solid rgba(76, 175, 80, 0.3);';
       case 'in_progress':
-        return 'background-color: rgba(255, 179, 0, 0.15); color: #ffd54f; border: 1px solid rgba(255, 179, 0, 0.3);';
+        return 'background-color: rgba(33, 150, 243, 0.15); color: #2196f3; border: 1px solid rgba(33, 150, 243, 0.3);';
+      case 'blocked':
+        return 'background-color: rgba(239, 108, 0, 0.15); color: #ff9800; border: 1px solid rgba(239, 108, 0, 0.3);';
+      case 'pending':
       case 'open':
       default:
-        return 'background-color: rgba(0, 229, 255, 0.12); color: #33eaff; border: 1px solid rgba(0, 229, 255, 0.3);';
+        return 'background-color: rgba(255, 179, 0, 0.15); color: #ffd54f; border: 1px solid rgba(255, 179, 0, 0.3);';
     }
   }}
 `;

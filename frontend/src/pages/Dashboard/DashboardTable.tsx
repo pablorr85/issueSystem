@@ -182,7 +182,9 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
                 ? t("dashboard.actionPending")
                 : status === "in_progress"
                   ? t("dashboard.actionInProgress")
-                  : t("dashboard.actionResolved")}
+                  : status === "blocked"
+                    ? t("dashboard.statusBlocked")
+                    : t("dashboard.actionResolved")}
             </StatusBadge>
           );
         },

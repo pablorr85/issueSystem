@@ -75,7 +75,23 @@
     "urgencyFilterLabel": "Filter by Urgency",
     "filterAllUrgencies": "All Urgencies",
     "tableAssignOperator": "Assign Operator",
-    "errorReorder": "Failed to update priority order."
+    "errorReorder": "Failed to update priority order.",
+    "filterBlocked": "Blocked",
+    "statusBlocked": "Blocked"
+  },
+  "comments": {
+    "title": "Audit Log & Comments",
+    "placeholder": "Write a note or comment...",
+    "loading": "Loading comments...",
+    "noComments": "No comments or notes recorded.",
+    "quickBlock": "🛑 Report Block / Missing Material",
+    "blockCommentText": "🛑 Task blocked: missing materials or obstacle in the field.",
+    "send": "Send",
+    "errorLoad": "Failed to load comments history.",
+    "errorAdd": "Failed to post comment.",
+    "systemRole": "System",
+    "managerRole": "Manager",
+    "operatorRole": "Operator"
   },
   "app": {
     "appTitle": "Issue Tracker SaaS",

@@ -75,7 +75,23 @@
     "urgencyFilterLabel": "Filtrar por Urgencia",
     "filterAllUrgencies": "Todas las Urgencias",
     "tableAssignOperator": "Asignar Operario",
-    "errorReorder": "Error al actualizar el orden de prioridad."
+    "errorReorder": "Error al actualizar el orden de prioridad.",
+    "filterBlocked": "Bloqueadas",
+    "statusBlocked": "Bloqueado"
+  },
+  "comments": {
+    "title": "Cuaderno de Bitácora",
+    "placeholder": "Escribe una nota o comentario...",
+    "loading": "Cargando comentarios...",
+    "noComments": "No hay notas ni comentarios registrados.",
+    "quickBlock": "🛑 Reportar Bloqueo / Falta de Material",
+    "blockCommentText": "🛑 Tarea bloqueada: falta de material o impedimento en el campo.",
+    "send": "Enviar",
+    "errorLoad": "Error al cargar el historial.",
+    "errorAdd": "Error al publicar la nota.",
+    "systemRole": "Sistema",
+    "managerRole": "Administrador",
+    "operatorRole": "Operario"
   },
   "app": {
     "appTitle": "SaaS de Gestión de Incidencias",

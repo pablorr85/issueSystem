@@ -9,6 +9,7 @@ import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import { getOperatorTask, updateOperatorTaskStatus } from '../services/api';
 import { getUrgencyLevel, getUrgencyIcon } from '../utils/urgency';
 import type { OperatorTask } from '../services/types';
+import { IssueComments } from '../components/IssueComments/IssueComments';
 import {
   Container,
   MobileCard,
@@ -207,6 +208,8 @@ export const OperatorTaskView: React.FC = () => {
                 ? t('dashboard.actionPending', 'Pending')
                 : task.status === 'in_progress'
                 ? t('dashboard.actionInProgress', 'In Progress')
+                : task.status === 'blocked'
+                ? t('dashboard.statusBlocked', 'Blocked')
                 : t('dashboard.actionResolved', 'Resolved')}
             </StatusPill>
           </div>
@@ -271,7 +274,7 @@ export const OperatorTaskView: React.FC = () => {
             </div>
           ) : (
             <>
-              {task.status === 'pending' && (
+              {(task.status === 'pending' || task.status === 'blocked') && (
                 <AcceptButton
                   variant="contained"
                   onClick={() => handleUpdateStatus('in_progress')}
@@ -308,6 +311,15 @@ export const OperatorTaskView: React.FC = () => {
             </>
           )}
         </ActionArea>
+
+        <IssueComments
+          issueId={task.id}
+          token={secure_token}
+          showQuickBlock={task.status !== 'resolved' && task.status !== 'blocked'}
+          onStatusChange={async (newStatus) => {
+            handleUpdateStatus(newStatus);
+          }}
+        />
       </MobileCard>
       {lightboxImage && (
         <LightboxOverlay onClick={() => setLightboxImage(null)} data-testid="lightbox-overlay">

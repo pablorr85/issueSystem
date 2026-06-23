@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Tenant, CustomField, Issue, User
+from .models import Tenant, CustomField, Issue, User, IssueComment
 
 class CustomFieldSerializer(serializers.ModelSerializer):
     """
@@ -201,5 +201,34 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['tenant_id'] = str(self.user.tenant.id) if self.user.tenant else None
         data['username'] = self.user.username
         return data
+
+
+class IssueCommentSerializer(serializers.ModelSerializer):
+    author_name = serializers.SerializerMethodField()
+    role = serializers.SerializerMethodField()
+
+    class Meta:
+        model = IssueComment
+        fields = ('id', 'issue', 'author_name', 'role', 'comment_text', 'is_system_log', 'created_at')
+        read_only_fields = ('id', 'issue', 'author_name', 'role', 'is_system_log', 'created_at')
+
+    def get_author_name(self, obj):
+        if obj.is_system_log:
+            return "System"
+        if obj.author_user:
+            return obj.author_user.username
+        if obj.author_operator:
+            return obj.author_operator.user.username
+        return "Unknown"
+
+    def get_role(self, obj):
+        if obj.is_system_log:
+            return "system"
+        if obj.author_user:
+            return "manager"
+        if obj.author_operator:
+            return "operator"
+        return "unknown"
+
 
 
