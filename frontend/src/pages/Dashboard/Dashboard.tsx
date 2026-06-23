@@ -1,104 +1,19 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { MenuItem, InputLabel } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import AddIcon from "@mui/icons-material/Add";
-import LaunchIcon from "@mui/icons-material/Launch";
-import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import { useTranslation } from "react-i18next";
-import {
-  createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-  getFilteredRowModel,
-} from "@tanstack/react-table";
 import type { ColumnFiltersState } from "@tanstack/react-table";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  arrayMove,
-} from "@dnd-kit/sortable";
-import { assignIssue, reorderIssues } from "../../services/api";
+import { assignIssue } from "../../services/api";
 import type { TenantConfig, Issue, Operator } from "../../services/types";
-import { getUrgencyLevelKey, getUrgencyIcon } from "../../utils/urgency";
 import { ShareQRSection } from "../../components/ShareQRSection/ShareQRSection";
-import { SortableTableRow } from "./SortableTableRow";
-
-const columnHelper = createColumnHelper<Issue>();
+import { DashboardFilters } from "./DashboardFilters";
+import { DashboardTable } from "./DashboardTable";
+import { DashboardPagination } from "./DashboardPagination";
 import {
   DashboardContainer,
   DashboardHeader,
   DashboardTitle,
-  FilterSection,
-  StyledFormControl,
   DashboardCard,
-  TableWrapper,
-  StyledTable,
-  StyledTableHead,
-  StyledTableRow,
-  StyledTableCell,
-  StyledTableHeadCell,
-  StatusBadge,
-  TableSelect,
-  PaginationFooter,
-  PaginationInfo,
-  PaginationButtons,
-  PaginationButton,
-  EmptyState,
-  StyledTableBody,
-  ReportButton,
-  FilterSelect,
-  UrgencyPill,
 } from "./Dashboard.styles";
-
-const isCriticalUrgency = (issue: Issue): boolean => {
-  if (!issue.extra_data) return false;
-  const urgencyKeys = ["urgency", "urgencia"];
-  for (const key of Object.keys(issue.extra_data)) {
-    if (urgencyKeys.includes(key.toLowerCase())) {
-      const val = issue.extra_data[key];
-      if (typeof val === "string") {
-        const lowerVal = val.toLowerCase().trim();
-        if (
-          lowerVal.includes("critical") ||
-          lowerVal.includes("crítica") ||
-          lowerVal.includes("critica")
-        ) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
-};
-
-
-
-// Helper to format date
-const formatDate = (dateString: string) => {
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return dateString;
-  }
-};
 
 export interface DashboardProps {
   tenant: TenantConfig;
@@ -128,81 +43,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onEditIssue,
 }) => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const reportingUrl = `${window.location.origin}/${tenant.id}/report`;
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleDragEnd = useCallback((event: any) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = issues.findIndex((item) => item.id === active.id);
-    const newIndex = issues.findIndex((item) => item.id === over.id);
-
-    if (oldIndex !== -1 && newIndex !== -1) {
-      const newIssues = arrayMove(issues, oldIndex, newIndex);
-      setIssues(newIssues);
-
-      const orderedIds = newIssues.map((item) => item.id);
-      reorderIssues(orderedIds).catch((err) => {
-        console.error("Failed to persist reorder:", err);
-        setIssues(issues); // rollback
-        alert(t("dashboard.errorUpdate", "Failed to update priority order."));
-      });
-    }
-  }, [issues, setIssues, t]);
-
-  // Custom fields schemas defined for this tenant
-  const customFields = useMemo(() => tenant.custom_fields || [], [tenant.custom_fields]);
-
-  const handleAssignOperator = useCallback((
-    issueId: number,
-    operatorIdVal: number | string,
-  ) => {
-    const operatorId = operatorIdVal === "" ? null : Number(operatorIdVal);
-    const originalIssues = [...issues];
-
-    // Optimistic UI Update
-    setIssues((prev) =>
-      prev.map((issue) =>
-        issue.id === issueId
-          ? {
-              ...issue,
-              assigned_to: operatorId,
-              assigned_to_name: operatorId
-                ? operators.find((op) => op.id === operatorId)?.username || ""
-                : "",
-            }
-          : issue,
-      ),
-    );
-
-    assignIssue(issueId, operatorId)
-      .then((updatedIssue) => {
-        setIssues((prev) =>
-          prev.map((issue) =>
-            issue.id === issueId ? { ...issue, ...updatedIssue } : issue,
-          ),
-        );
-      })
-      .catch((err) => {
-        console.error("Failed to assign operator:", err);
-        setIssues(originalIssues);
-        alert(t("dashboard.errorAssign", "Failed to assign operator"));
-      });
-  }, [issues, operators, t, setIssues]);
 
   // Synchronize statusFilter to TanStack status filter
   useEffect(() => {
@@ -215,226 +58,55 @@ export const Dashboard: React.FC<DashboardProps> = ({
     });
   }, [statusFilter]);
 
-  const columns = useMemo(() => {
-    const baseCols = [
-      columnHelper.display({
-        id: "drag-handle",
-        header: () => "",
-        cell: () => (
-          <div
-            className="drag-handle"
-            style={{
-              cursor: "grab",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#6b6780",
-            }}
-          >
-            <DragIndicatorIcon style={{ fontSize: "1.2rem" }} />
-          </div>
-        ),
-      }),
-      columnHelper.accessor("id", {
-        header: () => t("dashboard.tableID"),
-        cell: (info) => {
-          const issue = info.row.original;
-          return (
-            <span
-              onClick={() => onEditIssue(issue)}
-              style={{
-                cursor: "pointer",
-                fontWeight: "bold",
-                color: "var(--primary)",
-              }}
-              data-testid={`edit-issue-id-${issue.id}`}
-            >
-              {issue.id}
-            </span>
-          );
-        },
-      }),
-      columnHelper.accessor("status", {
-        id: "status",
-        header: () => t("dashboard.tableStatus"),
-        cell: (info) => {
-          const status = info.getValue();
-          return (
-            <StatusBadge $status={status}>
-              {status === "pending"
-                ? t("dashboard.actionPending", "Pending")
-                : status === "in_progress"
-                  ? t("dashboard.actionInProgress")
-                  : t("dashboard.actionResolved")}
-            </StatusBadge>
-          );
-        },
-        filterFn: (row, columnId, filterValue) => {
-          if (!filterValue || filterValue === "") return true;
-          const val = row.getValue(columnId);
-          return val === filterValue;
-        },
-      }),
-      columnHelper.accessor("description", {
-        header: () => t("dashboard.tableDescription"),
-        cell: (info) => {
-          const issue = info.row.original;
-          return (
-            <span
-              onClick={() => onEditIssue(issue)}
-              style={{ cursor: "pointer", display: "block", width: "100%" }}
-              data-testid={`edit-issue-desc-${issue.id}`}
-            >
-              {issue.description}
-            </span>
-          );
-        },
-      }),
-    ];
+  // Custom fields schemas defined for this tenant
+  const customFields = useMemo(() => tenant.custom_fields || [], [tenant.custom_fields]);
 
-    const dynamicCols = customFields.map((field) => {
-      const isUrgencyField = ["urgency", "urgencia"].includes(
-        field.name.toLowerCase()
+  const handleAssignOperator = useCallback(
+    (issueId: number, operatorIdVal: number | string) => {
+      const operatorId = operatorIdVal === "" ? null : Number(operatorIdVal);
+      const originalIssues = [...issues];
+
+      // Optimistic UI Update
+      setIssues((prev) =>
+        prev.map((issue) =>
+          issue.id === issueId
+            ? {
+                ...issue,
+                assigned_to: operatorId,
+                assigned_to_name: operatorId
+                  ? operators.find((op) => op.id === operatorId)?.username || ""
+                  : "",
+              }
+            : issue
+        )
       );
 
-      return columnHelper.accessor<(row: Issue) => unknown, unknown>(
-        (row: Issue) => row.extra_data?.[field.name],
-        {
-          id: field.name,
-          header: () => field.name.replace(/_/g, " "),
-          cell: (info) => {
-            const rawVal = info.getValue();
-            let displayVal = "-";
-
-            if (
-              rawVal !== undefined &&
-              rawVal !== null &&
-              rawVal !== ""
-            ) {
-              if (typeof rawVal === "boolean") {
-                displayVal = rawVal
-                  ? t("dashboard.yes")
-                  : t("dashboard.no");
-              } else {
-                displayVal = String(rawVal);
-              }
-            }
-
-            if (isUrgencyField && typeof rawVal === "string" && rawVal.trim() !== "") {
-              const levelKey = getUrgencyLevelKey(rawVal);
-              return (
-                <UrgencyPill $level={levelKey}>
-                  {getUrgencyIcon(levelKey)}
-                  {displayVal}
-                </UrgencyPill>
-              );
-            }
-
-            return displayVal;
-          },
-          filterFn: isUrgencyField
-            ? (row, columnId, filterValue) => {
-                if (!filterValue || filterValue === "") return true;
-                const rawVal = row.getValue(columnId);
-                if (typeof rawVal !== "string") return false;
-                const levelKey = getUrgencyLevelKey(rawVal);
-                return levelKey === filterValue;
-              }
-            : undefined,
-        }
-      );
-    });
-
-    const endCols = [
-      columnHelper.accessor("created_at", {
-        header: () => t("dashboard.tableCreatedAt"),
-        cell: (info) => formatDate(info.getValue()),
-      }),
-      columnHelper.accessor<(row: Issue) => number | null, number | null>(
-        (row: Issue) => row.assigned_to,
-        {
-          id: "assigned_to",
-          header: () => t("dashboard.tableAssignOperator", "Assign Operator"),
-          cell: (info) => {
-            const issue = info.row.original;
-            const assignedVal = info.getValue() !== null && info.getValue() !== undefined ? String(info.getValue()) : "";
-            const assignedOp = operators.find((op) => op.id === issue.assigned_to);
-            return (
-              <>
-                <TableSelect
-                  value={assignedVal}
-                  onChange={(e) =>
-                    handleAssignOperator(issue.id, e.target.value as string)
-                  }
-                  inputProps={{
-                    "data-testid": `action-assign-select-${issue.id}`,
-                  }}
-                  displayEmpty
-                  size="small"
-                >
-                  <MenuItem value="">
-                    <em>{t("dashboard.unassigned", "Unassigned")}</em>
-                  </MenuItem>
-                  {operators.map((op) => (
-                    <MenuItem key={op.id} value={String(op.id)}>
-                      {op.username}
-                    </MenuItem>
-                  ))}
-                </TableSelect>
-                {assignedOp && assignedOp.hub_token && (
-                  <div style={{ marginTop: 6 }}>
-                    <a
-                      href={`/work/hub?token=${assignedOp.hub_token}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        fontSize: "0.75rem",
-                        color: "var(--primary)",
-                        textDecoration: "none",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 4,
-                        fontWeight: 600,
-                      }}
-                      data-testid={`operator-hub-link-${issue.id}`}
-                    >
-                      <LaunchIcon sx={{ fontSize: "0.85rem" }} />
-                      {t("operatorHub.viewTask", "View Workload")}
-                    </a>
-                  </div>
-                )}
-              </>
-            );
-          },
-          filterFn: (row, columnId, filterValue) => {
-            if (filterValue === null || filterValue === undefined || filterValue === "") return true;
-            const val = row.getValue(columnId);
-            return val === Number(filterValue);
-          },
-        }
-      )
-    ];
-
-    return [...baseCols, ...dynamicCols, ...endCols];
-  }, [customFields, operators, t, handleAssignOperator, onEditIssue]);
-
-  const table = useReactTable({
-    data: issues,
-    columns,
-    state: {
-      columnFilters,
+      assignIssue(issueId, operatorId)
+        .then((updatedIssue) => {
+          setIssues((prev) =>
+            prev.map((issue) =>
+              issue.id === issueId ? { ...issue, ...updatedIssue } : issue
+            )
+          );
+        })
+        .catch((err) => {
+          console.error("Failed to assign operator:", err);
+          setIssues(originalIssues);
+          alert(t("dashboard.errorAssign", "Failed to assign operator"));
+        });
     },
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-  });
+    [issues, operators, t, setIssues]
+  );
 
-  const operatorFilterValue = (columnFilters.find((f) => f.id === "assigned_to")?.value as string) || "";
+  const operatorFilterValue =
+    (columnFilters.find((f) => f.id === "assigned_to")?.value as string) || "";
   const urgencyField = customFields.find((f) =>
     ["urgency", "urgencia"].includes(f.name.toLowerCase())
   );
   const urgencyColumnId = urgencyField?.name || "";
-  const urgencyFilterValue = urgencyColumnId ? (columnFilters.find((f) => f.id === urgencyColumnId)?.value as string) || "" : "";
+  const urgencyFilterValue = urgencyColumnId
+    ? (columnFilters.find((f) => f.id === urgencyColumnId)?.value as string) || ""
+    : "";
 
   const handleOperatorFilterChange = (val: string) => {
     setColumnFilters((prev) => {
@@ -457,8 +129,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     });
   };
 
-
-
   // Reset page when filter changes
   const handleFilterChange = (val: string) => {
     setStatusFilter(val);
@@ -471,7 +141,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     <DashboardContainer className="animate-fade-in">
       <DashboardHeader>
         <DashboardTitle variant="h5" as="h2">
-          <DashboardIcon sx={{ color: "var(--primary)" }} />
+          <DashboardIcon />
           {t("dashboard.title")}
         </DashboardTitle>
       </DashboardHeader>
@@ -479,193 +149,39 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <ShareQRSection tenant={tenant} reportingUrl={reportingUrl} />
 
       <DashboardCard>
-        <FilterSection style={{ padding: "16px 20px", borderBottom: "1px solid rgba(255, 255, 255, 0.06)" }}>
-          <ReportButton
-            variant="contained"
-            onClick={() => navigate(`/${tenant.id}/report`)}
-            data-testid="create-issue-link"
-          >
-            <AddIcon />
-            {t("app.tabReport")}
-          </ReportButton>
+        <DashboardFilters
+          tenantId={tenant.id}
+          statusFilter={statusFilter}
+          onStatusFilterChange={handleFilterChange}
+          operatorFilterValue={operatorFilterValue}
+          onOperatorFilterChange={handleOperatorFilterChange}
+          urgencyFilterValue={urgencyFilterValue}
+          onUrgencyFilterChange={handleUrgencyFilterChange}
+          urgencyColumnId={urgencyColumnId}
+          operators={operators}
+          loading={loading}
+        />
 
-          <StyledFormControl variant="outlined" size="small">
-            <InputLabel id="filter-status-label">
-              {t("dashboard.statusFilterLabel")}
-            </InputLabel>
-            <FilterSelect
-              labelId="filter-status-label"
-              value={statusFilter}
-              label={t("dashboard.statusFilterLabel")}
-              onChange={(e) => handleFilterChange(e.target.value as string)}
-              disabled={loading}
-              inputProps={{ "data-testid": "dashboard-status-filter" }}
-            >
-              <MenuItem value="">
-                <em>{t("dashboard.filterAll")}</em>
-              </MenuItem>
-              <MenuItem value="pending">
-                {t("dashboard.filterPending")}
-              </MenuItem>
-              <MenuItem value="in_progress">
-                {t("dashboard.filterInProgress")}
-              </MenuItem>
-              <MenuItem value="resolved">
-                {t("dashboard.filterResolved")}
-              </MenuItem>
-            </FilterSelect>
-          </StyledFormControl>
+        <DashboardTable
+          issues={issues}
+          setIssues={setIssues}
+          operators={operators}
+          loading={loading}
+          columnFilters={columnFilters}
+          setColumnFilters={setColumnFilters}
+          customFields={customFields}
+          onEditIssue={onEditIssue}
+          handleAssignOperator={handleAssignOperator}
+        />
 
-          <StyledFormControl variant="outlined" size="small">
-            <InputLabel id="filter-operator-label">
-              {t("dashboard.operatorFilterLabel", "Operator Filter")}
-            </InputLabel>
-            <FilterSelect
-              labelId="filter-operator-label"
-              value={operatorFilterValue}
-              label={t("dashboard.operatorFilterLabel", "Operator Filter")}
-              onChange={(e) => handleOperatorFilterChange(e.target.value as string)}
-              inputProps={{ "data-testid": "dashboard-operator-filter" }}
-            >
-              <MenuItem value="">
-                <em>{t("dashboard.filterAllOperators", "All Operators")}</em>
-              </MenuItem>
-              {operators.map((op) => (
-                <MenuItem key={op.id} value={String(op.id)}>
-                  {op.username}
-                </MenuItem>
-              ))}
-            </FilterSelect>
-          </StyledFormControl>
-
-          {urgencyColumnId && (
-            <StyledFormControl variant="outlined" size="small">
-              <InputLabel id="filter-urgency-label">
-                {t("dashboard.urgencyFilterLabel", "Urgency Filter")}
-              </InputLabel>
-              <FilterSelect
-                labelId="filter-urgency-label"
-                value={urgencyFilterValue}
-                label={t("dashboard.urgencyFilterLabel", "Urgency Filter")}
-                onChange={(e) => handleUrgencyFilterChange(e.target.value as string)}
-                inputProps={{ "data-testid": "dashboard-urgency-filter" }}
-              >
-                <MenuItem value="">
-                  <em>{t("dashboard.filterAllUrgencies", "All Urgencies")}</em>
-                </MenuItem>
-                <MenuItem value="critical">{t("operatorHub.urgencyCritical", "Critical")}</MenuItem>
-                <MenuItem value="high">{t("operatorHub.urgencyHigh", "High")}</MenuItem>
-                <MenuItem value="medium">{t("operatorHub.urgencyMedium", "Medium")}</MenuItem>
-                <MenuItem value="low">{t("operatorHub.urgencyLow", "Low")}</MenuItem>
-                <MenuItem value="normal">{t("operatorHub.urgencyNone", "Normal")}</MenuItem>
-              </FilterSelect>
-            </StyledFormControl>
-          )}
-        </FilterSection>
-        <TableWrapper>
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <StyledTable aria-label="issues table">
-              <StyledTableHead>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <StyledTableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      const isAssignOperatorCol = header.column.id === "assigned_to";
-                      return (
-                        <StyledTableHeadCell
-                          key={header.id}
-                          align={isAssignOperatorCol ? "center" : "left"}
-                        >
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext(),
-                              )}
-                        </StyledTableHeadCell>
-                      );
-                    })}
-                  </StyledTableRow>
-                ))}
-              </StyledTableHead>
-              <StyledTableBody>
-                {loading && table.getRowModel().rows.length === 0 ? (
-                  <StyledTableRow>
-                    <StyledTableCell
-                      colSpan={columns.length}
-                      align="center"
-                    >
-                      {t("dashboard.loadingIssues")}
-                    </StyledTableCell>
-                  </StyledTableRow>
-                ) : table.getRowModel().rows.length === 0 ? (
-                  <StyledTableRow>
-                    <StyledTableCell
-                      colSpan={columns.length}
-                      padding="none"
-                    >
-                      <EmptyState>{t("dashboard.noIssuesFiltered")}</EmptyState>
-                    </StyledTableCell>
-                  </StyledTableRow>
-                ) : (
-                  <SortableContext
-                    items={issues.map((i) => i.id)}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {table.getRowModel().rows.map((row) => (
-                      <SortableTableRow
-                        key={row.id}
-                        row={row}
-                        isCriticalUrgency={isCriticalUrgency}
-                      />
-                    ))}
-                  </SortableContext>
-                )}
-              </StyledTableBody>
-            </StyledTable>
-          </DndContext>
-        </TableWrapper>
-
-        {/* Pagination Footer */}
-        {totalCount > 0 && (
-          <PaginationFooter>
-            <PaginationInfo>
-              {t("dashboard.paginationInfo", {
-                page: currentPage,
-                totalPages,
-                totalCount,
-              })}
-            </PaginationInfo>
-            <PaginationButtons>
-              <PaginationButton
-                variant="outlined"
-                size="small"
-                disabled={currentPage <= 1 || loading}
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                data-testid="pagination-prev"
-              >
-                {t("dashboard.paginationPrev")}
-              </PaginationButton>
-              <PaginationButton
-                variant="outlined"
-                size="small"
-                disabled={currentPage >= totalPages || loading}
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
-                data-testid="pagination-next"
-              >
-                {t("dashboard.paginationNext")}
-              </PaginationButton>
-            </PaginationButtons>
-          </PaginationFooter>
-        )}
+        <DashboardPagination
+          totalCount={totalCount}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+          totalPages={totalPages}
+          loading={loading}
+        />
       </DashboardCard>
-
-
     </DashboardContainer>
   );
 };

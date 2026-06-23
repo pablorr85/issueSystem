@@ -69,7 +69,13 @@
     "copyLink": "Copy Link",
     "copied": "Copied!",
     "downloadQR": "Download QR (PNG)",
-    "qrDownloadTaintedWarning": "The logo image is hosted on an external server that does not allow downloads. The QR code has been downloaded successfully, but without the logo. To include the logo, please upload it to your local server or use a CORS-enabled URL."
+    "qrDownloadTaintedWarning": "The logo image is hosted on an external server that does not allow downloads. The QR code has been downloaded successfully, but without the logo. To include the logo, please upload it to your local server or use a CORS-enabled URL.",
+    "operatorFilterLabel": "Filter by Operator",
+    "filterAllOperators": "All Operators",
+    "urgencyFilterLabel": "Filter by Urgency",
+    "filterAllUrgencies": "All Urgencies",
+    "tableAssignOperator": "Assign Operator",
+    "errorReorder": "Failed to update priority order."
   },
   "app": {
     "appTitle": "Issue Tracker SaaS",

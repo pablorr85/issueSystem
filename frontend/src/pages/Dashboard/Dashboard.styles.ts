@@ -25,6 +25,10 @@ export const DashboardTitle = styled(Typography)`
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
+
+  svg {
+    color: var(--primary) !important;
+  }
 `;
 
 export const FilterSection = styled.div`
@@ -32,6 +36,8 @@ export const FilterSection = styled.div`
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 `;
 
 export const StyledFormControl = styled(FormControl)`
@@ -345,6 +351,48 @@ export const FilterSelect = styled(Select)`
     height: 40px !important;
     display: flex !important;
     align-items: center !important;
+  }
+`;
+
+export const DragHandleContainer = styled.div`
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b6780;
+
+  svg {
+    font-size: 1.2rem;
+  }
+`;
+
+export const IdCellSpan = styled.span`
+  cursor: pointer;
+  font-weight: bold;
+  color: var(--primary);
+`;
+
+export const DescriptionCellSpan = styled.span`
+  cursor: pointer;
+  display: block;
+  width: 100%;
+`;
+
+export const HubLinkContainer = styled.div`
+  margin-top: 6px;
+`;
+
+export const HubLink = styled.a`
+  font-size: 0.75rem;
+  color: var(--primary);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+
+  svg {
+    font-size: 0.85rem;
   }
 `;
 

@@ -69,7 +69,13 @@
     "copyLink": "Copiar Enlace",
     "copied": "¡Copiado!",
     "downloadQR": "Descargar QR (PNG)",
-    "qrDownloadTaintedWarning": "La imagen del logotipo está alojada en un servidor externo que no permite descargas. El código QR se ha descargado correctamente, pero sin el logotipo. Para incluir el logotipo, súbelo a tu servidor local o utiliza una URL con CORS habilitado."
+    "qrDownloadTaintedWarning": "La imagen del logotipo está alojada en un servidor externo que no permite descargas. El código QR se ha descargado correctamente, pero sin el logotipo. Para incluir el logotipo, súbelo a tu servidor local o utiliza una URL con CORS habilitado.",
+    "operatorFilterLabel": "Filtrar por Operador",
+    "filterAllOperators": "Todos los Operadores",
+    "urgencyFilterLabel": "Filtrar por Urgencia",
+    "filterAllUrgencies": "Todas las Urgencias",
+    "tableAssignOperator": "Asignar Operario",
+    "errorReorder": "Error al actualizar el orden de prioridad."
   },
   "app": {
     "appTitle": "SaaS de Gestión de Incidencias",
