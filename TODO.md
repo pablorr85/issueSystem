@@ -397,27 +397,27 @@ Empower managers to manually prioritize tasks by clicking and dragging rows with
 
 Implement a robust communication thread ("Cuaderno de Bitácora") for each issue that supports chronological notes from multiple operators, administrators, and auto-generated system logs. Introduce a new native `BLOCKED` status to explicitly flag halted tasks, along with corresponding visual indicators and quick-actions.
 
-## [ ] Backend Tasks (Django)
+## [x] Backend Tasks (Django)
 
-- [ ] **Status Model Extension:** Update the `status` field choices in the `Issue` model to include `BLOCKED` (e.g., `('BLOCKED', 'Blocked')`).
-- [ ] **Comment Model Creation:** Create an `IssueComment` model in `core/models.py` linked to the `Issue`. It must handle multiple author types (nullable ForeignKeys for `User` and `OperatorProfile`) and include `comment_text` and `created_at` fields.
-- [ ] **System Audit Events:** Update the Issue save/PATCH logic. Automatically generate a system-flagged `IssueComment` whenever:
+- [x] **Status Model Extension:** Update the `status` field choices in the `Issue` model to include `BLOCKED` (e.g., `('BLOCKED', 'Blocked')`).
+- [x] **Comment Model Creation:** Create an `IssueComment` model in `core/models.py` linked to the `Issue`. It must handle multiple author types (nullable ForeignKeys for `User` and `OperatorProfile`) and include `comment_text` and `created_at` fields.
+- [x] **System Audit Events:** Update the Issue save/PATCH logic. Automatically generate a system-flagged `IssueComment` whenever:
   1. The `assigned_operator` changes (e.g., "Task reassigned from X to Y").
   2. The status transitions to or from `BLOCKED` (e.g., "Status changed to Blocked").
-- [ ] **API Endpoints:** Build endpoints (`GET` and `POST` at `/api/issues/<id>/comments/`) that automatically resolve the author's identity based on their active session or magic link hub token.
+- [x] **API Endpoints:** Build endpoints (`GET` and `POST` at `/api/issues/<id>/comments/`) that automatically resolve the author's identity based on their active session or magic link hub token.
 
-## [ ] Frontend Tasks (React + TypeScript)
+## [x] Frontend Tasks (React + TypeScript)
 
-- [ ] **Type Definitions & Localization:** Add `BLOCKED` to the frontend status types and map its localized strings in `src/locales/es/translation.json` and `src/locales/en/translation.json`.
-- [ ] **Blocked Badge Styling:** Define a high-visibility layout style (e.g., a dark amber/orange background) for the `BLOCKED` status badge within the TanStack Table and details view.
-- [ ] **UI Component (`IssueComments.tsx`):** Build the chronological feed component. Style system audit logs differently (e.g., centered, italic gray text with an icon) from user/operator text comments.
-- [ ] **Admin & Mobile Integration:** Embed the comment feed into the Admin Dashboard detail drawer and the bottom of `OperatorTaskView.tsx`.
-- [ ] **Mobile Quick Action Buttons:** Implement touch-friendly quick response buttons above the mobile input field, including a direct **"🛑 Report Block/Missing Material"** trigger that automatically appends a comment and switches the issue status to `BLOCKED`.
-- [ ] **Auto-Scroll Behaviour:** Ensure the comment timeline automatically anchors and scrolls to the latest update upon loading or submission.
+- [x] **Type Definitions & Localization:** Add `BLOCKED` to the frontend status types and map its localized strings in `src/locales/es/translation.json` and `src/locales/en/translation.json`.
+- [x] **Blocked Badge Styling:** Define a high-visibility layout style (e.g., a dark amber/orange background) for the `BLOCKED` status badge within the TanStack Table and details view.
+- [x] **UI Component (`IssueComments.tsx`):** Build the chronological feed component. Style system audit logs differently (e.g., centered, italic gray text with an icon) from user/operator text comments.
+- [x] **Admin & Mobile Integration:** Embed the comment feed into the Admin Dashboard detail drawer and the bottom of `OperatorTaskView.tsx`.
+- [x] **Mobile Quick Action Buttons:** Implement touch-friendly quick response buttons above the mobile input field, including a direct **"🛑 Report Block/Missing Material"** trigger that automatically appends a comment and switches the issue status to `BLOCKED`.
+- [x] **Auto-Scroll Behaviour:** Ensure the comment timeline automatically anchors and scrolls to the latest update upon loading or submission.
 
-## [ ] Acceptance Criteria
+## [x] Acceptance Criteria
 
-- The issue timeline displays a chronological log of events, including multi-operator text notes and automatic system reassignments.
-- Changing an issue's status to `BLOCKED` injects an automated tracking message into the feed and updates the main dashboard table with a prominent orange/amber badge.
-- Field operators can use a single-tap mobile shortcut to mark a task as blocked and instantly log the reason for the team to see.
-- All historical entries remain fully visible to any newly assigned operator inheriting the task.
+- [x] The issue timeline displays a chronological log of events, including multi-operator text notes and automatic system reassignments.
+- [x] Changing an issue's status to `BLOCKED` injects an automated tracking message into the feed and updates the main dashboard table with a prominent orange/amber badge.
+- [x] Field operators can use a single-tap mobile shortcut to mark a task as blocked and instantly log the reason for the team to see.
+- [x] All historical entries remain fully visible to any newly assigned operator inheriting the task.
