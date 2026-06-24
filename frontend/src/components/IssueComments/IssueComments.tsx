@@ -134,6 +134,50 @@ export const IssueComments: React.FC<IssueCommentsProps> = ({
     }
   };
 
+  const renderCommentText = (comment: IssueComment) => {
+    if (!comment.is_system_log) {
+      return comment.comment_text;
+    }
+
+    // Check if it's a reassignment message
+    // "Task reassigned from {old_name} to {new_name}"
+    const reassignMatch = comment.comment_text.match(/Task reassigned from (.+?) to (.+)/i);
+    if (reassignMatch) {
+      const oldName = reassignMatch[1];
+      const newName = reassignMatch[2];
+      return t("comments.systemLog.reassigned", {
+        old: oldName === 'Unassigned' ? t('comments.unassigned', 'Sin asignar') : oldName,
+        new: newName === 'Unassigned' ? t('comments.unassigned', 'Sin asignar') : newName,
+        defaultValue: `Tarea reasignada de ${oldName} a ${newName}`
+      });
+    }
+
+    // Check if it's a status change message
+    // "Status changed from {old_status_disp} to {new_status_disp}"
+    const statusMatch = comment.comment_text.match(/Status changed from (.+?) to (.+)/i);
+    if (statusMatch) {
+      const oldStatus = statusMatch[1];
+      const newStatus = statusMatch[2];
+
+      const translateStatus = (statusStr: string) => {
+        const s = statusStr.toLowerCase().trim();
+        if (s === 'pending') return t('dashboard.actionPending', 'Pendiente');
+        if (s === 'in progress') return t('dashboard.actionInProgress', 'En progreso');
+        if (s === 'blocked') return t('dashboard.statusBlocked', 'Bloqueado');
+        if (s === 'resolved') return t('dashboard.actionResolved', 'Resuelto');
+        return statusStr;
+      };
+
+      return t("comments.systemLog.statusChanged", {
+        old: translateStatus(oldStatus),
+        new: translateStatus(newStatus),
+        defaultValue: `Estado cambiado de ${oldStatus} a ${newStatus}`
+      });
+    }
+
+    return comment.comment_text;
+  };
+
   return (
     <CommentsSection>
       <CommentsHeaderRow>
@@ -160,7 +204,7 @@ export const IssueComments: React.FC<IssueCommentsProps> = ({
                 </CommentAuthor>
                 <CommentTime>{formatCommentDate(comment.created_at)}</CommentTime>
               </CommentHeader>
-              <CommentText>{comment.comment_text}</CommentText>
+              <CommentText>{renderCommentText(comment)}</CommentText>
             </CommentBubble>
           ))}
         </CommentsList>

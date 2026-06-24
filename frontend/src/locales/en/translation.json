@@ -91,7 +91,12 @@
     "errorAdd": "Failed to post comment.",
     "systemRole": "System",
     "managerRole": "Manager",
-    "operatorRole": "Operator"
+    "operatorRole": "Operator",
+    "unassigned": "Unassigned",
+    "systemLog": {
+      "reassigned": "Task reassigned from {{old}} to {{new}}",
+      "statusChanged": "Status changed from {{old}} to {{new}}"
+    }
   },
   "app": {
     "appTitle": "Issue Tracker SaaS",

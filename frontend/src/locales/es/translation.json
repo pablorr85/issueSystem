@@ -91,7 +91,12 @@
     "errorAdd": "Error al publicar la nota.",
     "systemRole": "Sistema",
     "managerRole": "Administrador",
-    "operatorRole": "Operario"
+    "operatorRole": "Operario",
+    "unassigned": "Sin asignar",
+    "systemLog": {
+      "reassigned": "Tarea reasignada de {{old}} a {{new}}",
+      "statusChanged": "Estado cambiado de {{old}} a {{new}}"
+    }
   },
   "app": {
     "appTitle": "SaaS de Gestión de Incidencias",
