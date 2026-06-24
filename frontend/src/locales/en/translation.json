@@ -99,8 +99,8 @@
     }
   },
   "app": {
-    "appTitle": "Issue Tracker SaaS",
-    "appSubtitle": "Tenant Dashboard & Dynamic Issue Management",
+    "appTitle": "Solvo",
+    "appSubtitle": "Facility Management & Dynamic Upkeep Panel",
     "loggedInAsPrefix": "Logged in as ",
     "logout": "Logout",
     "tenantBranding": "Active Tenant Branding",

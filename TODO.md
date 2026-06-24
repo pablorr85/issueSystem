@@ -421,3 +421,34 @@ Implement a robust communication thread ("Cuaderno de Bitácora") for each issue
 - [x] Changing an issue's status to `BLOCKED` injects an automated tracking message into the feed and updates the main dashboard table with a prominent orange/amber badge.
 - [x] Field operators can use a single-tap mobile shortcut to mark a task as blocked and instantly log the reason for the team to see.
 - [x] All historical entries remain fully visible to any newly assigned operator inheriting the task.
+
+# SPRINT 17: Corporate Identity & "Solvo" Marketing Site
+
+## 🎯 Objective
+Establish the "Solvo" brand identity and build a professional marketing landing page. This sprint focuses on visual credibility, sector-based expansion, and a direct contact channel for potential leads, ensuring the marketing site is decoupled from the main application.
+
+## [ ] Branding & UI Assets
+- [ ] **Final Name Selection:** Apply the brand name "Solvo" across all public-facing assets.
+- [ ] **Logo & Favicon:** Design a minimalist logo for Solvo. Generate a `favicon.ico` and high-resolution PNG versions for the browser tab and mobile home screens.
+- [ ] **Asset Creation:** Capture high-quality screenshots of the current dashboard using "Placeholder" data to represent Malls, Schools, Zoos, and Residential use cases.
+
+## [ ] Landing Page Development (Marketing Site)
+- [ ] **Architecture:** Setup a lightweight decoupled site (e.g., Astro, Vite, or HTML/Tailwind) at the root domain.
+- [ ] **Core Sections:**
+    - *Hero Section:* "Facility Management with Zero Friction. Powered by Solvo."
+    - *The Magic:* Visual explanation of the passwordless Operator Hub and WhatsApp integration.
+    - *Verticals Showcase:* Dynamic blocks demonstrating value for Zoos, Shopping Malls, Schools, and Communities.
+- [ ] **Contact Page:** Create a `/contact` route (or a dedicated footer section) with a clean design stating: "Ready to optimize your facility? Contact us at: hello@solvo.app". Use a `mailto:` link for immediate native email app routing.
+- [ ] **Navigation:** Add a highly visible "Client Login" link in the navbar pointing to the app subdomain.
+
+## [ ] Deployment & SEO
+- [ ] **Subdomain Split:** - `www.solvo.app` (or chosen TLD) -> Marketing Landing Page.
+    - `app.solvo.app` -> The functional Django/React Application.
+- [ ] **Favicon Implementation:** Ensure the Solvo favicon loads correctly on both the landing page and the functional React app.
+- [ ] **Global SEO:** Add Meta Tags (Title, Description) focused on "Facility Management", "Maintenance Software", and "Zero Friction Upkeep".
+
+## [ ] Acceptance Criteria
+- Visiting the main domain shows the "Solvo" branding with its professional favicon in the browser tab.
+- A dedicated, simple contact section exists with a direct email address.
+- The site clearly illustrates how the product solves maintenance and cleaning problems for different industries through visuals.
+- The "Client Login" button successfully bridges the marketing site with the actual management tool.

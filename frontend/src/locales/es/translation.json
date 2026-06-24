@@ -99,8 +99,8 @@
     }
   },
   "app": {
-    "appTitle": "SaaS de Gestión de Incidencias",
-    "appSubtitle": "Panel del Tenant y Gestión Dinámica de Incidencias",
+    "appTitle": "Solvo",
+    "appSubtitle": "Gestión de Instalaciones y Mantenimiento Dinámico",
     "loggedInAsPrefix": "Sesión iniciada como ",
     "logout": "Cerrar Sesión",
     "tenantBranding": "Identidad Visual Activa del Tenant",
