@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const clientLoginBtn = document.getElementById('client-login-btn') as HTMLAnchorElement | null;
   if (clientLoginBtn) {
     const appUrl = import.meta.env.VITE_APP_URL || 'http://localhost:5173';
-    clientLoginBtn.href = appUrl;
+    clientLoginBtn.href = `${appUrl}/login`;
   }
 
   // Load and apply initial language translations

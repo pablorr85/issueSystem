@@ -1,47 +1,19 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { TenantForm } from '../components/TenantForm';
-import { getTenantConfig } from '../services/api';
-import { AppContainer, AppMain, AppHeader, AppTitle, AppSubtitle } from '../App.styles';
+import { useAuth } from '../context/AuthContext';
 
 export const HomeView: React.FC = () => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated } = useAuth();
 
-  const handleFetchConfig = async (uuid: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      await getTenantConfig(uuid);
-      navigate(`/${uuid}/report`);
-    } catch (err: unknown) {
-      console.error(err);
-      const status =
-        err && typeof err === 'object' && 'response' in err
-          ? (err as { response?: { status?: number } }).response?.status
-          : undefined;
-      setError(
-        status === 404
-          ? t('app.errorTenantNotFound')
-          : t('app.errorFetchConfig')
-      );
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    } else {
+      navigate('/login');
     }
-  };
+  }, [isAuthenticated, navigate]);
 
-  return (
-    <AppContainer>
-      <AppHeader>
-        <AppTitle>{t('app.appTitle')}</AppTitle>
-        <AppSubtitle>{t('app.appSubtitle')}</AppSubtitle>
-      </AppHeader>
-      <AppMain>
-        <TenantForm onSubmit={handleFetchConfig} loading={loading} error={error} />
-      </AppMain>
-    </AppContainer>
-  );
+  return null;
 };
+
