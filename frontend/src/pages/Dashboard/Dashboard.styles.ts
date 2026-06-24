@@ -41,7 +41,7 @@ export const FilterSection = styled.div`
 `;
 
 export const StyledFormControl = styled(FormControl)`
-  min-width: 170px !important;
+  min-width: 220px !important;
 
   & .MuiInputLabel-root {
     color: #a09cb4 !important;
