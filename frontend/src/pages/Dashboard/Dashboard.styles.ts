@@ -151,15 +151,15 @@ export const StatusBadge = styled.span<{ $status: string }>`
   ${({ $status }) => {
     switch ($status) {
       case 'resolved':
-        return 'background-color: rgba(46, 125, 50, 0.15); color: #81c784; border: 1px solid rgba(76, 175, 80, 0.3);';
+        return 'background-color: rgba(46, 125, 50, 0.22); color: #81c784; border: 1px solid rgba(76, 175, 80, 0.45);';
       case 'in_progress':
-        return 'background-color: rgba(33, 150, 243, 0.15); color: #2196f3; border: 1px solid rgba(33, 150, 243, 0.3);';
+        return 'background-color: rgba(33, 150, 243, 0.20); color: #2196f3; border: 1px solid rgba(33, 150, 243, 0.45);';
       case 'blocked':
-        return 'background-color: rgba(239, 108, 0, 0.15); color: #ff9800; border: 1px solid rgba(239, 108, 0, 0.3);';
+        return 'background-color: rgba(239, 108, 0, 0.22); color: #ff9800; border: 1px solid rgba(239, 108, 0, 0.45);';
       case 'pending':
       case 'open':
       default:
-        return 'background-color: rgba(255, 179, 0, 0.15); color: #ffd54f; border: 1px solid rgba(255, 179, 0, 0.3);';
+        return 'background-color: rgba(255, 179, 0, 0.22); color: #ffd54f; border: 1px solid rgba(255, 179, 0, 0.45);';
     }
   }}
 `;
@@ -184,34 +184,34 @@ export const UrgencyPill = styled.span<{ $level: string }>`
     switch ($level) {
       case 'critical':
         return `
-          background: rgba(244, 67, 54, 0.15);
+          background: rgba(244, 67, 54, 0.22);
           color: #ef5350;
-          border: 1px solid rgba(244, 67, 54, 0.3);
+          border: 1px solid rgba(244, 67, 54, 0.45);
           animation: pulse 2s infinite;
         `;
       case 'high':
         return `
-          background: rgba(255, 152, 0, 0.15);
+          background: rgba(255, 152, 0, 0.22);
           color: #ffb74d;
-          border: 1px solid rgba(255, 152, 0, 0.3);
+          border: 1px solid rgba(255, 152, 0, 0.45);
         `;
       case 'medium':
         return `
-          background: rgba(33, 150, 243, 0.15);
+          background: rgba(33, 150, 243, 0.20);
           color: #64b5f6;
-          border: 1px solid rgba(33, 150, 243, 0.3);
+          border: 1px solid rgba(33, 150, 243, 0.45);
         `;
       case 'low':
         return `
-          background: rgba(76, 175, 80, 0.15);
+          background: rgba(76, 175, 80, 0.22);
           color: #81c784;
-          border: 1px solid rgba(76, 175, 80, 0.3);
+          border: 1px solid rgba(76, 175, 80, 0.45);
         `;
       default:
         return `
-          background: rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.12);
           color: #e0e0e0;
-          border: 1px solid rgba(255, 255, 255, 0.15);
+          border: 1px solid rgba(255, 255, 255, 0.25);
         `;
     }
   }}

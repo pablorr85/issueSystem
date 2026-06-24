@@ -16,6 +16,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { updateIssue } from '../../services/api';
 import type { Issue, Operator, TenantConfig, CustomField } from '../../services/types';
 import { IssueComments } from '../IssueComments/IssueComments';
+import { normalizeOptions } from '../../utils/options';
 import {
   StyledDialog,
   StyledDialogTitle,
@@ -334,8 +335,8 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
                           <MenuItem value="">
                             <em>{t('dynamicIssueForm.none', 'None')}</em>
                           </MenuItem>
-                          {field.options.map(opt => (
-                            <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+                          {normalizeOptions(field.options).map(({ value, label }) => (
+                            <MenuItem key={value} value={value}>{label}</MenuItem>
                           ))}
                         </Select>
                       </StyledFormControl>

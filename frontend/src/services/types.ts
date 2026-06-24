@@ -4,11 +4,16 @@ export interface TenantVisualConfig {
   [key: string]: unknown;
 }
 
+export interface CustomFieldOption {
+  value: string;
+  label: string;
+}
+
 export interface CustomField {
   name: string;
-  field_type: 'text' | 'number' | 'boolean' | 'select';
+  field_type: "text" | "number" | "boolean" | "select";
   required: boolean;
-  options: string[];
+  options: (string | CustomFieldOption)[];
 }
 
 export interface TenantConfig {
@@ -18,7 +23,7 @@ export interface TenantConfig {
   visual_config: TenantVisualConfig;
   custom_fields: CustomField[];
   is_public_reporting_enabled: boolean;
-  default_language: 'es' | 'en';
+  default_language: "es" | "en";
 }
 export interface IssuePayload {
   tenant_id: string;
@@ -31,7 +36,7 @@ export interface IssuePayload {
 export interface Issue {
   id: number;
   tenant_id: string;
-  status: 'pending' | 'in_progress' | 'resolved' | 'blocked';
+  status: "pending" | "in_progress" | "resolved" | "blocked";
   description: string;
   photo_url?: string;
   image?: string | null;
@@ -53,7 +58,7 @@ export interface Operator {
 
 export interface OperatorTask {
   id: number;
-  status: 'pending' | 'in_progress' | 'resolved' | 'blocked';
+  status: "pending" | "in_progress" | "resolved" | "blocked";
   description: string;
   photo_url?: string;
   image?: string | null;
@@ -80,11 +85,8 @@ export interface IssueComment {
   id: number;
   issue: number;
   author_name: string;
-  role: 'manager' | 'operator' | 'system';
+  role: "manager" | "operator" | "system";
   comment_text: string;
   is_system_log: boolean;
   created_at: string;
 }
-
-
-

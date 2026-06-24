@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import type { TenantConfig, IssuePayload } from '../../services/types';
+import { normalizeOptions } from '../../utils/options';
 import {
   StyledCard,
   FormContainer,
@@ -312,8 +313,8 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
                       <MenuItem value="">
                         <em>{t('dynamicIssueForm.none')}</em>
                       </MenuItem>
-                      {field.options?.map(opt => (
-                        <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+                      {normalizeOptions(field.options).map(({ value, label }) => (
+                        <MenuItem key={value} value={value}>{label}</MenuItem>
                       ))}
                     </Select>
                     {hasError && (

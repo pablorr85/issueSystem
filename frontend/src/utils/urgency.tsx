@@ -7,21 +7,8 @@ import type { OperatorTask } from '../services/types';
 
 export const getUrgencyLevelKey = (valStr: string): string => {
   const val = valStr.toLowerCase().trim();
-  if (
-    val.includes("critical") ||
-    val.includes("crítica") ||
-    val.includes("critica")
-  ) {
-    return "critical";
-  }
-  if (val.includes("high") || val.includes("alta")) {
-    return "high";
-  }
-  if (val.includes("medium") || val.includes("media")) {
-    return "medium";
-  }
-  if (val.includes("low") || val.includes("baja")) {
-    return "low";
+  if (val === 'critical' || val === 'high' || val === 'medium' || val === 'low' || val === 'normal') {
+    return val;
   }
   return "normal";
 };
@@ -47,18 +34,18 @@ export const getUrgencyLevel = (
 ): { key: string; label: string; order: number } => {
   const extra = task.extra_data || {};
   const key = Object.keys(extra).find(k => k.toLowerCase() === 'urgency' || k.toLowerCase() === 'urgencia');
-  const val = key ? String(extra[key]).toLowerCase() : 'normal';
+  const val = key ? String(extra[key]).toLowerCase().trim() : 'normal';
 
-  if (val.includes('critical') || val.includes('crítica') || val.includes('critica')) {
+  if (val === 'critical') {
     return { key: 'critical', label: t('operatorHub.urgencyCritical', 'Critical'), order: 0 };
   }
-  if (val.includes('high') || val.includes('alta')) {
+  if (val === 'high') {
     return { key: 'high', label: t('operatorHub.urgencyHigh', 'High'), order: 1 };
   }
-  if (val.includes('medium') || val.includes('media')) {
+  if (val === 'medium') {
     return { key: 'medium', label: t('operatorHub.urgencyMedium', 'Medium'), order: 2 };
   }
-  if (val.includes('low') || val.includes('baja')) {
+  if (val === 'low') {
     return { key: 'low', label: t('operatorHub.urgencyLow', 'Low'), order: 3 };
   }
   return { key: 'normal', label: t('operatorHub.urgencyNone', 'Normal'), order: 4 };

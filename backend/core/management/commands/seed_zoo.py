@@ -40,7 +40,11 @@ class Command(BaseCommand):
                 'name': 'urgencia',
                 'field_type': 'select',
                 'required': True,
-                'options': ["Baja (Estético)", "Media (Mantenimiento)", "CRÍTICA (Riesgo Animales/Público)"]
+                'options': [
+                    {"value": "low", "label": "Baja (Estético)"},
+                    {"value": "medium", "label": "Media (Mantenimiento)"},
+                    {"value": "critical", "label": "CRÍTICA (Riesgo Animales/Público)"}
+                ]
             }
         ]
 
@@ -52,7 +56,7 @@ class Command(BaseCommand):
             # If the IDE hasn't added it yet, it must add `options = models.JSONField(default=list, blank=True)`
             # to the CustomField model in core/models.py and make migrations before running this script.
 
-            cf, cf_created = CustomField.objects.get_or_create(
+            cf, cf_created = CustomField.objects.update_or_create(
                 tenant=tenant,
                 name=field_data['name'],
                 defaults={
@@ -65,6 +69,6 @@ class Command(BaseCommand):
             if cf_created:
                 self.stdout.write(self.style.SUCCESS(f"   ➕ Added CustomField: '{cf.name}'"))
             else:
-                self.stdout.write(self.style.NOTICE(f"   ✔️ CustomField '{cf.name}' already exists."))
+                self.stdout.write(self.style.SUCCESS(f"   🆙 Updated CustomField: '{cf.name}' options"))
 
         self.stdout.write(self.style.SUCCESS('\n🚀 Seeding process completed successfully!'))

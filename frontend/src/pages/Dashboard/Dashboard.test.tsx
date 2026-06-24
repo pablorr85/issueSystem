@@ -44,7 +44,11 @@ const mockTenant: TenantConfig = {
       name: 'urgencia',
       field_type: 'select',
       required: true,
-      options: ['Baja', 'Media', 'CRÍTICA']
+      options: [
+        { value: 'low', label: 'Baja' },
+        { value: 'medium', label: 'Media' },
+        { value: 'critical', label: 'CRÍTICA' }
+      ]
     }
   ]
 };
@@ -66,7 +70,7 @@ const mockIssuesResponse: PaginatedResponse<Issue> = {
       description: 'Broken handrail near marine pool',
       extra_data: {
         zona_parque: 'Zona Marina',
-        urgencia: 'Media'
+        urgencia: 'medium'
       },
       assigned_to: 10,
       assigned_to_name: 'operator1',

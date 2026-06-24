@@ -231,6 +231,18 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
                 displayVal = rawVal
                   ? t("dashboard.yes")
                   : t("dashboard.no");
+              } else if (field.field_type === "select" && field.options) {
+                const option = field.options.find(
+                  (opt) =>
+                    typeof opt === "object" &&
+                    opt !== null &&
+                    opt.value === rawVal
+                );
+                if (option && typeof option === "object") {
+                  displayVal = option.label;
+                } else {
+                  displayVal = String(rawVal);
+                }
               } else {
                 displayVal = String(rawVal);
               }
