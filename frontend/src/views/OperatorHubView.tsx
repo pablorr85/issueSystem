@@ -25,7 +25,9 @@ import {
   StatusPill,
   EmptyContainer,
   HubSubtitle,
-  EmptyText
+  EmptyText,
+  LoadingContainer,
+  CenterContainer
 } from './OperatorHubView.styles';
 
 const isUUID = (str: string) => {
@@ -106,15 +108,15 @@ export const OperatorHubView: React.FC = () => {
 
   if (loading && !hasInvalidToken) {
     return (
-      <Container style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <LoadingContainer>
         <CircularProgress sx={{ color: 'var(--primary, HSL(260, 85%, 60%))' }} />
-      </Container>
+      </LoadingContainer>
     );
   }
 
   if (error || hasInvalidToken) {
     return (
-      <Container style={{ alignItems: 'center' }}>
+      <CenterContainer>
         <MobileCard>
           <Alert severity="error">{error || t('operatorHub.errorLoad', 'Failed to load task hub. Invalid or missing token.')}</Alert>
           <Button
@@ -130,7 +132,7 @@ export const OperatorHubView: React.FC = () => {
             Go to Home
           </Button>
         </MobileCard>
-      </Container>
+      </CenterContainer>
     );
   }
 

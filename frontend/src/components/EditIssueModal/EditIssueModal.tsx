@@ -29,6 +29,7 @@ import {
   PreviewImage,
   RemoveButton,
   CustomFieldsHeader,
+  PhotoSectionHeader,
   ExtraFieldsContainer,
   CheckboxLabelSpan,
   HiddenFileInput,
@@ -207,9 +208,9 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
           
           {/* Photo/Evidence Upload */}
           <div>
-            <CustomFieldsHeader variant="subtitle2" style={{ marginBottom: '8px' }}>
+            <PhotoSectionHeader variant="subtitle2">
               {t('dynamicIssueForm.photoLabel', 'Evidence Photo')}
-            </CustomFieldsHeader>
+            </PhotoSectionHeader>
             
             <HiddenFileInput
               type="file"
@@ -233,7 +234,6 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
             ) : (
               <PreviewContainer 
                 data-testid="edit-preview-container" 
-                style={{ cursor: 'zoom-in' }}
                 onClick={() => setLightboxImage(imagePreview)}
               >
                 <PreviewImage src={imagePreview} alt="Selected preview" />

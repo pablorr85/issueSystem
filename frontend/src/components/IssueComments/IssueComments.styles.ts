@@ -200,3 +200,8 @@ export const EmptyCommentsState = styled.div`
   font-size: 0.85rem;
   font-style: italic;
 `;
+
+export const ErrorMessage = styled.div`
+  color: #ef5350;
+  font-size: 0.85rem;
+`;

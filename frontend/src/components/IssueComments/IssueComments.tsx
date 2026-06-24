@@ -21,6 +21,7 @@ import {
   StyledTextArea,
   CommentSubmitButton,
   EmptyCommentsState,
+  ErrorMessage,
 } from "./IssueComments.styles";
 
 export interface IssueCommentsProps {
@@ -185,7 +186,7 @@ export const IssueComments: React.FC<IssueCommentsProps> = ({
         {loading && <CircularProgress size={16} sx={{ color: "var(--primary)" }} />}
       </CommentsHeaderRow>
 
-      {error && <div style={{ color: "#ef5350", fontSize: "0.85rem" }}>{error}</div>}
+      {error && <ErrorMessage>{error}</ErrorMessage>}
 
       {!loading && comments.length === 0 ? (
         <EmptyCommentsState>{t("comments.noComments")}</EmptyCommentsState>

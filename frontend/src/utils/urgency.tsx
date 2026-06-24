@@ -16,13 +16,13 @@ export const getUrgencyLevelKey = (valStr: string): string => {
 export const getUrgencyIcon = (levelKey: string) => {
   switch (levelKey) {
     case "critical":
-      return <ErrorIcon style={{ fontSize: "0.9rem" }} />;
+      return <ErrorIcon sx={{ fontSize: "0.9rem" }} />;
     case "high":
-      return <WarningIcon style={{ fontSize: "0.9rem" }} />;
+      return <WarningIcon sx={{ fontSize: "0.9rem" }} />;
     case "medium":
-      return <InfoIcon style={{ fontSize: "0.9rem" }} />;
+      return <InfoIcon sx={{ fontSize: "0.9rem" }} />;
     case "low":
-      return <ArrowDownwardIcon style={{ fontSize: "0.9rem" }} />;
+      return <ArrowDownwardIcon sx={{ fontSize: "0.9rem" }} />;
     default:
       return null;
   }

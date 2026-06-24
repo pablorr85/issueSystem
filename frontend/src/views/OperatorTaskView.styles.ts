@@ -220,7 +220,8 @@ export const TaskPhoto = styled.img`
   border-radius: 14px;
   object-fit: cover;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  margin-top: 8px;
+  margin-top: 0;
+  cursor: zoom-in;
   transition: transform 0.3s ease;
   
   &:hover {
@@ -394,5 +395,26 @@ export const LightboxCloseButton = styled.button`
     background: rgba(255, 255, 255, 0.2);
   }
 `;
+
+export const LoadingContainer = styled(Container)`
+  align-items: center;
+  justify-content: center;
+`;
+
+export const CenterContainer = styled(Container)`
+  align-items: center;
+`;
+
+export const TaskPillsContainer = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+`;
+
+export const SpinnerContainer = styled.div`
+  display: flex;
+  justify-content: center;
+`;
+
 
 

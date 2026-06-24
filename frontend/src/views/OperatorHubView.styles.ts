@@ -233,3 +233,13 @@ export const EmptyText = styled(Typography)`
   color: #a09cb4 !important;
   font-size: 0.95rem !important;
 `;
+
+export const LoadingContainer = styled(Container)`
+  align-items: center;
+  justify-content: center;
+`;
+
+export const CenterContainer = styled(Container)`
+  align-items: center;
+`;
+

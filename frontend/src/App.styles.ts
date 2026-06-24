@@ -194,3 +194,39 @@ export const AlertButton = styled(Button)`
   }
 `;
 
+export const CenteredLoadingContainer = styled(AppContainer)`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+`;
+
+export const ErrorContainer = styled(AppContainer)`
+  padding: 2rem;
+  text-align: center;
+`;
+
+export const ErrorTitle = styled.h2`
+  color: #ef5350;
+`;
+
+export const GoBackButton = styled.button`
+  margin-top: 1rem;
+  padding: 8px 16px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+  
+  &:hover {
+    background: var(--primary-hover);
+  }
+`;
+
+export const PaddedAppContainer = styled(AppContainer)`
+  padding-bottom: 2rem;
+`;
+

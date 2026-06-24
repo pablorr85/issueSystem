@@ -8,6 +8,7 @@ import type { TenantConfig, Issue, Operator } from '../services/types';
 import { EditIssueModal } from '../components/EditIssueModal/EditIssueModal';
 import {
   AppContainer,
+  CenteredLoadingContainer,
   AppMain,
   AppHeader,
   AppTitle,
@@ -149,9 +150,9 @@ export const DashboardView: React.FC = () => {
 
   if (loading) {
     return (
-      <AppContainer style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <CenteredLoadingContainer>
         <h2>{t('tenantForm.loading')}</h2>
-      </AppContainer>
+      </CenteredLoadingContainer>
     );
   }
 

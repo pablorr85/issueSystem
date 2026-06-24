@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { InputLabel, Select, MenuItem, CircularProgress } from '@mui/material';
+import { InputLabel, Select, MenuItem } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -24,7 +24,9 @@ import {
   PreviewImage,
   RemoveButton,
   UploadText,
-  UploadCaption
+  UploadCaption,
+  HiddenInput,
+  ButtonCircularProgress
 } from './DynamicIssueForm.styles';
 
 type CustomFieldValue = string | number | boolean;
@@ -229,13 +231,12 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
 
         {/* File input and upload zone with preview */}
         <div>
-          <input
+          <HiddenInput
             type="file"
             ref={fileInputRef}
             onChange={onFileSelect}
             accept="image/*"
             capture="environment"
-            style={{ display: 'none' }}
             data-testid="file-input"
           />
           
@@ -350,7 +351,7 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
         >
           {submitting ? (
             <>
-              <CircularProgress size={20} color="inherit" style={{ marginRight: '8px' }} />
+              <ButtonCircularProgress size={20} color="inherit" />
               {t('dynamicIssueForm.submitting')}
             </>
           ) : (

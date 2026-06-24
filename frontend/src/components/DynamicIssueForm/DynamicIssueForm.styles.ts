@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import React from 'react';
-import { Card, FormControl, TextField, Button, Typography, Box, Checkbox, FormControlLabel } from '@mui/material';
+import { Card, FormControl, TextField, Button, Typography, Box, Checkbox, FormControlLabel, CircularProgress } from '@mui/material';
 import type { TextFieldProps } from '@mui/material';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 
@@ -250,6 +250,14 @@ export const UploadText = styled(Typography)`
 
 export const UploadCaption = styled(Typography)`
   color: #a09cb4 !important;
+`;
+
+export const HiddenInput = styled.input`
+  display: none;
+`;
+
+export const ButtonCircularProgress = styled(CircularProgress)`
+  margin-right: 8px !important;
 `;
 
 

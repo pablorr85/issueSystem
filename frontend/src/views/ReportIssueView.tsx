@@ -7,7 +7,11 @@ import { DynamicIssueForm } from '../components/DynamicIssueForm';
 import { useAuth } from '../context/AuthContext';
 import { Snackbar } from '@mui/material';
 import {
-  AppContainer,
+  CenteredLoadingContainer,
+  ErrorContainer,
+  ErrorTitle,
+  GoBackButton,
+  PaddedAppContainer,
   AppMain,
   BrandingSection,
   BrandingHeader,
@@ -125,38 +129,27 @@ export const ReportIssueView: React.FC = () => {
 
   if (loading) {
     return (
-      <AppContainer style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <CenteredLoadingContainer>
         <h2>{t('tenantForm.loading')}</h2>
-      </AppContainer>
+      </CenteredLoadingContainer>
     );
   }
 
   if (error || !config) {
     return (
-      <AppContainer style={{ padding: '2rem', textAlign: 'center' }}>
-        <h2 style={{ color: 'red' }}>{error || t('app.errorTenantNotFound')}</h2>
-        <button
-          onClick={() => navigate('/')}
-          style={{
-            marginTop: '1rem',
-            padding: '8px 16px',
-            background: 'var(--primary)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
+      <ErrorContainer>
+        <ErrorTitle>{error || t('app.errorTenantNotFound')}</ErrorTitle>
+        <GoBackButton onClick={() => navigate('/')}>
           Go Back
-        </button>
-      </AppContainer>
+        </GoBackButton>
+      </ErrorContainer>
     );
   }
 
   const isPublicEnabled = config.is_public_reporting_enabled !== false || isAuthenticated;
 
   return (
-    <AppContainer style={{ paddingBottom: '2rem' }}>
+    <PaddedAppContainer>
       <AppMain>
         <BrandingSection className="glass-card animate-fade-in">
           <BrandingHeader>{t('app.tenantBranding')}</BrandingHeader>
@@ -199,6 +192,6 @@ export const ReportIssueView: React.FC = () => {
           {t('app.snackbarSuccess')}
         </FullWidthAlert>
       </Snackbar>
-    </AppContainer>
+    </PaddedAppContainer>
   );
 };

@@ -38,7 +38,11 @@ import {
   NoPhotoPlaceholder,
   LightboxOverlay,
   LightboxImage,
-  LightboxCloseButton
+  LightboxCloseButton,
+  LoadingContainer,
+  CenterContainer,
+  TaskPillsContainer,
+  SpinnerContainer
 } from './OperatorTaskView.styles';
 
 const isUUID = (str: string) => {
@@ -145,15 +149,15 @@ export const OperatorTaskView: React.FC = () => {
 
   if (loading) {
     return (
-      <Container style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <LoadingContainer>
         <CircularProgress sx={{ color: 'var(--primary)' }} />
-      </Container>
+      </LoadingContainer>
     );
   }
 
   if (error || !task) {
     return (
-      <Container style={{ alignItems: 'center' }}>
+      <CenterContainer>
         <MobileCard>
           <Alert severity="error">{error || t('dashboard.errorUpdateTask')}</Alert>
           <HomeButton
@@ -163,7 +167,7 @@ export const OperatorTaskView: React.FC = () => {
             Go to Home
           </HomeButton>
         </MobileCard>
-      </Container>
+      </CenterContainer>
     );
   }
 
@@ -198,7 +202,7 @@ export const OperatorTaskView: React.FC = () => {
 
         <TaskTitleRow>
           <TaskId>Task #{task.id}</TaskId>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <TaskPillsContainer>
             <UrgencyPill $level={urgency.key}>
               {getUrgencyIcon(urgency.key)}
               {urgency.label}
@@ -212,7 +216,7 @@ export const OperatorTaskView: React.FC = () => {
                 ? t('dashboard.statusBlocked', 'Blocked')
                 : t('dashboard.actionResolved', 'Resolved')}
             </StatusPill>
-          </div>
+          </TaskPillsContainer>
         </TaskTitleRow>
 
         {getImageUrl(task.image || task.photo_url) ? (
@@ -220,7 +224,6 @@ export const OperatorTaskView: React.FC = () => {
             src={getImageUrl(task.image || task.photo_url)}
             alt="Task image"
             data-testid="task-image"
-            style={{ cursor: 'zoom-in', marginTop: 0 }}
             onClick={() => setLightboxImage(getImageUrl(task.image || task.photo_url))}
           />
         ) : (
@@ -269,9 +272,9 @@ export const OperatorTaskView: React.FC = () => {
 
         <ActionArea>
           {updating ? (
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <SpinnerContainer>
               <CircularProgress size={24} sx={{ color: 'var(--primary)' }} />
-            </div>
+            </SpinnerContainer>
           ) : (
             <>
               {(task.status === 'pending' || task.status === 'blocked') && (

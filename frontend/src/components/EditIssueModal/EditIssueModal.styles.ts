@@ -129,6 +129,7 @@ export const PreviewContainer = styled.div`
   justify-content: center;
   align-items: center;
   background: #0d0d15;
+  cursor: zoom-in;
 `;
 
 export const PreviewImage = styled.img`
@@ -167,6 +168,10 @@ export const CustomFieldsHeader = styled(Typography)`
   text-transform: uppercase !important;
   font-size: 0.8rem !important;
   letter-spacing: 0.5px !important;
+`;
+
+export const PhotoSectionHeader = styled(CustomFieldsHeader)`
+  margin-bottom: 8px !important;
 `;
 
 export const ExtraFieldsContainer = styled.div`
