@@ -77,7 +77,12 @@
     "tableAssignOperator": "Asignar Operario",
     "errorReorder": "Error al actualizar el orden de prioridad.",
     "filterBlocked": "Bloqueadas",
-    "statusBlocked": "Bloqueado"
+    "statusBlocked": "Bloqueado",
+    "actionWontFix": "Desestimado",
+    "filterWontFix": "Desestimadas",
+    "statusWontFix": "Desestimado",
+    "resolvedAtLabel": "Resuelto el:",
+    "markWontFix": "Desestimar incidencia"
   },
   "comments": {
     "title": "Cuaderno de Bitácora",

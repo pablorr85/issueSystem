@@ -115,6 +115,12 @@ export const StatusPill = styled.div<StatusPillProps>`
           color: #4caf50;
           border: 1px solid rgba(76, 175, 80, 0.45);
         `;
+      case 'wont_fix':
+        return `
+          background: rgba(120, 144, 156, 0.22);
+          color: #b0bec5;
+          border: 1px solid rgba(120, 144, 156, 0.45);
+        `;
       case 'blocked':
         return `
           background: rgba(239, 108, 0, 0.22);
@@ -303,6 +309,15 @@ export const ResolveButton = styled(ActionButton)`
 
   &:hover {
     background: #43a047 !important;
+  }
+`;
+
+export const WontFixButton = styled(ActionButton)`
+  background: #78909c !important;
+  color: white !important;
+
+  &:hover {
+    background: #607d8b !important;
   }
 `;
 

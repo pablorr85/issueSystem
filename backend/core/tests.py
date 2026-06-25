@@ -157,6 +157,39 @@ class OperatorTaskWorkflowTests(APITestCase):
         # Should return 404 because get_queryset filters by tenant
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_wont_fix_status_and_resolved_at(self):
+        # 1. Authenticate as admin user
+        self.client.force_authenticate(user=self.admin_user)
+        
+        # 2. Update status of the issue to 'wont_fix'
+        url = reverse('issue-detail-update', kwargs={'pk': self.issue.pk})
+        data = {
+            'status': 'wont_fix'
+        }
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Check that resolved_at is not None
+        self.issue.refresh_from_db()
+        self.assertEqual(self.issue.status, 'wont_fix')
+        self.assertIsNotNone(response.data.get('resolved_at'))
+        
+        # 3. Retrieve list and check that resolved_at is present
+        list_url = reverse('issue-list')
+        list_response = self.client.get(list_url)
+        self.assertEqual(list_response.status_code, status.HTTP_200_OK)
+        # Check that the issue has resolved_at in list results
+        found_issue = next(item for item in list_response.data['results'] if item['id'] == self.issue.id)
+        self.assertIsNotNone(found_issue.get('resolved_at'))
+
+        # 4. Change status back to pending and verify resolved_at is None
+        data = {
+            'status': 'pending'
+        }
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNone(response.data.get('resolved_at'))
+
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from .services.whatsapp import WHATSAPP_MOCK_REGISTRY

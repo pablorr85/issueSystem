@@ -77,7 +77,12 @@
     "tableAssignOperator": "Assign Operator",
     "errorReorder": "Failed to update priority order.",
     "filterBlocked": "Blocked",
-    "statusBlocked": "Blocked"
+    "statusBlocked": "Blocked",
+    "actionWontFix": "Wont Fix",
+    "filterWontFix": "Wont Fix",
+    "statusWontFix": "Wont Fix",
+    "resolvedAtLabel": "Resolved at:",
+    "markWontFix": "Mark as Wont Fix"
   },
   "comments": {
     "title": "Audit Log & Comments",

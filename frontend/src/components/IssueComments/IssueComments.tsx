@@ -166,6 +166,7 @@ export const IssueComments: React.FC<IssueCommentsProps> = ({
         if (s === 'in progress') return t('dashboard.actionInProgress', 'En progreso');
         if (s === 'blocked') return t('dashboard.statusBlocked', 'Bloqueado');
         if (s === 'resolved') return t('dashboard.actionResolved', 'Resuelto');
+        if (s === 'wont fix') return t('dashboard.actionWontFix', 'Desestimado');
         return statusStr;
       };
 

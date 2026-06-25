@@ -85,15 +85,13 @@ def issue_post_save(sender, instance, created, **kwargs):
             ))
 
         if old_status != new_status:
-            # Transitions to or from blocked
-            if new_status == 'blocked' or old_status == 'blocked':
-                old_status_disp = old_status.replace('_', ' ').capitalize() if old_status else "Unknown"
-                new_status_disp = new_status.replace('_', ' ').capitalize()
-                comments_to_create.append(IssueComment(
-                    issue=instance,
-                    comment_text=f"Status changed from {old_status_disp} to {new_status_disp}",
-                    is_system_log=True
-                ))
+            old_status_disp = old_status.replace('_', ' ').capitalize() if old_status else "Unknown"
+            new_status_disp = new_status.replace('_', ' ').capitalize()
+            comments_to_create.append(IssueComment(
+                issue=instance,
+                comment_text=f"Status changed from {old_status_disp} to {new_status_disp}",
+                is_system_log=True
+            ))
 
         if comments_to_create:
             IssueComment.objects.bulk_create(comments_to_create)

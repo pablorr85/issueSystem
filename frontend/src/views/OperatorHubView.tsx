@@ -191,7 +191,15 @@ export const OperatorHubView: React.FC = () => {
                     <TaskTitleRow>
                       <TaskId>Task #{task.id}</TaskId>
                       <StatusPill $status={task.status}>
-                        {task.status === 'in_progress' ? t('dashboard.actionInProgress') : t('dashboard.actionPending')}
+                        {task.status === 'in_progress'
+                          ? t('dashboard.actionInProgress')
+                          : task.status === 'blocked'
+                          ? t('dashboard.statusBlocked')
+                          : task.status === 'resolved'
+                          ? t('dashboard.actionResolved')
+                          : task.status === 'wont_fix'
+                          ? t('dashboard.actionWontFix')
+                          : t('dashboard.actionPending')}
                       </StatusPill>
                       <UrgencyPill $level={urgency.key}>
                         {getUrgencyIcon(urgency.key)}

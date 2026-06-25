@@ -152,6 +152,8 @@ export const StatusBadge = styled.span<{ $status: string }>`
     switch ($status) {
       case 'resolved':
         return 'background-color: rgba(46, 125, 50, 0.22); color: #81c784; border: 1px solid rgba(76, 175, 80, 0.45);';
+      case 'wont_fix':
+        return 'background-color: rgba(120, 144, 156, 0.22); color: #b0bec5; border: 1px solid rgba(120, 144, 156, 0.45);';
       case 'in_progress':
         return 'background-color: rgba(33, 150, 243, 0.20); color: #2196f3; border: 1px solid rgba(33, 150, 243, 0.45);';
       case 'blocked':

@@ -36,7 +36,7 @@ export interface IssuePayload {
 export interface Issue {
   id: number;
   tenant_id: string;
-  status: "pending" | "in_progress" | "resolved" | "blocked";
+  status: "pending" | "in_progress" | "resolved" | "blocked" | "wont_fix";
   description: string;
   photo_url?: string;
   image?: string | null;
@@ -46,6 +46,7 @@ export interface Issue {
   secure_token: string;
   created_at: string;
   updated_at: string;
+  resolved_at?: string;
 }
 
 export interface Operator {
@@ -58,7 +59,7 @@ export interface Operator {
 
 export interface OperatorTask {
   id: number;
-  status: "pending" | "in_progress" | "resolved" | "blocked";
+  status: "pending" | "in_progress" | "resolved" | "blocked" | "wont_fix";
   description: string;
   photo_url?: string;
   image?: string | null;
@@ -72,6 +73,7 @@ export interface OperatorTask {
   tenant_visual_config: TenantVisualConfig;
   created_at: string;
   updated_at: string;
+  resolved_at?: string;
 }
 
 export interface PaginatedResponse<T> {

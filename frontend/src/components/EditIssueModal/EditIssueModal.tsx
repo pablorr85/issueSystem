@@ -38,7 +38,8 @@ import {
   SaveButton,
   LightboxOverlay,
   LightboxImage,
-  LightboxCloseButton
+  LightboxCloseButton,
+  ResolutionInfo
 } from './EditIssueModal.styles';
 
 export interface EditIssueModalProps {
@@ -266,8 +267,17 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
               <MenuItem value="in_progress">{t('dashboard.filterInProgress', 'In Progress')}</MenuItem>
               <MenuItem value="resolved">{t('dashboard.filterResolved', 'Resolved')}</MenuItem>
               <MenuItem value="blocked">{t('dashboard.filterBlocked', 'Blocked')}</MenuItem>
+              <MenuItem value="wont_fix">{t('dashboard.actionWontFix', 'Wont Fix')}</MenuItem>
             </Select>
           </StyledFormControl>
+
+          {/* Resolution Time Info */}
+          {(statusVal === 'resolved' || statusVal === 'wont_fix') && issue.resolved_at && statusVal === issue.status && (
+            <ResolutionInfo>
+              <strong>{t('dashboard.resolvedAtLabel', 'Resolved at:')}</strong>{' '}
+              {new Date(issue.resolved_at).toLocaleString()}
+            </ResolutionInfo>
+          )}
 
           {/* Operator field */}
           <StyledFormControl fullWidth variant="outlined">

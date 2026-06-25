@@ -194,18 +194,39 @@ export const StatusPill = styled.span<{ $status: string }>`
   letter-spacing: 0.3px;
   
   ${({ $status }) => {
-    if ($status === 'in_progress') {
-      return `
-        background: rgba(33, 150, 243, 0.12);
-        color: #2196f3;
-        border: 1px solid rgba(33, 150, 243, 0.2);
-      `;
+    switch ($status) {
+      case 'in_progress':
+        return `
+          background: rgba(33, 150, 243, 0.12);
+          color: #2196f3;
+          border: 1px solid rgba(33, 150, 243, 0.2);
+        `;
+      case 'resolved':
+        return `
+          background: rgba(76, 175, 80, 0.12);
+          color: #4caf50;
+          border: 1px solid rgba(76, 175, 80, 0.2);
+        `;
+      case 'blocked':
+        return `
+          background: rgba(239, 108, 0, 0.12);
+          color: #ff9800;
+          border: 1px solid rgba(239, 108, 0, 0.2);
+        `;
+      case 'wont_fix':
+        return `
+          background: rgba(120, 144, 156, 0.12);
+          color: #b0bec5;
+          border: 1px solid rgba(120, 144, 156, 0.2);
+        `;
+      case 'pending':
+      default:
+        return `
+          background: rgba(255, 179, 0, 0.12);
+          color: #ffb300;
+          border: 1px solid rgba(255, 179, 0, 0.2);
+        `;
     }
-    return `
-      background: rgba(255, 179, 0, 0.12);
-      color: #ffb300;
-      border: 1px solid rgba(255, 179, 0, 0.2);
-    `;
   }}
 `;
 

@@ -259,3 +259,16 @@ export const LightboxCloseButton = styled.button`
     background: rgba(255, 255, 255, 0.2);
   }
 `;
+
+export const ResolutionInfo = styled.div`
+  font-size: 0.85rem;
+  color: #a09cb4;
+  margin-top: -8px;
+  margin-bottom: 8px;
+  padding-left: 4px;
+  font-family: var(--font-sans);
+  
+  strong {
+    color: var(--primary, HSL(260, 85%, 60%));
+  }
+`;

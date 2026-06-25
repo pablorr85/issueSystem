@@ -21,6 +21,19 @@ class TenantConfigSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'logo_url', 'visual_config', 'custom_fields', 'default_language')
 
 
+def get_issue_resolved_at(obj):
+    if obj.status not in ('resolved', 'wont_fix'):
+        return None
+    target_suffix = "to resolved" if obj.status == 'resolved' else "to wont fix"
+    comment = obj.comments.filter(
+        is_system_log=True,
+        comment_text__iendswith=target_suffix
+    ).order_by('-created_at').first()
+    if comment:
+        return comment.created_at
+    return obj.updated_at
+
+
 class IssueSerializer(serializers.ModelSerializer):
     """
     Serializer for validation, creation, and update of Issues.
@@ -35,14 +48,18 @@ class IssueSerializer(serializers.ModelSerializer):
     assigned_to_name = serializers.CharField(source='assigned_to.username', read_only=True, default='')
     secure_token = serializers.UUIDField(read_only=True)
     extra_data = serializers.JSONField(required=False, default=dict)
+    resolved_at = serializers.SerializerMethodField()
 
     class Meta:
         model = Issue
         fields = (
             'id', 'tenant_id', 'status', 'description', 'photo_url', 'image', 'extra_data',
-            'assigned_to', 'assigned_to_name', 'secure_token', 'created_at', 'updated_at'
+            'assigned_to', 'assigned_to_name', 'secure_token', 'created_at', 'updated_at', 'resolved_at'
         )
-        read_only_fields = ('id', 'secure_token', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'secure_token', 'created_at', 'updated_at', 'resolved_at')
+
+    def get_resolved_at(self, obj):
+        return get_issue_resolved_at(obj)
 
     def validate(self, attrs):
         tenant_id = attrs.get('tenant_id')
@@ -108,13 +125,17 @@ class IssueListSerializer(serializers.ModelSerializer):
     assigned_to = serializers.PrimaryKeyRelatedField(read_only=True)
     assigned_to_name = serializers.CharField(source='assigned_to.username', read_only=True, default='')
     secure_token = serializers.UUIDField(read_only=True)
+    resolved_at = serializers.SerializerMethodField()
 
     class Meta:
         model = Issue
         fields = (
             'id', 'tenant_id', 'status', 'description', 'photo_url', 'image', 'extra_data',
-            'assigned_to', 'assigned_to_name', 'secure_token', 'created_at', 'updated_at'
+            'assigned_to', 'assigned_to_name', 'secure_token', 'created_at', 'updated_at', 'resolved_at'
         )
+
+    def get_resolved_at(self, obj):
+        return get_issue_resolved_at(obj)
 
 
 class IssueStatusUpdateSerializer(serializers.ModelSerializer):
@@ -169,6 +190,7 @@ class OperatorTaskSerializer(serializers.ModelSerializer):
     tenant_visual_config = serializers.JSONField(source='tenant.visual_config', read_only=True)
     assigned_to_name = serializers.CharField(source='assigned_to.username', read_only=True, default='')
     operator_hub_token = serializers.SerializerMethodField()
+    resolved_at = serializers.SerializerMethodField()
 
     class Meta:
         model = Issue
@@ -176,18 +198,21 @@ class OperatorTaskSerializer(serializers.ModelSerializer):
             'id', 'status', 'description', 'photo_url', 'image', 'extra_data',
             'assigned_to', 'assigned_to_name', 'secure_token', 'operator_hub_token',
             'tenant_name', 'tenant_logo_url', 'tenant_visual_config',
-            'created_at', 'updated_at'
+            'created_at', 'updated_at', 'resolved_at'
         )
         read_only_fields = (
             'id', 'secure_token', 'assigned_to', 'assigned_to_name', 'operator_hub_token',
             'tenant_name', 'tenant_logo_url', 'tenant_visual_config',
-            'created_at', 'updated_at'
+            'created_at', 'updated_at', 'resolved_at'
         )
 
     def get_operator_hub_token(self, obj):
         if obj.assigned_to and hasattr(obj.assigned_to, 'operator_profile'):
             return obj.assigned_to.operator_profile.hub_token
         return None
+
+    def get_resolved_at(self, obj):
+        return get_issue_resolved_at(obj)
 
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer

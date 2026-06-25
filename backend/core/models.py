@@ -89,6 +89,7 @@ class Issue(models.Model):
         ('in_progress', 'In Progress'),
         ('resolved', 'Resolved'),
         ('blocked', 'Blocked'),
+        ('wont_fix', 'Wont Fix'),
     ]
 
     tenant: Tenant = models.ForeignKey(
@@ -102,7 +103,7 @@ class Issue(models.Model):
         max_length=50,
         default='pending',
         choices=STATUS_CHOICES,
-        help_text="Status of the issue (e.g. pending, in_progress, resolved)."
+        help_text="Status of the issue (e.g. pending, in_progress, resolved, wont_fix)."
     )
     description: str = models.TextField(
         help_text="Detailed description of the issue."

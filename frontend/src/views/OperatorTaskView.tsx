@@ -31,6 +31,7 @@ import {
   ActionArea,
   AcceptButton,
   ResolveButton,
+  WontFixButton,
   DateRow,
   HomeButton,
   BackToHubButton,
@@ -214,6 +215,8 @@ export const OperatorTaskView: React.FC = () => {
                 ? t('dashboard.actionInProgress', 'In Progress')
                 : task.status === 'blocked'
                 ? t('dashboard.statusBlocked', 'Blocked')
+                : task.status === 'wont_fix'
+                ? t('dashboard.actionWontFix', 'Wont Fix')
                 : t('dashboard.actionResolved', 'Resolved')}
             </StatusPill>
           </TaskPillsContainer>
@@ -268,6 +271,12 @@ export const OperatorTaskView: React.FC = () => {
             <CalendarTodayIcon sx={{ fontSize: '0.9rem' }} />
             {t('dashboard.tableCreatedAt', 'Created At')}: {formatDate(task.created_at)}
           </DateRow>
+          {(task.status === 'resolved' || task.status === 'wont_fix') && task.resolved_at && (
+            <DateRow style={{ marginTop: '4px' }}>
+              <CheckIcon sx={{ fontSize: '0.9rem', color: 'var(--primary)' }} />
+              {t('dashboard.resolvedAtLabel', 'Resolved at:')} {formatDate(task.resolved_at)}
+            </DateRow>
+          )}
         </div>
 
         <ActionArea>
@@ -287,18 +296,28 @@ export const OperatorTaskView: React.FC = () => {
                   {t('dashboard.markInProgress', 'Mark as In Progress')}
                 </AcceptButton>
               )}
-              {task.status !== 'resolved' && (
-                <ResolveButton
-                  variant="contained"
-                  onClick={() => handleUpdateStatus('resolved')}
-                  startIcon={<CheckIcon />}
-                  data-testid="task-resolve-btn"
-                >
-                  {t('dashboard.markResolved', 'Mark as Resolved')}
-                </ResolveButton>
+              {task.status !== 'resolved' && task.status !== 'wont_fix' && (
+                <>
+                  <ResolveButton
+                    variant="contained"
+                    onClick={() => handleUpdateStatus('resolved')}
+                    startIcon={<CheckIcon />}
+                    data-testid="task-resolve-btn"
+                  >
+                    {t('dashboard.markResolved', 'Mark as Resolved')}
+                  </ResolveButton>
+                  <WontFixButton
+                    variant="contained"
+                    onClick={() => handleUpdateStatus('wont_fix')}
+                    startIcon={<CheckIcon />}
+                    data-testid="task-wontfix-btn"
+                  >
+                    {t('dashboard.markWontFix', 'Mark as Wont Fix')}
+                  </WontFixButton>
+                </>
               )}
-              {task.status === 'resolved' && (
-                <Alert severity="success" icon={<CheckIcon />}>
+              {(task.status === 'resolved' || task.status === 'wont_fix') && (
+                <Alert severity={task.status === 'resolved' ? "success" : "info"} icon={<CheckIcon />}>
                   {t('dashboard.taskUpdated', 'Task status updated successfully!')}
                 </Alert>
               )}
@@ -318,7 +337,7 @@ export const OperatorTaskView: React.FC = () => {
         <IssueComments
           issueId={task.id}
           token={secure_token}
-          showQuickBlock={task.status !== 'resolved' && task.status !== 'blocked'}
+          showQuickBlock={task.status !== 'resolved' && task.status !== 'wont_fix' && task.status !== 'blocked'}
           onStatusChange={async (newStatus) => {
             handleUpdateStatus(newStatus);
           }}
