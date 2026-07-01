@@ -37,7 +37,7 @@ def issue_post_save(sender, instance, created, **kwargs):
     new_status = instance.status
 
     # 1. Dispatch WhatsApp notification when transitioning to an operator
-    if new_assigned and (old_assigned is None or new_assigned != old_assigned):
+    if new_assigned and (old_assigned is None or new_assigned != old_assigned) and not getattr(instance, '_skip_whatsapp', False):
         operator = new_assigned
         phone_number = None
         hub_token = None

@@ -82,7 +82,12 @@
     "filterWontFix": "Wont Fix",
     "statusWontFix": "Wont Fix",
     "resolvedAtLabel": "Resolved at:",
-    "markWontFix": "Mark as Wont Fix"
+    "markWontFix": "Mark as Wont Fix",
+    "bulkAssignSuccess": "Tasks assigned and operators notified successfully!",
+    "bulkAssignError": "Failed to assign tasks. Please try again.",
+    "selectedCount": "{{count}} tasks selected",
+    "bulkAssignButton": "Save & Notify",
+    "bulkAssignSelectOperator": "Select Operator"
   },
   "comments": {
     "title": "Audit Log & Comments",

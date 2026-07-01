@@ -340,6 +340,110 @@ class IssueCommentsView(generics.ListCreateAPIView):
         )
 
 
+class IssueBulkAssignView(APIView):
+    """
+    API endpoint that allows tenant administrators/managers to bulk assign issues
+    to an operator, triggering a single combined WhatsApp message.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        task_ids = request.data.get('task_ids')
+        assignee_id = request.data.get('assignee_id')
+
+        if not isinstance(task_ids, list):
+            return Response({"detail": "task_ids must be a list of integers."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user
+        if not user.tenant:
+            return Response({"detail": "User has no tenant assigned."}, status=status.HTTP_400_BAD_REQUEST)
+        # 1. Fetch requested tasks for user's tenant
+        issues = list(Issue.objects.filter(tenant=user.tenant, id__in=task_ids))
+        if len(issues) != len(set(task_ids)):
+            return Response({"detail": "Some tasks do not exist or do not belong to this tenant."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Prevent bulk-assigning resolved or wont_fix tasks
+        resolved_issues = [i for i in issues if i.status in ('resolved', 'wont_fix')]
+        if resolved_issues:
+            return Response({"detail": "Resolved or won't fix tasks cannot be reassigned."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 2. Verify assignee belongs to the same tenant and is an operator
+        assignee = None
+        if assignee_id is not None and assignee_id != "":
+            try:
+                assignee = User.objects.get(id=assignee_id, tenant=user.tenant)
+                if not hasattr(assignee, 'operator_profile'):
+                    return Response({"detail": "Assigned user must be an operator (have an OperatorProfile)."}, status=status.HTTP_400_BAD_REQUEST)
+            except User.DoesNotExist:
+                return Response({"detail": "Assigned operator does not exist or does not belong to this tenant."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Update assignment in a database transaction
+        changed_issues = []
+        with transaction.atomic():
+            for issue in issues:
+                old_assigned = issue.assigned_to
+                if old_assigned != assignee:
+                    issue.assigned_to = assignee
+                    issue._skip_whatsapp = True
+                    issue.save()
+                    changed_issues.append(issue)
+
+        # 3. Notification Logic
+        if assignee and changed_issues:
+            phone_number = None
+            hub_token = None
+            if hasattr(assignee, 'operator_profile'):
+                phone_number = assignee.operator_profile.phone_number
+                hub_token = assignee.operator_profile.hub_token
+
+            if phone_number:
+                # Format bulk message
+                task_items = []
+                for idx, issue in enumerate(changed_issues, 1):
+                    desc = issue.description
+                    if len(desc) > 60:
+                        desc = desc[:57] + "..."
+                    task_items.append(f"{idx}. {desc}")
+
+                from django.conf import settings
+                frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+                hub_link = f"{frontend_url}/work/hub?token={hub_token}"
+
+                message_header = f"Hola {assignee.username},\ntienes {len(changed_issues)} nuevas tareas asignadas:\n"
+                message_footer = f"\nPuedes ver todo tu trabajo pendiente en tu panel:\n{hub_link}"
+
+                # Character Limit Safety (1600 total)
+                max_list_chars = 1500 - len(message_header) - len(message_footer)
+                current_list_str = ""
+                truncated_count = 0
+
+                for item in task_items:
+                    if len(current_list_str) + len(item) + 2 <= max_list_chars:
+                        current_list_str += (item + "\n")
+                    else:
+                        truncated_count += 1
+
+                if truncated_count > 0:
+                    current_list_str += f"... y {truncated_count} más\n"
+
+                message_body = message_header + current_list_str.rstrip() + message_footer
+
+                # Send WhatsApp notification asynchronously
+                from .services.whatsapp import send_whatsapp_message
+                import sys
+                import threading
+                is_testing = 'test' in sys.argv or getattr(settings, 'TESTING', False)
+                if is_testing:
+                    send_whatsapp_message(phone_number, message_body)
+                else:
+                    thread = threading.Thread(target=send_whatsapp_message, args=(phone_number, message_body))
+                    thread.daemon = True
+                    thread.start()
+
+        return Response({"status": "success", "updated_count": len(changed_issues)}, status=status.HTTP_200_OK)
+
+
+
 
 
 

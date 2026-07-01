@@ -47,6 +47,8 @@ import {
   DescriptionCellSpan,
   HubLinkContainer,
   HubLink,
+  StyledCheckbox,
+  CheckboxCellContainer,
 } from "./Dashboard.styles";
 
 const columnHelper = createColumnHelper<Issue>();
@@ -96,6 +98,9 @@ export interface DashboardTableProps {
   customFields: TenantConfig["custom_fields"];
   onEditIssue: (issue: Issue) => void;
   handleAssignOperator: (issueId: number, operatorIdVal: number | string) => void;
+  selectedIds: number[];
+  onToggleSelectIssue: (id: number) => void;
+  onToggleSelectAll: () => void;
 }
 
 export const DashboardTable: React.FC<DashboardTableProps> = ({
@@ -107,6 +112,9 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
   customFields = [],
   onEditIssue,
   handleAssignOperator,
+  selectedIds,
+  onToggleSelectIssue,
+  onToggleSelectAll,
 }) => {
   const { t } = useTranslation();
 
@@ -146,6 +154,45 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
 
   const columns = useMemo(() => {
     const baseCols = [
+      columnHelper.display({
+        id: "selection",
+        header: () => {
+          const assignableIssues = issues.filter((issue) => !["resolved", "wont_fix"].includes(issue.status));
+          const allSelected = assignableIssues.length > 0 && assignableIssues.every((issue) => selectedIds.includes(issue.id));
+          const someSelected = assignableIssues.some((issue) => selectedIds.includes(issue.id)) && !allSelected;
+          return (
+            <StyledCheckbox
+              type="checkbox"
+              ref={(el) => {
+                if (el) {
+                  el.indeterminate = someSelected;
+                }
+              }}
+              checked={allSelected}
+              onChange={onToggleSelectAll}
+              data-testid="select-all-checkbox"
+              disabled={assignableIssues.length === 0}
+            />
+          );
+        },
+        cell: (info) => {
+          const issue = info.row.original;
+          const isSelected = selectedIds.includes(issue.id);
+          const isResolved = ["resolved", "wont_fix"].includes(issue.status);
+          return (
+            <CheckboxCellContainer onClick={(e) => e.stopPropagation()}>
+              {!isResolved && (
+                <StyledCheckbox
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={() => onToggleSelectIssue(issue.id)}
+                  data-testid={`select-checkbox-${issue.id}`}
+                />
+              )}
+            </CheckboxCellContainer>
+          );
+        },
+      }),
       columnHelper.display({
         id: "drag-handle",
         header: () => "",
@@ -287,6 +334,7 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
           header: () => t("dashboard.tableAssignOperator"),
           cell: (info) => {
             const issue = info.row.original;
+            const isResolved = ["resolved", "wont_fix"].includes(issue.status);
             const assignedVal =
               info.getValue() !== null && info.getValue() !== undefined
                 ? String(info.getValue())
@@ -299,6 +347,7 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
                   onChange={(e) =>
                     handleAssignOperator(issue.id, e.target.value as string)
                   }
+                  disabled={isResolved}
                   inputProps={{
                     "data-testid": `action-assign-select-${issue.id}`,
                   }}
@@ -345,7 +394,7 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
     ];
 
     return [...baseCols, ...dynamicCols, ...endCols];
-  }, [customFields, operators, t, handleAssignOperator, onEditIssue]);
+  }, [customFields, operators, t, handleAssignOperator, onEditIssue, selectedIds, onToggleSelectAll, onToggleSelectIssue, issues]);
 
   const table = useReactTable({
     data: issues,

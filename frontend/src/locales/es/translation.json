@@ -82,7 +82,12 @@
     "filterWontFix": "Desestimadas",
     "statusWontFix": "Desestimado",
     "resolvedAtLabel": "Resuelto el:",
-    "markWontFix": "Desestimar incidencia"
+    "markWontFix": "Desestimar incidencia",
+    "bulkAssignSuccess": "¡Tareas asignadas y operarios notificados con éxito!",
+    "bulkAssignError": "Error al asignar las tareas. Por favor, inténtelo de nuevo.",
+    "selectedCount": "{{count}} tareas seleccionadas",
+    "bulkAssignButton": "Guardar y Notificar",
+    "bulkAssignSelectOperator": "Seleccionar Operario"
   },
   "comments": {
     "title": "Cuaderno de Bitácora",

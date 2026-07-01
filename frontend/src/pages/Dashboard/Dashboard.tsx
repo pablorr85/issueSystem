@@ -2,7 +2,8 @@ import React, { useState, useMemo, useCallback } from "react";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import { useTranslation } from "react-i18next";
 import type { ColumnFiltersState } from "@tanstack/react-table";
-import { assignIssue } from "../../services/api";
+import { assignIssue, bulkAssignIssues } from "../../services/api";
+import { MenuItem, Snackbar, CircularProgress } from "@mui/material";
 import type { TenantConfig, Issue, Operator } from "../../services/types";
 import { ShareQRSection } from "../../components/ShareQRSection/ShareQRSection";
 import { DashboardFilters } from "./DashboardFilters";
@@ -13,6 +14,12 @@ import {
   DashboardHeader,
   DashboardTitle,
   DashboardCard,
+  FloatingBarContainer,
+  FloatingBarContent,
+  FloatingBarText,
+  FloatingBarActions,
+  FloatingBarButton,
+  TableSelect,
 } from "./Dashboard.styles";
 
 export interface DashboardProps {
@@ -47,6 +54,69 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const [operatorFilterValue, setOperatorFilterValue] = useState<string>("");
   const [urgencyFilterValue, setUrgencyFilterValue] = useState<string>("");
+
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [bulkAssignee, setBulkAssignee] = useState<string>("");
+  const [savingBulk, setSavingBulk] = useState<boolean>(false);
+  const [toastOpen, setToastOpen] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string>("");
+  const handleToggleSelectIssue = useCallback((id: number) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }, []);
+
+  const handleToggleSelectAll = useCallback(() => {
+    setSelectedIds((prev) => {
+      const assignableIssues = issues.filter((i) => !["resolved", "wont_fix"].includes(i.status));
+      const assignableIds = assignableIssues.map((i) => i.id);
+      const allSelected = assignableIds.length > 0 && assignableIds.every((id) => prev.includes(id));
+      if (allSelected) {
+        // Deselect all visible assignable
+        return prev.filter((id) => !assignableIds.includes(id));
+      } else {
+        // Select all visible assignable
+        const newSet = new Set([...prev, ...assignableIds]);
+        return Array.from(newSet);
+      }
+    });
+  }, [issues]);
+
+  const handleBulkSave = async () => {
+    if (selectedIds.length === 0) return;
+    setSavingBulk(true);
+    const operatorId = bulkAssignee === "" ? null : Number(bulkAssignee);
+    const originalIssues = [...issues];
+
+    // Optimistic UI Update for all selected tasks
+    const assignedOp = operators.find((op) => op.id === operatorId);
+    setIssues((prev) =>
+      prev.map((issue) =>
+        selectedIds.includes(issue.id)
+          ? {
+              ...issue,
+              assigned_to: operatorId,
+              assigned_to_name: assignedOp ? assignedOp.username : "",
+            }
+          : issue
+      )
+    );
+
+    try {
+      await bulkAssignIssues(selectedIds, operatorId);
+      setToastMessage(t("dashboard.bulkAssignSuccess", "Tasks assigned and operators notified successfully!"));
+      setToastOpen(true);
+      setSelectedIds([]); // Clear selection cart
+      setBulkAssignee("");
+    } catch (err) {
+      console.error("Failed bulk assignment:", err);
+      setIssues(originalIssues); // Rollback
+      setToastMessage(t("dashboard.bulkAssignError", "Failed to assign tasks. Please try again."));
+      setToastOpen(true);
+    } finally {
+      setSavingBulk(false);
+    }
+  };
 
   // Custom fields schemas defined for this tenant
   const customFields = useMemo(() => tenant.custom_fields || [], [tenant.custom_fields]);
@@ -157,6 +227,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
           customFields={customFields}
           onEditIssue={onEditIssue}
           handleAssignOperator={handleAssignOperator}
+          selectedIds={selectedIds}
+          onToggleSelectIssue={handleToggleSelectIssue}
+          onToggleSelectAll={handleToggleSelectAll}
         />
 
         <DashboardPagination
@@ -167,6 +240,69 @@ export const Dashboard: React.FC<DashboardProps> = ({
           loading={loading}
         />
       </DashboardCard>
+
+      {selectedIds.length > 0 && (
+        <FloatingBarContainer data-testid="bulk-assign-bar">
+          <FloatingBarContent>
+            <FloatingBarText>
+              {t("dashboard.selectedCount", { count: selectedIds.length })}
+            </FloatingBarText>
+            <FloatingBarActions>
+              <TableSelect
+                value={bulkAssignee}
+                onChange={(e) => setBulkAssignee(e.target.value as string)}
+                displayEmpty
+                size="small"
+                inputProps={{
+                  "data-testid": "bulk-assignee-select",
+                }}
+                disabled={savingBulk}
+                sx={{ minWidth: 180, height: 40 }}
+              >
+                <MenuItem value="">
+                  <em>{t("dashboard.bulkAssignSelectOperator", "Select Operator")}</em>
+                </MenuItem>
+                {operators.map((op) => (
+                  <MenuItem key={op.id} value={String(op.id)}>
+                    {op.username}
+                  </MenuItem>
+                ))}
+              </TableSelect>
+              <FloatingBarButton
+                onClick={handleBulkSave}
+                disabled={savingBulk}
+                $variant="primary"
+                data-testid="bulk-save-button"
+              >
+                {savingBulk ? (
+                  <CircularProgress size={18} color="inherit" />
+                ) : (
+                  t("dashboard.bulkAssignButton", "Save & Notify")
+                )}
+              </FloatingBarButton>
+              <FloatingBarButton
+                onClick={() => {
+                  setSelectedIds([]);
+                  setBulkAssignee("");
+                }}
+                disabled={savingBulk}
+                $variant="secondary"
+                data-testid="bulk-cancel-button"
+              >
+                {t("dashboard.cancel")}
+              </FloatingBarButton>
+            </FloatingBarActions>
+          </FloatingBarContent>
+        </FloatingBarContainer>
+      )}
+
+      <Snackbar
+        open={toastOpen}
+        autoHideDuration={4000}
+        onClose={() => setToastOpen(false)}
+        message={toastMessage}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      />
     </DashboardContainer>
   );
 };

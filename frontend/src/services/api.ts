@@ -197,4 +197,19 @@ export const addIssueComment = async (
   return response.data;
 };
 
+export const bulkAssignIssues = async (
+  taskIds: number[],
+  assigneeId: number | null
+): Promise<{ status: string; updated_count: number }> => {
+  const response = await api.post<{ status: string; updated_count: number }>(
+    "/tasks/bulk-assign/",
+    {
+      task_ids: taskIds,
+      assignee_id: assigneeId,
+    }
+  );
+  return response.data;
+};
+
 export default api;
+

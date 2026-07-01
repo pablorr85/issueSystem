@@ -13,6 +13,7 @@ from .views import (
     IssueUpdateView,
     IssueReorderView,
     IssueCommentsView,
+    IssueBulkAssignView,
 )
 
 urlpatterns = [
@@ -29,5 +30,6 @@ urlpatterns = [
     path('operator/hub/', OperatorHubView.as_view(), name='operator-hub'),
     path('issues/<int:pk>/', IssueUpdateView.as_view(), name='issue-detail-update'),
     path('issues/<int:issue_id>/comments/', IssueCommentsView.as_view(), name='issue-comments'),
+    path('tasks/bulk-assign/', IssueBulkAssignView.as_view(), name='issue-bulk-assign'),
 ]
 

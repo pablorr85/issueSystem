@@ -62,6 +62,11 @@ class IssueSerializer(serializers.ModelSerializer):
         return get_issue_resolved_at(obj)
 
     def validate(self, attrs):
+        # Prevent reassigning resolved issues
+        if self.instance and self.instance.status in ('resolved', 'wont_fix'):
+            if 'assigned_to' in attrs and attrs['assigned_to'] != self.instance.assigned_to:
+                raise serializers.ValidationError({"assigned_to": "Resolved tasks cannot be reassigned."})
+
         tenant_id = attrs.get('tenant_id')
         extra_data = attrs.get('extra_data')
 
@@ -181,6 +186,12 @@ class IssueAssignmentSerializer(serializers.ModelSerializer):
             if self.instance and value.tenant != self.instance.tenant:
                 raise serializers.ValidationError("Assigned operator must belong to the same tenant.")
         return value
+
+    def validate(self, attrs):
+        if self.instance and self.instance.status in ('resolved', 'wont_fix'):
+            if 'assigned_to' in attrs and attrs['assigned_to'] != self.instance.assigned_to:
+                raise serializers.ValidationError({"assigned_to": "Resolved tasks cannot be reassigned."})
+        return attrs
 
 
 

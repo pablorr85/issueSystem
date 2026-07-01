@@ -1,8 +1,9 @@
-import styled from 'styled-components';
-import { Alert, Button } from '@mui/material';
+import styled from "styled-components";
+import { Alert, Button } from "@mui/material";
 
 export const AppContainer = styled.div<{ $wide?: boolean }>`
-  padding: 40px max(20px, (100% - ${({ $wide }) => ($wide ? '1280px' : '800px')}) / 2);
+  padding: 40px
+    max(20px, (100% - ${({ $wide }) => ($wide ? "1280px" : "800px")}) / 2);
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -123,19 +124,24 @@ export const TabContainer = styled.div`
 `;
 
 export const TabButton = styled.button<{ $active: boolean }>`
-  background: ${({ $active }) => ($active ? 'var(--primary)' : 'rgba(255, 255, 255, 0.03)')};
-  color: ${({ $active }) => ($active ? 'white' : '#a09cb4')};
-  border: 1px solid ${({ $active }) => ($active ? 'var(--primary)' : 'rgba(255, 255, 255, 0.08)')};
+  background: ${({ $active }) =>
+    $active ? "var(--primary)" : "rgba(255, 255, 255, 0.03)"};
+  color: ${({ $active }) => ($active ? "white" : "#a09cb4")};
+  border: 1px solid
+    ${({ $active }) =>
+      $active ? "var(--primary)" : "rgba(255, 255, 255, 0.08)"};
   padding: 10px 24px;
   border-radius: 9999px;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
-  
+
   &:hover {
-    background: ${({ $active }) => ($active ? 'var(--primary-hover)' : 'rgba(255, 255, 255, 0.06)')};
-    border-color: ${({ $active }) => ($active ? 'var(--primary-hover)' : 'rgba(255, 255, 255, 0.15)')};
+    background: ${({ $active }) =>
+      $active ? "var(--primary-hover)" : "rgba(255, 255, 255, 0.06)"};
+    border-color: ${({ $active }) =>
+      $active ? "var(--primary-hover)" : "rgba(255, 255, 255, 0.15)"};
     color: white;
   }
 `;
@@ -159,7 +165,7 @@ export const LogoutButton = styled.button`
   cursor: pointer;
   font-weight: 600;
   transition: all 0.2s;
-  
+
   &:hover {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(255, 255, 255, 0.4);
@@ -175,7 +181,7 @@ export const RequiredAuthAlert = styled(Alert)`
   display: flex;
   flex-direction: column;
   gap: 16px;
-  
+
   & .MuiAlert-icon {
     color: #ffd54f !important;
   }
@@ -188,7 +194,7 @@ export const AlertButton = styled(Button)`
   font-weight: 600 !important;
   align-self: flex-start !important;
   margin-top: 12px !important;
-  
+
   &:hover {
     background-color: var(--primary-hover) !important;
   }
@@ -220,7 +226,7 @@ export const GoBackButton = styled.button`
   cursor: pointer;
   font-weight: 600;
   transition: background 0.2s;
-  
+
   &:hover {
     background: var(--primary-hover);
   }
@@ -229,4 +235,3 @@ export const GoBackButton = styled.button`
 export const PaddedAppContainer = styled(AppContainer)`
   padding-bottom: 2rem;
 `;
-

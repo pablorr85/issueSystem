@@ -587,4 +587,139 @@ class IssueCommentsAndBlockedAPITests(APITestCase):
         self.assertEqual(response.data['role'], "operator")
 
 
+from .services.whatsapp import WHATSAPP_MOCK_REGISTRY
+
+class IssueBulkAssignmentTests(APITestCase):
+    def setUp(self):
+        WHATSAPP_MOCK_REGISTRY.clear()
+        
+        # Tenant A
+        self.tenant_a = Tenant.objects.create(name="Tenant A")
+        self.admin_a = User.objects.create_user(username="admin_a", password="password", tenant=self.tenant_a)
+        self.operator_a = User.objects.create_user(username="op_a", password="password", tenant=self.tenant_a)
+        self.profile_a = OperatorProfile.objects.create(user=self.operator_a, phone_number="+34600111111")
+        
+        self.issue1 = Issue.objects.create(tenant=self.tenant_a, description="Fix lightbulb", status="pending")
+        self.issue2 = Issue.objects.create(tenant=self.tenant_a, description="Fix AC unit", status="pending")
+        self.issue3 = Issue.objects.create(tenant=self.tenant_a, description="Paint wall", status="pending", assigned_to=self.operator_a)
+        
+        # Tenant B
+        self.tenant_b = Tenant.objects.create(name="Tenant B")
+        self.admin_b = User.objects.create_user(username="admin_b", password="password", tenant=self.tenant_b)
+        self.operator_b = User.objects.create_user(username="op_b", password="password", tenant=self.tenant_b)
+        self.profile_b = OperatorProfile.objects.create(user=self.operator_b, phone_number="+34600222222")
+        self.issue_b = Issue.objects.create(tenant=self.tenant_b, description="Mow lawn", status="pending")
+
+    def test_bulk_assign_success(self):
+        WHATSAPP_MOCK_REGISTRY.clear()
+        self.client.force_authenticate(user=self.admin_a)
+        url = reverse('issue-bulk-assign')
+        data = {
+            'task_ids': [self.issue1.id, self.issue2.id, self.issue3.id],
+            'assignee_id': self.operator_a.id
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['status'], 'success')
+        # Only issue1 and issue2 were modified since issue3 was already assigned to operator_a
+        self.assertEqual(response.data['updated_count'], 2)
+        
+        # Refresh from DB
+        self.issue1.refresh_from_db()
+        self.issue2.refresh_from_db()
+        self.assertEqual(self.issue1.assigned_to, self.operator_a)
+        self.assertEqual(self.issue2.assigned_to, self.operator_a)
+        
+        # Verify audit logs created
+        self.assertEqual(self.issue1.comments.filter(is_system_log=True).count(), 1)
+        self.assertEqual(self.issue2.comments.filter(is_system_log=True).count(), 1)
+        # issue3 shouldn't have new audit logs since its assignee didn't change
+        self.assertEqual(self.issue3.comments.filter(is_system_log=True).count(), 0)
+
+        # Verify WhatsApp notification registry
+        # We should only have 1 combined message instead of multiple individual ones
+        self.assertEqual(len(WHATSAPP_MOCK_REGISTRY), 1)
+        sent_message = WHATSAPP_MOCK_REGISTRY[0]
+        self.assertEqual(sent_message['to'], '+34600111111')
+        self.assertIn("tienes 2 nuevas tareas asignadas", sent_message['body'])
+        self.assertIn("1. Fix lightbulb", sent_message['body'])
+        self.assertIn("2. Fix AC unit", sent_message['body'])
+        # The third issue should not be in the notification body since it was a redundant update
+        self.assertNotIn("Paint wall", sent_message['body'])
+
+    def test_bulk_assign_cross_tenant_denied(self):
+        self.client.force_authenticate(user=self.admin_a)
+        url = reverse('issue-bulk-assign')
+        
+        # Try assigning tenant B issue
+        data = {
+            'task_ids': [self.issue1.id, self.issue_b.id],
+            'assignee_id': self.operator_a.id
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        
+        # Try assigning to tenant B operator
+        data = {
+            'task_ids': [self.issue1.id, self.issue2.id],
+            'assignee_id': self.operator_b.id
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_bulk_assign_unassign(self):
+        WHATSAPP_MOCK_REGISTRY.clear()
+        self.client.force_authenticate(user=self.admin_a)
+        url = reverse('issue-bulk-assign')
+        data = {
+            'task_ids': [self.issue3.id],
+            'assignee_id': None
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['updated_count'], 1)
+        self.issue3.refresh_from_db()
+        self.assertIsNone(self.issue3.assigned_to)
+        
+        # No WhatsApp notifications since assignee was set to None
+        self.assertEqual(len(WHATSAPP_MOCK_REGISTRY), 0)
+
+    def test_bulk_assign_resolved_denied(self):
+        # Mark self.issue1 as resolved
+        self.issue1.status = "resolved"
+        self.issue1.save()
+        
+        self.client.force_authenticate(user=self.admin_a)
+        url = reverse('issue-bulk-assign')
+        data = {
+            'task_ids': [self.issue1.id, self.issue2.id],
+            'assignee_id': self.operator_a.id
+        }
+        response = self.client.post(url, data, format='json')
+        # Should be rejected because issue1 is resolved
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("Resolved or won't fix tasks cannot be reassigned", response.data['detail'])
+
+    def test_single_assign_resolved_denied(self):
+        # Mark self.issue3 as resolved
+        self.issue3.status = "resolved"
+        self.issue3.save()
+        
+        self.client.force_authenticate(user=self.admin_a)
+        url = reverse('issue-assign', kwargs={'pk': self.issue3.pk})
+        
+        # Create another operator in tenant A
+        op2 = User.objects.create_user(username="op2", password="password", tenant=self.tenant_a)
+        OperatorProfile.objects.create(user=op2, phone_number="+34600111112")
+        
+        data = {
+            'assigned_to': op2.id
+        }
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("Resolved tasks cannot be reassigned", str(response.data))
+
+
+
+
 

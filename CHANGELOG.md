@@ -4,6 +4,18 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
+## [Sprint 18] - Task Assignment Batching & Notification Optimization
+### Added
+- Created a transaction-safe bulk assignment endpoint (`POST /api/tasks/bulk-assign/`) that updates assignee fields in batch.
+- Grouped modified tasks by assignee and implemented a consolidated WhatsApp notification system to avoid alert fatigue.
+- Handled character limit constraints (max 1600 characters) for WhatsApp messages with graceful truncation.
+- Prevented individual task notifications during bulk actions using an instance bypass flag (`_skip_whatsapp`).
+- Designed a premium floating action bar with a glassmorphism theme and pop-up micro-animations to manage bulk actions in the React dashboard.
+- Integrated row-level checkboxes and a select-all page checkbox in the TanStack task table.
+- Added localization keys for both English and Spanish covering all new bulk actions and toast states.
+
+---
+
 ## [Sprint 17] - Corporate Identity & "Solvo" Marketing Site
 ### Added
 - Decoupled marketing landing page at the root domain (`www.solvo.app`).
