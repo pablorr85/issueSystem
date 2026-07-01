@@ -28,3 +28,11 @@ When interacting with the user, adopt the following personas based on the contex
 - Always write frontend code in TypeScript. Provide explicit `interface` or `type` definitions for all data structures, especially those coming from the Django JSON API.
 - Never use `any`. Use `unknown` if the payload structure is genuinely unpredictable, and type-guard it.
 - Configure `tsconfig.json` with strict mode enabled.
+
+## 🏁 Sprint Finalization
+
+**Trigger:** When all tasks from a sprint are fully implemented and verified.
+**Instructions:**
+- Always update `CHANGELOG.md` with the completed changes and achievements.
+- Empty `TODO.md`, leaving only the header and a message indicating all tasks are completed.
+
