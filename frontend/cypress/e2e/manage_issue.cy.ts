@@ -49,21 +49,21 @@ describe('Tenant Dashboard & Issue Management E2E Test', () => {
           {
             id: issueId,
             tenant_id: tenantUuid,
-            status: 'open',
+            status: 'pending',
             description: 'Water leak in alligator pond',
+            created_at: '2026-06-01T12:00:00Z',
             extra_data: {
               zona_parque: 'Zona Marina',
               urgencia: 'CRÍTICA'
             },
-            created_at: '2026-06-09T12:00:00Z',
-            updated_at: '2026-06-09T12:00:00Z'
+            assigned_to: null
           }
         ]
       }
     }).as('getIssuesList');
 
     // Intercept status update PATCH request
-    cy.intercept('PATCH', `**/api/issues/${issueId}/status/`, {
+    cy.intercept('PATCH', `**/api/issues/${issueId}/`, {
       statusCode: 200,
       body: {
         id: issueId,
@@ -74,14 +74,44 @@ describe('Tenant Dashboard & Issue Management E2E Test', () => {
           urgencia: 'CRÍTICA'
         }
       }
-    }).as('updateIssueStatus');
+    }).as('updateIssue');
+
+    // Intercept operators to prevent hitting actual backend and receiving 401
+    cy.intercept('GET', '**/api/operators/', {
+      statusCode: 200,
+      body: [
+        {
+          id: 1,
+          username: 'zoo_keeper',
+          email: 'zoo@test.com',
+          phone_number: '+123456789'
+        }
+      ]
+    }).as('getOperators');
+
+    // Intercept comments request to prevent 401 logout
+    cy.intercept('GET', '**/api/issues/*/comments/', {
+      statusCode: 200,
+      body: []
+    }).as('getComments');
+
+    // Intercept stats request
+    cy.intercept('GET', '**/api/issues/stats/', {
+      statusCode: 200,
+      body: {
+        unassigned_count: 5,
+        in_progress_count: 3,
+        blocked_count: 2
+      }
+    }).as('getStats');
   });
 
   it('navigates to dashboard, displays dynamic custom columns, and resolves an issue', () => {
     // 1. Load the Dashboard directly (already authenticated)
-    cy.visit('/dashboard');
+    cy.visit('/backlog');
     cy.wait('@getTenantConfig');
     cy.wait('@getIssuesList');
+    cy.wait('@getOperators');
 
     // 3. Verify Dashboard Layout
     cy.contains('h2', 'Tenant Manager Dashboard').should('be.visible');
@@ -93,36 +123,76 @@ describe('Tenant Dashboard & Issue Management E2E Test', () => {
     cy.contains('th', 'zona parque').should('be.visible'); // Custom field column (flattened)
     cy.contains('th', 'urgencia').should('be.visible'); // Custom field column (flattened)
     cy.contains('th', 'Created At').should('be.visible');
-    cy.contains('th', 'Actions').should('be.visible');
+    cy.contains('th', 'Assign Operator').should('be.visible');
 
     // Verify row data renders
     cy.get(`[data-testid="issue-row-${issueId}"]`).within(() => {
       cy.contains('101').should('be.visible');
-      cy.contains('Open').should('be.visible');
+      cy.contains('Pending').should('be.visible');
       cy.contains('Water leak in alligator pond').should('be.visible');
       cy.contains('Zona Marina').should('be.visible');
       cy.contains('CRÍTICA').should('be.visible');
     });
 
-    // 4. Update the Issue Status
-    cy.get(`[data-testid="issue-row-${issueId}"]`).within(() => {
-      // Find row action select input (hidden select or the button styled select)
-      cy.get('.MuiSelect-select').click();
-    });
-    
-    // Choose 'resolved' from the popover options list
+    // 4. Update the Issue Status (via Edit Issue Modal)
+    cy.get(`[data-testid="edit-issue-id-${issueId}"]`).click();
+    cy.wait('@getComments');
+
+    // In Edit Modal, select status 'resolved'
+    cy.get('[data-testid="edit-status-select"]').parent().find('.MuiSelect-select').click();
     cy.get('.MuiMenuItem-root').contains('Resolved').click();
 
+    // Save changes
+    cy.contains('button', 'Save Changes').click();
+
     // Verify network call was made to patch status
-    cy.wait('@updateIssueStatus').then((interception) => {
-      expect(interception.request.body).to.deep.equal({
-        status: 'resolved'
-      });
+    cy.wait('@updateIssue').then((interception) => {
+      expect(interception.request.body.status).to.equal('resolved');
     });
 
     // Verify UI reflects resolved state
     cy.get(`[data-testid="issue-row-${issueId}"]`).within(() => {
       cy.contains('Resolved').should('be.visible');
     });
+  });
+
+  it('navigates through interactive KPI cards and syncs backlog filters with URL query parameters', () => {
+    // 1. Visit Stats Dashboard
+    cy.visit('/');
+    cy.wait('@getTenantConfig');
+    cy.wait('@getStats');
+
+    // Verify KPI numbers rendered
+    cy.get('[data-testid="kpi-card-unassigned"]').contains('5').should('be.visible');
+    cy.get('[data-testid="kpi-card-in-progress"]').contains('3').should('be.visible');
+    cy.get('[data-testid="kpi-card-blocked"]').contains('2').should('be.visible');
+
+    // 2. Click Unassigned Issues KPI card
+    cy.get('[data-testid="kpi-card-unassigned"]').click();
+    cy.url().should('include', '/backlog?assigned=false');
+    cy.wait('@getIssuesList');
+
+    // Verify assignment filter dropdown in UI is pre-selected to 'Unassigned'
+    cy.get('[data-testid="dashboard-assignment-filter"]').parent().find('.MuiSelect-select').contains('Unassigned').should('be.visible');
+
+    // Go back to Dashboard
+    cy.visit('/');
+    cy.wait('@getStats');
+
+    // 3. Click Blocked Tasks KPI card
+    cy.get('[data-testid="kpi-card-blocked"]').click();
+    cy.url().should('include', '/backlog?status=blocked');
+    cy.wait('@getIssuesList');
+
+    // Verify status filter dropdown in UI is pre-selected to 'Blocked'
+    cy.get('[data-testid="dashboard-status-filter"]').parent().find('.MuiSelect-select').contains('Blocked').should('be.visible');
+
+    // Go back to Dashboard
+    cy.visit('/');
+    cy.wait('@getStats');
+
+    // 4. Click Currently in Progress KPI card
+    cy.get('[data-testid="kpi-card-in-progress"]').click();
+    cy.url().should('include', '/board');
   });
 });

@@ -83,24 +83,102 @@ class IssuePagination(PageNumberPagination):
     max_page_size = 100
 
 
+class IssueStatsView(APIView):
+    """
+    API endpoint that returns high-level dashboard metrics for a tenant.
+    Access restricted to authenticated employees of the tenant.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        tenant = request.user.tenant
+        if not tenant:
+            return Response({
+                'unassigned_count': 0,
+                'in_progress_count': 0,
+                'blocked_count': 0
+            })
+        
+        issues = Issue.objects.filter(tenant=tenant)
+        unassigned = issues.filter(assigned_to__isnull=True).exclude(status__in=['resolved', 'wont_fix']).count()
+        in_progress = issues.filter(status='in_progress').count()
+        blocked = issues.filter(status='blocked').count()
+        
+        return Response({
+            'unassigned_count': unassigned,
+            'in_progress_count': in_progress,
+            'blocked_count': blocked
+        })
+
+
 class IssueListView(generics.ListAPIView):
     """
     API endpoint that returns a paginated list of issues.
     Access restricted to authenticated employees of the tenant.
+    Supports 'board=true' query param to fetch all active, assigned issues (unpaginated).
     """
     serializer_class = IssueListSerializer
     pagination_class = IssuePagination
     permission_classes = [IsAuthenticated]
+
+    @property
+    def paginator(self):
+        if self.request.query_params.get('board') == 'true':
+            return None
+        return super().paginator
 
     def get_queryset(self):
         # Enforce multi-tenant data isolation at database level
         user = self.request.user
         queryset = Issue.objects.filter(tenant=user.tenant).order_by('order_index', '-created_at')
         
-        status_param = self.request.query_params.get('status')
-        if status_param:
-            queryset = queryset.filter(status=status_param)
+        board_param = self.request.query_params.get('board')
+        if board_param == 'true':
+            from django.utils import timezone
+            from datetime import timedelta
+            from django.db.models import Q
+            
+            # Condition 1: assigned_to is NOT NULL
+            queryset = queryset.filter(assigned_to__isnull=False)
+            
+            # Condition 2: status is active (not Done/WontFix, or Done/WontFix updated within last 24h)
+            cutoff = timezone.now() - timedelta(hours=24)
+            queryset = queryset.filter(
+                Q(status__in=['pending', 'in_progress', 'blocked']) |
+                Q(status__in=['resolved', 'wont_fix'], updated_at__gte=cutoff)
+            )
+        else:
+            status_param = self.request.query_params.get('status')
+            if status_param:
+                queryset = queryset.filter(status=status_param)
+                
+            assigned_param = self.request.query_params.get('assigned')
+            if assigned_param == 'false':
+                queryset = queryset.filter(assigned_to__isnull=True)
+            elif assigned_param == 'true':
+                queryset = queryset.filter(assigned_to__isnull=False)
+                
         return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        # If board=true, wrap in pagination envelope for frontend compatibility
+        if request.query_params.get('board') == 'true':
+            return Response({
+                'count': len(serializer.data),
+                'next': None,
+                'previous': None,
+                'results': serializer.data
+            })
+        return Response(serializer.data)
+
 
 
 class IssueStatusUpdateView(generics.UpdateAPIView):

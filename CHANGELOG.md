@@ -4,6 +4,24 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
+## [Sprint 21] - Dashboard Interactive Drill-down & URL Query Filters
+### Added
+- Transformed static Dashboard KPI cards (Unassigned, In Progress, Blocked) into interactive, accessible links with pointer hover states.
+- Handled query string navigation so that clicking a card navigates to `/backlog?assigned=false`, `/backlog?status=blocked`, or `/board`.
+- Sync'ed the backlog filters, pagination, and data retrieval hooks directly with the URL query parameters using `useSearchParams`.
+- Built backend support for the `assigned` query param in `IssueListView` (filtering by `assigned_to__isnull`).
+- Added an "Assignment" ("Filtrar por Asignación") dropdown filter in the Backlog table view to let managers dynamically view assigned or unassigned issues.
+- Documented full E2E test coverage in `manage_issue.cy.ts` validating card click-throughs and auto-filtering.
+
+## [Sprint 19] - Command Center & Operations Kanban Board
+### Added
+- Designed a dashboard statistics landing page (`/`) with real-time KPI metrics (Unassigned, In Progress, and Blocked task counters) and direct sub-navigation triggers.
+- Re-routed and isolated the master issues list to a dedicated Backlog page (`/backlog`).
+- Engineered a complete Operations Board (`/board`) with a responsive 4-column Kanban layout (Pending, In Progress, Blocked, Resolved) using `@dnd-kit/core` for seamless drag-and-drop task status transitions.
+- Integrated dynamic styling variables to inject the active tenant's primary colors into the dashboard metrics and navigation systems.
+- Updated operator action button copy consistently across Spanish ("Iniciar Trabajo") and English ("Start Work") locales in the Operator Task view.
+- Validated all route access levels and status transitions through a fully optimized Cypress end-to-end testing suite.
+
 ## [Sprint 18] - Task Assignment Batching & Notification Optimization
 ### Added
 - Created a transaction-safe bulk assignment endpoint (`POST /api/tasks/bulk-assign/`) that updates assignee fields in batch.

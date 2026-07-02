@@ -22,6 +22,8 @@ export interface DashboardFiltersProps {
   urgencyColumnId: string;
   operators: Operator[];
   loading: boolean;
+  assignedFilter: string;
+  onAssignedFilterChange: (val: string) => void;
 }
 
 export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
@@ -35,6 +37,8 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
   urgencyColumnId,
   operators,
   loading,
+  assignedFilter,
+  onAssignedFilterChange,
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -79,6 +83,30 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
           </MenuItem>
           <MenuItem value="wont_fix">
             {t("dashboard.filterWontFix")}
+          </MenuItem>
+        </FilterSelect>
+      </StyledFormControl>
+
+      <StyledFormControl variant="outlined" size="small">
+        <InputLabel id="filter-assignment-label">
+          {t("dashboard.assignmentFilterLabel", "Asignación")}
+        </InputLabel>
+        <FilterSelect
+          labelId="filter-assignment-label"
+          value={assignedFilter || ""}
+          label={t("dashboard.assignmentFilterLabel", "Asignación")}
+          onChange={(e) => onAssignedFilterChange?.(e.target.value as string)}
+          disabled={loading}
+          inputProps={{ "data-testid": "dashboard-assignment-filter" }}
+        >
+          <MenuItem value="">
+            <em>{t("dashboard.filterAll")}</em>
+          </MenuItem>
+          <MenuItem value="false">
+            {t("dashboard.unassigned")}
+          </MenuItem>
+          <MenuItem value="true">
+            {t("dashboard.filterAssigned", "Asignado")}
           </MenuItem>
         </FilterSelect>
       </StyledFormControl>

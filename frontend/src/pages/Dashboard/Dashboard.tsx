@@ -33,6 +33,8 @@ export interface DashboardProps {
   setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   statusFilter: string;
   setStatusFilter: (status: string) => void;
+  assignedFilter: string;
+  onAssignedFilterChange: (assigned: string) => void;
   onEditIssue: (issue: Issue) => void;
 }
 
@@ -47,6 +49,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   setCurrentPage,
   statusFilter,
   setStatusFilter,
+  assignedFilter,
+  onAssignedFilterChange,
   onEditIssue,
 }) => {
   const { t } = useTranslation();
@@ -216,6 +220,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
           urgencyColumnId={urgencyColumnId}
           operators={operators}
           loading={loading}
+          assignedFilter={assignedFilter}
+          onAssignedFilterChange={onAssignedFilterChange}
         />
 
         <DashboardTable

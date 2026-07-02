@@ -7,6 +7,7 @@ import type {
   Operator,
   OperatorTask,
   IssueComment,
+  IssueStats,
 } from "./types";
 
 const API_BASE_URL =
@@ -50,16 +51,26 @@ export const getIssues = async (
   tenantId: string,
   status?: string,
   page?: number,
+  board?: boolean,
+  assigned?: string,
 ): Promise<PaginatedResponse<Issue>> => {
-  const params: Record<string, string | number> = { tenant_id: tenantId };
+  const params: Record<string, string | number | boolean> = { tenant_id: tenantId };
   if (status) params.status = status;
   if (page) params.page = page;
+  if (board) params.board = board;
+  if (assigned) params.assigned = assigned;
 
   const response = await api.get<PaginatedResponse<Issue>>("/issues/", {
     params,
   });
   return response.data;
 };
+
+export const getIssuesStats = async (): Promise<IssueStats> => {
+  const response = await api.get<IssueStats>("/issues/stats/");
+  return response.data;
+};
+
 
 export const updateIssueStatus = async (
   id: number,

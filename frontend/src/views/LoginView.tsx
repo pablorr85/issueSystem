@@ -69,7 +69,7 @@ export const LoginView: React.FC = () => {
         <AppSubtitle>{t('app.appSubtitle')}</AppSubtitle>
       </AppHeader>
       <AppMain>
-        <Login onSuccess={() => navigate('/dashboard')} />
+        <Login onSuccess={() => navigate('/')} />
       </AppMain>
     </AppContainer>
   );

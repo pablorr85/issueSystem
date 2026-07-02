@@ -92,3 +92,10 @@ export interface IssueComment {
   is_system_log: boolean;
   created_at: string;
 }
+
+export interface IssueStats {
+  unassigned_count: number;
+  in_progress_count: number;
+  blocked_count: number;
+}
+

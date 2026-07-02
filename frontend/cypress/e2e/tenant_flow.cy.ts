@@ -16,7 +16,7 @@ describe('Tenant Flow E2E Test', () => {
     cy.visit('/');
 
     // Verify initial state is Spanish default
-    cy.contains('h1', 'SaaS de Gestión de Incidencias').should('be.visible');
+    cy.contains('h1', 'Solvo').should('be.visible');
     
     // Type UUID and submit
     cy.get('input').type('f818979b-2ea0-43cb-8dd1-7c1729ee1fea');

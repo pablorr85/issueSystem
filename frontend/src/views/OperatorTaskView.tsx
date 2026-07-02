@@ -293,7 +293,7 @@ export const OperatorTaskView: React.FC = () => {
                   startIcon={<PlayArrowIcon />}
                   data-testid="task-accept-btn"
                 >
-                  {t('dashboard.markInProgress', 'Mark as In Progress')}
+                  {t('dashboard.markInProgress', 'Start Work')}
                 </AcceptButton>
               )}
               {task.status !== 'resolved' && task.status !== 'wont_fix' && (

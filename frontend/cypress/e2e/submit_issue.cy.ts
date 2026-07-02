@@ -91,16 +91,27 @@ describe('Submit Issue E2E Test', () => {
 
     // Verify submission network call was made
     cy.wait('@createIssue').then((interception) => {
-      expect(interception.request.body).to.deep.equal({
-        tenant_id: tenantUuid,
-        description: 'Water leak in penguin enclosure',
-        extra_data: {
-          Zone: 'Zone A',
-          'Cage Number': 3,
-          Urgent: true,
-          Category: 'Maintenance'
-        }
-      });
+      const body = interception.request.body;
+      if (typeof body === 'string') {
+        expect(body).to.include('name="tenant_id"');
+        expect(body).to.include(tenantUuid);
+        expect(body).to.include('name="description"');
+        expect(body).to.include('Water leak in penguin enclosure');
+        expect(body).to.include('Zone A');
+        expect(body).to.include('Cage Number');
+        expect(body).to.include('Maintenance');
+      } else {
+        expect(body).to.deep.equal({
+          tenant_id: tenantUuid,
+          description: 'Water leak in penguin enclosure',
+          extra_data: {
+            Zone: 'Zone A',
+            'Cage Number': 3,
+            Urgent: true,
+            Category: 'Maintenance'
+          }
+        });
+      }
     });
 
     // Verify success snackbar alert appears

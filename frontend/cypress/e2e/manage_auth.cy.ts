@@ -74,16 +74,15 @@ describe('Authentication & Access Control E2E Test', () => {
       }
     }).as('loginRequest');
 
-    // Intercept issues list request
-    cy.intercept('GET', '**/api/issues/?tenant_id=*', {
+    // Intercept issues stats request
+    cy.intercept('GET', '**/api/issues/stats/', {
       statusCode: 200,
       body: {
-        count: 0,
-        next: null,
-        previous: null,
-        results: []
+        unassigned_count: 5,
+        in_progress_count: 3,
+        blocked_count: 1
       }
-    }).as('getIssues');
+    }).as('getIssuesStats');
 
     // 1. Visit report page, verify warning is visible initially
     cy.visit(`/${tenantUuid}/report`);
@@ -101,7 +100,7 @@ describe('Authentication & Access Control E2E Test', () => {
 
     // Wait for auth request
     cy.wait('@loginRequest');
-    cy.wait('@getIssues');
+    cy.wait('@getIssuesStats');
 
     // Verify redirected to dashboard, and shows title
     cy.contains('h2', 'Tenant Manager Dashboard').should('be.visible');
