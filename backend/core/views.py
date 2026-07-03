@@ -130,7 +130,7 @@ class IssueListView(generics.ListAPIView):
     def get_queryset(self):
         # Enforce multi-tenant data isolation at database level
         user = self.request.user
-        queryset = Issue.objects.filter(tenant=user.tenant).order_by('order_index', '-created_at')
+        queryset = Issue.objects.filter(tenant=user.tenant).select_related('tenant', 'assigned_to').order_by('order_index', '-created_at')
         
         board_param = self.request.query_params.get('board')
         if board_param == 'true':
@@ -208,7 +208,7 @@ class OperatorListView(generics.ListAPIView):
         if not user.tenant:
             return User.objects.none()
         # Find users with tenant matching user's tenant and having operator_profile
-        return User.objects.filter(tenant=user.tenant, operator_profile__isnull=False)
+        return User.objects.filter(tenant=user.tenant, operator_profile__isnull=False).select_related('operator_profile')
 
 
 class IssueAssignmentView(generics.UpdateAPIView):
@@ -276,7 +276,7 @@ class OperatorHubView(generics.ListAPIView):
         return Issue.objects.filter(
             assigned_to=profile.user,
             status__in=['pending', 'in_progress']
-        ).order_by('-created_at')
+        ).select_related('tenant', 'assigned_to', 'assigned_to__operator_profile').order_by('-created_at')
 
 
 class IssueUpdateView(generics.RetrieveUpdateAPIView):
@@ -346,7 +346,7 @@ class IssueCommentsView(generics.ListCreateAPIView):
         if request.user and request.user.is_authenticated:
             if request.user.tenant != issue.tenant:
                 raise PermissionDenied("You do not have permission to access comments for this issue.")
-            return issue.comments.all().order_by('created_at')
+            return issue.comments.all().select_related('author_user', 'author_operator', 'author_operator__user').order_by('created_at')
 
         # 2. Token-based authentication for operators
         if token_str:
@@ -354,7 +354,7 @@ class IssueCommentsView(generics.ListCreateAPIView):
             try:
                 task_token = uuid.UUID(token_str)
                 if issue.secure_token == task_token:
-                    return issue.comments.all().order_by('created_at')
+                    return issue.comments.all().select_related('author_user', 'author_operator', 'author_operator__user').order_by('created_at')
             except ValueError:
                 pass
 
@@ -363,7 +363,7 @@ class IssueCommentsView(generics.ListCreateAPIView):
                 hub_token = uuid.UUID(token_str)
                 profile = OperatorProfile.objects.get(hub_token=hub_token)
                 if issue.assigned_to == profile.user:
-                    return issue.comments.all().order_by('created_at')
+                    return issue.comments.all().select_related('author_user', 'author_operator', 'author_operator__user').order_by('created_at')
             except (OperatorProfile.DoesNotExist, ValueError):
                 pass
 

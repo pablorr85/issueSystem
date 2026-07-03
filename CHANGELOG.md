@@ -4,6 +4,15 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
+## [Sprint 22] - Code Quality, Performance Optimization & Restructuring
+### Added
+- Created `resolved_at` DateTimeField on `Issue` model to persistently store issue resolution time, backed by schema migration `0009` and data migration `0010` to backfill historical resolved issues from audit logs.
+- Automatic transition rules for `resolved_at` via `pre_save` signal.
+- Enhanced type-safety validation for custom dynamic JSONB fields (`extra_data`) in `IssueSerializer.validate()`, covering boolean coercion, numeric validation, and select option checks.
+- Refactored frontend Views folder structure for `BoardView` and `BacklogView` to separate styling definitions into dedicated `.styles.ts` files, aligning with the `ARCHITECTURE.md` conventions.
+- Added assigned status filter support (`assignedFilter` and `onAssignedFilterChange`) to the main DashboardView interface to maintain TS build completeness.
+- Optimized Django querysets in list endpoints (`IssueListView`, `OperatorHubView`, `OperatorListView`, and `IssueCommentsView`) using `select_related` to eliminate N+1 database queries.
+
 ## [Sprint 21] - Dashboard Interactive Drill-down & URL Query Filters
 ### Added
 - Transformed static Dashboard KPI cards (Unassigned, In Progress, Blocked) into interactive, accessible links with pointer hover states.

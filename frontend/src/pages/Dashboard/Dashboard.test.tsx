@@ -133,7 +133,7 @@ describe('Dashboard Page Component', () => {
 
     // Wait for initial load call
     await waitFor(() => {
-      expect(getIssues).toHaveBeenCalledWith(mockTenant.id, undefined, 1);
+      expect(getIssues).toHaveBeenCalledWith(mockTenant.id, undefined, 1, undefined, undefined);
     });
 
     // Query status select filter
@@ -144,7 +144,7 @@ describe('Dashboard Page Component', () => {
 
     await waitFor(() => {
       // Should reset page to 1 and query with resolved filter
-      expect(getIssues).toHaveBeenLastCalledWith(mockTenant.id, 'resolved', 1);
+      expect(getIssues).toHaveBeenLastCalledWith(mockTenant.id, 'resolved', 1, undefined, undefined);
     });
   });
 

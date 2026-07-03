@@ -31,6 +31,7 @@ export const DashboardView: React.FC = () => {
   const [issuesLoading, setIssuesLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [assignedFilter, setAssignedFilter] = useState<string>('');
   const [editingIssue, setEditingIssue] = useState<Issue | null>(null);
 
   if (tenantId !== prevTenantId) {
@@ -107,12 +108,12 @@ export const DashboardView: React.FC = () => {
       .catch((err) => console.error("Failed to fetch operators:", err));
   }, [config]);
 
-  // Fetch issues whenever tenant config, page, or status filter changes
+  // Fetch issues whenever tenant config, page, status filter, or assigned filter changes
   useEffect(() => {
     if (!config) return;
     let active = true;
 
-    getIssues(config.id, statusFilter || undefined, currentPage)
+    getIssues(config.id, statusFilter || undefined, currentPage, undefined, assignedFilter || undefined)
       .then((res) => {
         if (!active) return;
         setIssues(res.results || []);
@@ -130,7 +131,7 @@ export const DashboardView: React.FC = () => {
     return () => {
       active = false;
     };
-  }, [config, currentPage, statusFilter]);
+  }, [config, currentPage, statusFilter, assignedFilter]);
 
   const handlePageChange = (page: React.SetStateAction<number>) => {
     setCurrentPage(page);
@@ -139,6 +140,12 @@ export const DashboardView: React.FC = () => {
 
   const handleStatusFilterChange = (status: string) => {
     setStatusFilter(status);
+    setCurrentPage(1);
+    setIssuesLoading(true);
+  };
+
+  const handleAssignedFilterChange = (assigned: string) => {
+    setAssignedFilter(assigned);
     setCurrentPage(1);
     setIssuesLoading(true);
   };
@@ -181,6 +188,8 @@ export const DashboardView: React.FC = () => {
             setCurrentPage={handlePageChange}
             statusFilter={statusFilter}
             setStatusFilter={handleStatusFilterChange}
+            assignedFilter={assignedFilter}
+            onAssignedFilterChange={handleAssignedFilterChange}
             onEditIssue={setEditingIssue}
           />
         )}

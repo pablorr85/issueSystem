@@ -22,16 +22,7 @@ class TenantConfigSerializer(serializers.ModelSerializer):
 
 
 def get_issue_resolved_at(obj):
-    if obj.status not in ('resolved', 'wont_fix'):
-        return None
-    target_suffix = "to resolved" if obj.status == 'resolved' else "to wont fix"
-    comment = obj.comments.filter(
-        is_system_log=True,
-        comment_text__iendswith=target_suffix
-    ).order_by('-created_at').first()
-    if comment:
-        return comment.created_at
-    return obj.updated_at
+    return obj.resolved_at
 
 
 class IssueSerializer(serializers.ModelSerializer):
@@ -106,12 +97,58 @@ class IssueSerializer(serializers.ModelSerializer):
         # Fetch custom fields defined for the Tenant
         custom_fields = tenant.custom_fields.all()
         
-        # Verify required fields are present in extra_data
+        # Verify required fields are present in extra_data and validate types/options
         for field in custom_fields:
             if field.required and field.name not in extra_data:
                 raise serializers.ValidationError({
                     "extra_data": f"The dynamic field '{field.name}' is required."
                 })
+            
+            if field.name in extra_data:
+                val = extra_data[field.name]
+                
+                # Check for empty value if required
+                if val == '' or val is None:
+                    if field.required:
+                        raise serializers.ValidationError({
+                            "extra_data": f"The dynamic field '{field.name}' is required."
+                        })
+                    else:
+                        continue  # Empty value allowed for optional fields
+                
+                if field.field_type == 'boolean':
+                    if not isinstance(val, bool):
+                        if str(val).lower() in ('true', '1', 'yes'):
+                            extra_data[field.name] = True
+                        elif str(val).lower() in ('false', '0', 'no'):
+                            extra_data[field.name] = False
+                        else:
+                            raise serializers.ValidationError({
+                                "extra_data": f"The dynamic field '{field.name}' must be a boolean."
+                            })
+                elif field.field_type == 'number':
+                    try:
+                        num_val = float(val)
+                        if num_val.is_integer():
+                            extra_data[field.name] = int(num_val)
+                        else:
+                            extra_data[field.name] = num_val
+                    except (ValueError, TypeError):
+                        raise serializers.ValidationError({
+                            "extra_data": f"The dynamic field '{field.name}' must be a number."
+                        })
+                elif field.field_type == 'select':
+                    valid_values = []
+                    for opt in field.options:
+                        if isinstance(opt, dict):
+                            valid_values.append(opt.get('value'))
+                        else:
+                            valid_values.append(opt)
+                    
+                    if val not in valid_values:
+                        raise serializers.ValidationError({
+                            "extra_data": f"The value '{val}' is not a valid option for select field '{field.name}'."
+                        })
         
         attrs['tenant'] = tenant
         return attrs

@@ -146,6 +146,11 @@ class Issue(models.Model):
         blank=True,
         help_text="Secure passwordless lookup token for operators."
     )
+    resolved_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp when the issue was resolved or marked wont_fix."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

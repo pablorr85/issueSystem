@@ -720,6 +720,151 @@ class IssueBulkAssignmentTests(APITestCase):
         self.assertIn("Resolved tasks cannot be reassigned", str(response.data))
 
 
+from core.models import CustomField
+
+class DynamicFieldSchemaValidationTests(APITestCase):
+    def setUp(self):
+        self.tenant = Tenant.objects.create(
+            name="Field Test Tenant",
+            logo_url="http://example.com/logo.png",
+            visual_config={"primaryColor": "#ff0000"}
+        )
+        self.admin_user = User.objects.create_user(
+            username="val_admin",
+            password="valpassword",
+            tenant=self.tenant
+        )
+        
+        # Setup custom fields: boolean, number, select (both array of strings and objects)
+        self.bool_field = CustomField.objects.create(
+            tenant=self.tenant,
+            name="required_bool",
+            field_type="boolean",
+            required=True
+        )
+        self.num_field = CustomField.objects.create(
+            tenant=self.tenant,
+            name="optional_num",
+            field_type="number",
+            required=False
+        )
+        self.select_str_field = CustomField.objects.create(
+            tenant=self.tenant,
+            name="select_str",
+            field_type="select",
+            required=True,
+            options=["Option A", "Option B"]
+        )
+        self.select_dict_field = CustomField.objects.create(
+            tenant=self.tenant,
+            name="select_dict",
+            field_type="select",
+            required=False,
+            options=[
+                {"value": "val1", "label": "Label 1"},
+                {"value": "val2", "label": "Label 2"}
+            ]
+        )
+
+    def test_create_issue_validation_success(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse('issue-create')
+        data = {
+            'tenant_id': str(self.tenant.id),
+            'description': 'Valid custom fields test',
+            'extra_data': {
+                'required_bool': True,
+                'optional_num': 42.5,
+                'select_str': 'Option A',
+                'select_dict': 'val2'
+            }
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['extra_data']['required_bool'], True)
+        self.assertEqual(response.data['extra_data']['optional_num'], 42.5)
+        self.assertEqual(response.data['extra_data']['select_str'], 'Option A')
+        self.assertEqual(response.data['extra_data']['select_dict'], 'val2')
+
+    def test_create_issue_validation_coercion(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse('issue-create')
+        data = {
+            'tenant_id': str(self.tenant.id),
+            'description': 'Coercion custom fields test',
+            'extra_data': {
+                'required_bool': 'true',  # should coerce to True
+                'optional_num': '100',   # should coerce to 100
+                'select_str': 'Option B'
+            }
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['extra_data']['required_bool'], True)
+        self.assertEqual(response.data['extra_data']['optional_num'], 100)
+
+    def test_create_issue_validation_missing_required(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse('issue-create')
+        data = {
+            'tenant_id': str(self.tenant.id),
+            'description': 'Missing required bool test',
+            'extra_data': {
+                'select_str': 'Option A'
+            }
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("required_bool", str(response.data))
+
+    def test_create_issue_validation_invalid_boolean(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse('issue-create')
+        data = {
+            'tenant_id': str(self.tenant.id),
+            'description': 'Invalid boolean test',
+            'extra_data': {
+                'required_bool': 'maybe',
+                'select_str': 'Option A'
+            }
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("must be a boolean", str(response.data))
+
+    def test_create_issue_validation_invalid_number(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse('issue-create')
+        data = {
+            'tenant_id': str(self.tenant.id),
+            'description': 'Invalid number test',
+            'extra_data': {
+                'required_bool': True,
+                'optional_num': 'not-a-number',
+                'select_str': 'Option A'
+            }
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("must be a number", str(response.data))
+
+    def test_create_issue_validation_invalid_select_option(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse('issue-create')
+        data = {
+            'tenant_id': str(self.tenant.id),
+            'description': 'Invalid select test',
+            'extra_data': {
+                'required_bool': True,
+                'select_str': 'Invalid Option',
+            }
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("is not a valid option", str(response.data))
+
+
+
 
 
 

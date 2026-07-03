@@ -3,6 +3,7 @@ import threading
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.conf import settings
+from django.utils import timezone
 from .models import Issue, IssueComment
 from .services.whatsapp import send_whatsapp_message
 
@@ -11,6 +12,7 @@ def issue_pre_save(sender, instance, **kwargs):
     """
     Store the previous assigned_to and status state on the instance before saving to DB
     so we can compare changes in the post_save signal.
+    Also automatically update resolved_at if status transitions to/from resolved/wont_fix.
     """
     if instance.pk:
         try:
@@ -23,6 +25,12 @@ def issue_pre_save(sender, instance, **kwargs):
     else:
         instance._old_assigned_to = None
         instance._old_status = None
+
+    if instance.status in ('resolved', 'wont_fix'):
+        if instance._old_status not in ('resolved', 'wont_fix'):
+            instance.resolved_at = timezone.now()
+    else:
+        instance.resolved_at = None
 
 @receiver(post_save, sender=Issue)
 def issue_post_save(sender, instance, created, **kwargs):

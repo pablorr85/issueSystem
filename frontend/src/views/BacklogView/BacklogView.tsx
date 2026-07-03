@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
-import styled from 'styled-components';
-import { Dashboard } from '../pages/Dashboard';
-import { useAuth } from '../context/AuthContext';
-import { getTenantConfig, getIssues, getOperators } from '../services/api';
-import type { TenantConfig, Issue, Operator } from '../services/types';
-import { EditIssueModal } from '../components/EditIssueModal/EditIssueModal';
+import { Dashboard } from '../../pages/Dashboard';
+import { useAuth } from '../../context/AuthContext';
+import { getTenantConfig, getIssues, getOperators } from '../../services/api';
+import type { TenantConfig, Issue, Operator } from '../../services/types';
+import { EditIssueModal } from '../../components/EditIssueModal/EditIssueModal';
 import {
   AppContainer,
   CenteredLoadingContainer,
@@ -19,41 +18,8 @@ import {
   AppSubtitle,
   AuthStatusContainer,
   LogoutButton
-} from '../App.styles';
-
-const NavContainer = styled.nav`
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.02);
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-`;
-
-interface NavLinkProps {
-  $active?: boolean;
-}
-
-const NavLinkButton = styled(Link)<NavLinkProps>`
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 600;
-  padding: 10px 18px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  background: ${({ $active }) => ($active ? 'var(--primary)' : 'transparent')};
-  color: ${({ $active }) => ($active ? '#ffffff' : 'var(--text-secondary, #c5c2d9)')} !important;
-  border: 1px solid ${({ $active }) => ($active ? 'var(--primary)' : 'rgba(255, 255, 255, 0.05)')};
-
-  &:hover {
-    background: ${({ $active }) => ($active ? 'var(--primary-hover)' : 'rgba(255, 255, 255, 0.06)')};
-    color: #ffffff !important;
-  }
-`;
+} from '../../App.styles';
+import { NavContainer, NavLinkButton } from './BacklogView.styles';
 
 export const BacklogView: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -180,9 +146,10 @@ export const BacklogView: React.FC = () => {
     };
   }, [config, currentPage, statusFilter, assignedFilter]);
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = (page: React.SetStateAction<number>) => {
+    const newPage = typeof page === 'function' ? (page as (prev: number) => number)(currentPage) : page;
     const newParams = new URLSearchParams(searchParams);
-    newParams.set('page', String(page));
+    newParams.set('page', String(newPage));
     setSearchParams(newParams);
   };
 
@@ -288,3 +255,4 @@ export const BacklogView: React.FC = () => {
     </AppContainer>
   );
 };
+export default BacklogView;
