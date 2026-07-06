@@ -12,6 +12,7 @@ All notable changes to the **Solvo** project are documented in this file.
 - Implemented **Access Denied Mobile View**: Added a dedicated, user-friendly access denied screen displaying a message for invalid, expired, or reassigned magic links, supported by a global Axios interceptor.
 - Implemented **Tenant Staff Access Bypass**: Allowed authenticated staff/managers of the corresponding tenant to access task views directly (via ID, UUID, or signed tokens), with strict tenant-level isolation checking.
 - Implemented **Kanban Card Click Navigation**: Added a propagation-stopped launch link button (`ID #123 <LaunchIcon />`) inside BoardView Kanban cards to navigate to `/work/task/:id`, supported by a PointerSensor distance constraint (`8px`) on `DndContext` to completely prevent drag-and-drop sensor conflicts.
+- Implemented **Layout Shift Improvements**: Standardized wide container alignment to the top (`justify-content: flex-start`) and aligned header titles to `{t('app.appTitle')}` ("Solvo") to ensure smooth transitions across Dashboard Stats, Backlog, and Kanban Board without layout jumps.
 
 ## [Sprint 25] - Dashboard Analytics Expansion
 ### Added

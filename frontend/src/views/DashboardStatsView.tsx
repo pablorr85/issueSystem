@@ -384,7 +384,7 @@ export const DashboardStatsView: React.FC = () => {
   return (
     <AppContainer $wide>
       <AppHeader>
-        <AppTitle as="h2" data-testid="dashboard-header">{t('dashboard.title')}</AppTitle>
+        <AppTitle data-testid="dashboard-header">{t('app.appTitle')}</AppTitle>
         <AppSubtitle>{t('app.appSubtitle')}</AppSubtitle>
       </AppHeader>
 

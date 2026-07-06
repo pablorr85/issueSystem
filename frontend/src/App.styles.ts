@@ -7,7 +7,7 @@ export const AppContainer = styled.div<{ $wide?: boolean }>`
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: ${({ $wide }) => ($wide ? "flex-start" : "center")};
 `;
 
 export const AppHeader = styled.header`
