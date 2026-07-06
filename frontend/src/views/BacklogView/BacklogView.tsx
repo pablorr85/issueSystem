@@ -40,6 +40,28 @@ export const BacklogView: React.FC = () => {
   const [issuesLoading, setIssuesLoading] = useState<boolean>(true);
   const [editingIssue, setEditingIssue] = useState<Issue | null>(null);
 
+  const [prevConfigId, setPrevConfigId] = useState<string | null>(null);
+  const [prevStatusFilter, setPrevStatusFilter] = useState<string>("");
+  const [prevCurrentPage, setPrevCurrentPage] = useState<number>(1);
+  const [prevAssignedFilter, setPrevAssignedFilter] = useState<string>("");
+
+  const configId = config?.id || null;
+
+  if (
+    configId !== prevConfigId ||
+    statusFilter !== prevStatusFilter ||
+    currentPage !== prevCurrentPage ||
+    assignedFilter !== prevAssignedFilter
+  ) {
+    setPrevConfigId(configId);
+    setPrevStatusFilter(statusFilter);
+    setPrevCurrentPage(currentPage);
+    setPrevAssignedFilter(assignedFilter);
+    if (configId) {
+      setIssuesLoading(true);
+    }
+  }
+
   if (tenantId !== prevTenantId) {
     setPrevTenantId(tenantId);
     setConfig(null);
@@ -114,11 +136,9 @@ export const BacklogView: React.FC = () => {
       .catch((err) => console.error("Failed to fetch operators:", err));
   }, [config]);
 
-  // Fetch issues whenever tenant config, page, or filters change
   useEffect(() => {
     if (!config) return;
     let active = true;
-    setIssuesLoading(true);
 
     getIssues(
       config.id,

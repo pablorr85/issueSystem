@@ -60,25 +60,35 @@ export const IssueComments: React.FC<IssueCommentsProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [text, setText] = useState<string>("");
 
+  const [prevIssueId, setPrevIssueId] = useState<number | string>(issueId);
+  const [prevToken, setPrevToken] = useState<string>(token);
+
+  if (issueId !== prevIssueId || token !== prevToken) {
+    setPrevIssueId(issueId);
+    setPrevToken(token);
+    setLoading(true);
+  }
+
   const listRef = useRef<HTMLDivElement>(null);
 
-  const fetchComments = () => {
-    setLoading(true);
+  useEffect(() => {
+    let active = true;
     getIssueComments(issueId, token)
       .then((res) => {
+        if (!active) return;
         setComments(res);
         setLoading(false);
       })
       .catch((err) => {
+        if (!active) return;
         console.error(err);
         setError(t("comments.errorLoad"));
         setLoading(false);
       });
-  };
-
-  useEffect(() => {
-    fetchComments();
-  }, [issueId, token]);
+    return () => {
+      active = false;
+    };
+  }, [issueId, token, t]);
 
   // Auto-scroll to bottom on comments change
   useEffect(() => {

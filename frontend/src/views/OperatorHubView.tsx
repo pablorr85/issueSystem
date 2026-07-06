@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { CircularProgress, Alert, Button } from "@mui/material";
+import { CircularProgress, Alert } from "@mui/material";
 import BuildCircleIcon from "@mui/icons-material/BuildCircle";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { getOperatorHub } from "../services/api";

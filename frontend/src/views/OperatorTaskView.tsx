@@ -33,7 +33,6 @@ import {
   ResolveButton,
   WontFixButton,
   DateRow,
-  HomeButton,
   BackToHubButton,
   UrgencyPill,
   NoPhotoPlaceholder,
