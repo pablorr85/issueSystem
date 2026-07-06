@@ -4,7 +4,7 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
-## [Sprint 23] - Dashboard Analytics Expansion
+## [Sprint 25] - Dashboard Analytics Expansion
 ### Added
 - Expanded the backend dashboard statistics endpoint (`IssueStatsView`) using efficient Django ORM aggregation (Count and Q) to fetch active operator workloads, 30-day resolution performance counts, and ranked zone hotspots.
 - Implemented **Operator Active Workload Widget**: Added progress-bar styling color-coded by capacity load to easily identify operator availability at a glance.
@@ -13,7 +13,7 @@ All notable changes to the **Solvo** project are documented in this file.
 - Styled widgets using tenant-brand primary HSL values and implemented loading states and empty state fallbacks.
 - Added comprehensive integration test suite `DashboardAnalyticsAPITests` verifying correct statistics calculations on the API.
 
-## [Sprint 22] - Code Quality, Performance Optimization & Restructuring
+## [Sprint 24] - Code Quality, Performance Optimization & Restructuring
 ### Added
 - Created `resolved_at` DateTimeField on `Issue` model to persistently store issue resolution time, backed by schema migration `0009` and data migration `0010` to backfill historical resolved issues from audit logs.
 - Automatic transition rules for `resolved_at` via `pre_save` signal.
@@ -22,7 +22,7 @@ All notable changes to the **Solvo** project are documented in this file.
 - Added assigned status filter support (`assignedFilter` and `onAssignedFilterChange`) to the main DashboardView interface to maintain TS build completeness.
 - Optimized Django querysets in list endpoints (`IssueListView`, `OperatorHubView`, `OperatorListView`, and `IssueCommentsView`) using `select_related` to eliminate N+1 database queries.
 
-## [Sprint 21] - Dashboard Interactive Drill-down & URL Query Filters
+## [Sprint 23] - Dashboard Interactive Drill-down & URL Query Filters
 ### Added
 - Transformed static Dashboard KPI cards (Unassigned, In Progress, Blocked) into interactive, accessible links with pointer hover states.
 - Handled query string navigation so that clicking a card navigates to `/backlog?assigned=false`, `/backlog?status=blocked`, or `/board`.
@@ -31,7 +31,7 @@ All notable changes to the **Solvo** project are documented in this file.
 - Added an "Assignment" ("Filtrar por Asignación") dropdown filter in the Backlog table view to let managers dynamically view assigned or unassigned issues.
 - Documented full E2E test coverage in `manage_issue.cy.ts` validating card click-throughs and auto-filtering.
 
-## [Sprint 19] - Command Center & Operations Kanban Board
+## [Sprint 22] - Command Center & Operations Kanban Board
 ### Added
 - Designed a dashboard statistics landing page (`/`) with real-time KPI metrics (Unassigned, In Progress, and Blocked task counters) and direct sub-navigation triggers.
 - Re-routed and isolated the master issues list to a dedicated Backlog page (`/backlog`).
@@ -40,7 +40,7 @@ All notable changes to the **Solvo** project are documented in this file.
 - Updated operator action button copy consistently across Spanish ("Iniciar Trabajo") and English ("Start Work") locales in the Operator Task view.
 - Validated all route access levels and status transitions through a fully optimized Cypress end-to-end testing suite.
 
-## [Sprint 18] - Task Assignment Batching & Notification Optimization
+## [Sprint 21] - Task Assignment Batching & Notification Optimization
 ### Added
 - Created a transaction-safe bulk assignment endpoint (`POST /api/tasks/bulk-assign/`) that updates assignee fields in batch.
 - Grouped modified tasks by assignee and implemented a consolidated WhatsApp notification system to avoid alert fatigue.
@@ -52,7 +52,7 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
-## [Sprint 17] - Corporate Identity & "Solvo" Marketing Site
+## [Sprint 20] - Corporate Identity & "Solvo" Marketing Site
 ### Added
 - Decoupled marketing landing page at the root domain (`www.solvo.app`).
 - Corporate brand identity "Solvo" applied across all platform interfaces.
@@ -63,7 +63,7 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
-## [Sprint 16.5] - Dynamic Resolution Timestamps & "Wont Fix" Status
+## [Sprint 19] - Dynamic Resolution Timestamps & "Wont Fix" Status
 ### Added
 - Added `'wont_fix'` status to `Issue` model and serializers.
 - Dynamic `resolved_at` calculated field on issues using historical audit logs with a fallback to `updated_at`.
@@ -73,7 +73,7 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
-## [Sprint 16] - Task Audit Log, Multi-Author Comments & Blocked Status
+## [Sprint 18] - Task Audit Log, Multi-Author Comments & Blocked Status
 ### Added
 - Added `BLOCKED` status to the `Issue` model and frontend status badges (amber/orange styling).
 - `IssueComment` model for chronological notes from managers, operators, or system events.
@@ -82,7 +82,7 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
-## [Sprint 15] - Interactive Row Reordering & Custom Priority Sorting
+## [Sprint 17] - Interactive Row Reordering & Custom Priority Sorting
 ### Added
 - Persistent `order_index` in the `Issue` database model.
 - Specialized `/api/issues/reorder/` transaction-safe bulk reorder endpoint.
@@ -91,7 +91,7 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
-## [Sprint 14] - Media Rendering & Image Management
+## [Sprint 16] - Media Rendering & Image Management
 ### Added
 - Public GCS absolute URL serialization in Django serializers.
 - Automated file cleanup on bucket storage via `django-cleanup` when issues are deleted or images replaced.
@@ -100,16 +100,7 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
-## [Sprint 13] - Cloud Storage Integration & Advanced Data Tables
-### Added
-- HEADLESS React table migration to `@tanstack/react-table`.
-- Multivariable filtering (by operator, status, and urgency) inside the admin dashboard.
-- Google Cloud Storage (GCS) integration via `django-storages[google]`.
-- Multipart Form-Data payload support to upload images directly to GCS.
-
----
-
-## [Sprint 13.5] - Operator Hub & Localized Dual-Link Notifications
+## [Sprint 15] - Operator Hub & Localized Dual-Link Notifications
 ### Added
 - Permanent passwordless UUID `hub_token` on `OperatorProfile`.
 - `/api/operator/hub/` endpoint to list pending tasks assigned to a specific operator token.
@@ -118,7 +109,16 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
-## [Sprint 12.5] - Image Uploads (Frontend) & UX Quick Wins
+## [Sprint 14] - Cloud Storage Integration & Advanced Data Tables
+### Added
+- HEADLESS React table migration to `@tanstack/react-table`.
+- Multivariable filtering (by operator, status, and urgency) inside the admin dashboard.
+- Google Cloud Storage (GCS) integration via `django-storages[google]`.
+- Multipart Form-Data payload support to upload images directly to GCS.
+
+---
+
+## [Sprint 13] - Image Uploads (Frontend) & UX Quick Wins
 ### Added
 - Native mobile camera prompt integration using `capture="environment"`.
 - Text-overflow handling for Status Badge cells in the admin interface.
