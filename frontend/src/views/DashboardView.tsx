@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Dashboard } from '../pages/Dashboard';
 import { useAuth } from '../context/AuthContext';
-import { getTenantConfig, getIssues, getOperators } from '../services/api';
+import { getTenantConfig, getIssues, getOperators, toggleOperatorActive } from '../services/api';
 import type { TenantConfig, Issue, Operator } from '../services/types';
 import { EditIssueModal } from '../components/EditIssueModal/EditIssueModal';
 import {
@@ -155,6 +155,20 @@ export const DashboardView: React.FC = () => {
     navigate('/login');
   };
 
+  const handleToggleOperatorActive = async (operatorId: number, currentStatus: boolean) => {
+    try {
+      const res = await toggleOperatorActive(operatorId, !currentStatus);
+      setOperators((prev) =>
+        prev.map((op) =>
+          op.id === operatorId ? { ...op, is_active: res.is_active } : op
+        )
+      );
+    } catch (err) {
+      console.error("Failed to toggle operator status:", err);
+      alert(t("dashboard.errorToggleOperator", "Failed to update operator status."));
+    }
+  };
+
   if (loading) {
     return (
       <CenteredLoadingContainer>
@@ -191,6 +205,7 @@ export const DashboardView: React.FC = () => {
             assignedFilter={assignedFilter}
             onAssignedFilterChange={handleAssignedFilterChange}
             onEditIssue={setEditingIssue}
+            onToggleOperatorActive={handleToggleOperatorActive}
           />
         )}
 

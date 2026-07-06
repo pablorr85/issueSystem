@@ -20,6 +20,21 @@ const api = axios.create({
   },
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (
+      error.response?.status === 403 &&
+      error.config &&
+      (error.config.url?.includes('/tasks/') || error.config.url?.includes('/operator/hub/'))
+    ) {
+      window.location.href = '/access-denied';
+      return new Promise(() => {});
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const getTenantConfig = async (
   tenantId: string,
 ): Promise<TenantConfig> => {
@@ -218,6 +233,17 @@ export const bulkAssignIssues = async (
       task_ids: taskIds,
       assignee_id: assigneeId,
     }
+  );
+  return response.data;
+};
+
+export const toggleOperatorActive = async (
+  id: number,
+  isActive: boolean
+): Promise<{ id: number; username: string; is_active: boolean }> => {
+  const response = await api.post<{ id: number; username: string; is_active: boolean }>(
+    `/operators/${id}/toggle-active/`,
+    { is_active: isActive }
   );
   return response.data;
 };

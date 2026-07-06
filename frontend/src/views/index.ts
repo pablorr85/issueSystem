@@ -7,5 +7,6 @@ export * from './BoardView';
 export * from './DashboardStatsView';
 export * from './OperatorTaskView';
 export * from './OperatorHubView';
+export * from './AccessDeniedView';
 
 

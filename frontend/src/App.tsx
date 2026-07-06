@@ -9,7 +9,8 @@ import {
   BacklogView,
   BoardView,
   OperatorTaskView,
-  OperatorHubView
+  OperatorHubView,
+  AccessDeniedView
 } from './views';
 
 function AppContent() {
@@ -58,6 +59,7 @@ function AppContent() {
       <Route path="/work/task/:secure_token" element={<OperatorTaskView />} />
       <Route path="/work/task/:id" element={<OperatorTaskView />} />
       <Route path="/work/hub" element={<OperatorHubView />} />
+      <Route path="/access-denied" element={<AccessDeniedView />} />
     </Routes>
   );
 }

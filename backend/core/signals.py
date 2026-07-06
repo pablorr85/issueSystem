@@ -55,8 +55,10 @@ def issue_post_save(sender, instance, created, **kwargs):
 
         if phone_number:
             frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+            from django.core import signing
+            signed_token = signing.dumps({"task_id": instance.id, "operator_id": operator.id})
             # Dual-Link Construction: Specific task link + general workload hub link
-            task_link = f"{frontend_url}/work/task/{instance.id}?token={instance.secure_token}"
+            task_link = f"{frontend_url}/work/task/{instance.id}?token={signed_token}"
             hub_link = f"{frontend_url}/work/hub?token={hub_token}"
 
             message_body = (

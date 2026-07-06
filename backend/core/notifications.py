@@ -1,5 +1,6 @@
 import logging
 from django.conf import settings
+from django.core import signing
 from twilio.rest import Client
 
 logger = logging.getLogger(__name__)
@@ -27,7 +28,8 @@ def send_whatsapp_task_notification(issue):
 
     # Construct magic link pointing to mobile operator task view
     frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
-    magic_link = f"{frontend_url}/work/task/{issue.secure_token}"
+    signed_token = signing.dumps({"task_id": issue.id, "operator_id": operator.id})
+    magic_link = f"{frontend_url}/work/task/{signed_token}"
 
     message_body = (
         f"Hi {operator.username},\n\n"

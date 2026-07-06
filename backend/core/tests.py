@@ -290,7 +290,16 @@ class MediaUploadAndNotificationTests(APITestCase):
         sent_message = WHATSAPP_MOCK_REGISTRY[0]
         self.assertEqual(sent_message['to'], '+123456789')
         self.assertIn('Se te ha asignado una nueva tarea', sent_message['body'])
-        self.assertIn(f"task/{self.issue.id}?token={self.issue.secure_token}", sent_message['body'])
+        
+        import re
+        from django.core import signing
+        match = re.search(r"token=([a-zA-Z0-9_\-\.:]+)", sent_message['body'])
+        self.assertTrue(match)
+        token = match.group(1)
+        payload = signing.loads(token)
+        self.assertEqual(payload['task_id'], self.issue.id)
+        self.assertEqual(payload['operator_id'], self.operator_user.id)
+        
         hub_token = self.operator_profile.hub_token
         self.assertIn(f"hub?token={hub_token}", sent_message['body'])
         self.assertEqual(sent_message['status'], 'sent_mock')
@@ -951,9 +960,152 @@ class DashboardAnalyticsAPITests(APITestCase):
         self.assertEqual(east_spot['count'], 1)
         self.assertEqual(south_spot['count'], 1)
 
+from django.core import signing
 
+class MagicLinkSecurityAndAccessControlTests(APITestCase):
+    def setUp(self):
+        self.tenant1 = Tenant.objects.create(name="Zoo Tenant")
+        self.tenant2 = Tenant.objects.create(name="Mall Tenant")
+        
+        self.admin = User.objects.create_user(username="admin_user", password="pwd", tenant=self.tenant1)
+        self.other_admin = User.objects.create_user(username="other_admin", password="pwd", tenant=self.tenant2)
+        
+        self.op_user1 = User.objects.create_user(username="op_one", tenant=self.tenant1)
+        self.op_profile1 = OperatorProfile.objects.create(user=self.op_user1, phone_number="12345")
+        
+        self.op_user2 = User.objects.create_user(username="op_two", tenant=self.tenant1)
+        self.op_profile2 = OperatorProfile.objects.create(user=self.op_user2, phone_number="67890")
 
+        self.op_other_tenant = User.objects.create_user(username="op_other", tenant=self.tenant2)
+        self.op_other_profile = OperatorProfile.objects.create(user=self.op_other_tenant, phone_number="999")
+        
+        self.issue = Issue.objects.create(
+            tenant=self.tenant1,
+            description="Fix the main gate",
+            status="pending",
+            assigned_to=self.op_user1
+        )
 
+    def test_toggle_operator_active_success(self):
+        self.client.force_authenticate(user=self.admin)
+        url = reverse('operator-toggle-active', kwargs={'pk': self.op_user1.id})
+        
+        # Toggle to inactive
+        response = self.client.post(url, {"is_active": False})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.op_user1.refresh_from_db()
+        self.assertFalse(self.op_user1.is_active)
+        
+        # Toggle back to active
+        response = self.client.post(url, {"is_active": True})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.op_user1.refresh_from_db()
+        self.assertTrue(self.op_user1.is_active)
 
+    def test_toggle_operator_active_tenant_isolation(self):
+        # Admin from tenant2 trying to toggle operator of tenant1
+        self.client.force_authenticate(user=self.other_admin)
+        url = reverse('operator-toggle-active', kwargs={'pk': self.op_user1.id})
+        response = self.client.post(url, {"is_active": False})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_inactive_operator_magic_link_access_denied(self):
+        # Generate valid token for op_user1
+        token = signing.dumps({"task_id": self.issue.id, "operator_id": self.op_user1.id})
+        url = reverse('operator-task-detail', kwargs={'secure_token': token})
+        
+        # Check active works
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Deactivate op_user1
+        self.op_user1.is_active = False
+        self.op_user1.save()
+        
+        # Access should be forbidden (403)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_inactive_operator_hub_access_denied(self):
+        hub_url = reverse('operator-hub')
+        
+        # Active works
+        response = self.client.get(hub_url, {'token': str(self.op_profile1.hub_token)})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Deactivate
+        self.op_user1.is_active = False
+        self.op_user1.save()
+        
+        # Forbidden (403)
+        response = self.client.get(hub_url, {'token': str(self.op_profile1.hub_token)})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_reassigned_task_invalidates_previous_operator_token(self):
+        # Generate token for op_user1
+        token = signing.dumps({"task_id": self.issue.id, "operator_id": self.op_user1.id})
+        url = reverse('operator-task-detail', kwargs={'secure_token': token})
+        
+        # Check access works
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Reassign to op_user2
+        self.issue.assigned_to = self.op_user2
+        self.issue.save()
+        
+        # Now op_user1's token is reassigned and access is forbidden
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_staff_member_access_with_numeric_id(self):
+        # Authenticate as self.admin (tenant1)
+        self.client.force_authenticate(user=self.admin)
+        url = reverse('operator-task-detail', kwargs={'secure_token': str(self.issue.id)})
+        
+        # Admin should be allowed to view task
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], self.issue.id)
+
+    def test_staff_member_access_with_signed_token(self):
+        # Generate token for op_user1
+        token = signing.dumps({"task_id": self.issue.id, "operator_id": self.op_user1.id})
+        url = reverse('operator-task-detail', kwargs={'secure_token': token})
+        
+        # Deactivate op_user1
+        self.op_user1.is_active = False
+        self.op_user1.save()
+        
+        # Reassign to op_user2
+        self.issue.assigned_to = self.op_user2
+        self.issue.save()
+        
+        # op_user1 should get 403
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+        # Authenticate as self.admin (same tenant)
+        self.client.force_authenticate(user=self.admin)
+        # Admin should be allowed to view task even if op_user1 is inactive and task is reassigned
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], self.issue.id)
+
+    def test_staff_member_cross_tenant_access_denied(self):
+        # Generate token for op_user1
+        token = signing.dumps({"task_id": self.issue.id, "operator_id": self.op_user1.id})
+        url = reverse('operator-task-detail', kwargs={'secure_token': token})
+        
+        # Authenticate as other_admin (tenant2)
+        self.client.force_authenticate(user=self.other_admin)
+        
+        # Should be forbidden for staff of a different tenant
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+        # Also numeric ID access should fail cross-tenant
+        id_url = reverse('operator-task-detail', kwargs={'secure_token': str(self.issue.id)})
+        response = self.client.get(id_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 

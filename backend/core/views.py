@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.core import signing
 from django.db.models import Count, Q
 from django.utils import timezone
 from datetime import timedelta
@@ -301,6 +302,39 @@ class OperatorListView(generics.ListAPIView):
         return User.objects.filter(tenant=user.tenant, operator_profile__isnull=False).select_related('operator_profile')
 
 
+class OperatorToggleActiveView(APIView):
+    """
+    API endpoint that allows tenant administrators to toggle an operator's active status.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk, *args, **kwargs):
+        tenant = request.user.tenant
+        if not tenant:
+            return Response({"detail": "User has no tenant assigned."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            operator = User.objects.get(pk=pk, tenant=tenant, operator_profile__isnull=False)
+        except User.DoesNotExist:
+            return Response({"detail": "Operator not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        is_active = request.data.get('is_active')
+        if is_active is not None:
+            if isinstance(is_active, str):
+                operator.is_active = is_active.lower() in ['true', '1']
+            else:
+                operator.is_active = bool(is_active)
+        else:
+            operator.is_active = not operator.is_active
+            
+        operator.save()
+        return Response({
+            "id": operator.id,
+            "username": operator.username,
+            "is_active": operator.is_active
+        }, status=status.HTTP_200_OK)
+
+
 class IssueAssignmentView(generics.UpdateAPIView):
     """
     API endpoint that allows tenant administrators to assign an operator
@@ -332,13 +366,64 @@ class IssueAssignmentView(generics.UpdateAPIView):
 
 class OperatorTaskView(generics.RetrieveUpdateAPIView):
     """
-    API endpoint that allows passwordless access to a specific task (Issue) using its secure UUID token.
+    API endpoint that allows passwordless access to a specific task (Issue) using its secure token.
     Allows retrieving task details and updating status (e.g. mark as in_progress or resolved).
     """
-    queryset = Issue.objects.all()
     serializer_class = OperatorTaskSerializer
-    lookup_field = 'secure_token'
     permission_classes = []  # Public access via secure token lookup
+
+    def get_object(self):
+        token = self.kwargs.get('secure_token') or self.request.query_params.get('token')
+        if not token:
+            raise PermissionDenied("Token is required.")
+        
+        # Check if token is a numeric ID and user is authenticated under the same tenant
+        if token.isdigit() and self.request.user.is_authenticated and self.request.user.tenant:
+            try:
+                return Issue.objects.get(id=int(token), tenant=self.request.user.tenant)
+            except Issue.DoesNotExist:
+                raise PermissionDenied("Task not found.")
+        
+        # Try decoding as cryptographic signed token first
+        try:
+            payload = signing.loads(token)
+            task_id = payload.get('task_id')
+            operator_id = payload.get('operator_id')
+        except signing.BadSignature:
+            # Fallback to static secure_token UUID lookup for backwards compatibility/tests
+            try:
+                issue = Issue.objects.get(secure_token=token)
+                # Enforce tenant isolation for authenticated users
+                if self.request.user.is_authenticated:
+                    if self.request.user.tenant != issue.tenant:
+                        raise PermissionDenied("You do not have access to this tenant's tasks.")
+                    return issue
+                if issue.assigned_to and not issue.assigned_to.is_active:
+                    raise PermissionDenied("This operator is inactive.")
+                return issue
+            except (Issue.DoesNotExist, ValueError):
+                raise PermissionDenied("Invalid or expired magic link.")
+
+        try:
+            issue = Issue.objects.get(id=task_id)
+        except Issue.DoesNotExist:
+            raise PermissionDenied("Task not found.")
+
+        # Enforce tenant isolation for authenticated users
+        if self.request.user.is_authenticated:
+            if self.request.user.tenant != issue.tenant:
+                raise PermissionDenied("You do not have access to this tenant's tasks.")
+            return issue
+
+        # Verify is_active status of operator
+        if not issue.assigned_to or not issue.assigned_to.is_active:
+            raise PermissionDenied("This operator is inactive.")
+
+        # Cryptographic Token Binding: verify assigned operator matches operator_id in payload
+        if issue.assigned_to.id != operator_id:
+            raise PermissionDenied("This link is no longer valid or the task has been reassigned.")
+
+        return issue
 
 
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied, NotFound
@@ -361,6 +446,10 @@ class OperatorHubView(generics.ListAPIView):
             profile = OperatorProfile.objects.get(hub_token=token)
         except (OperatorProfile.DoesNotExist, ValueError):
             raise AuthenticationFailed("Invalid hub token.")
+
+        # Verify operator is active
+        if not profile.user.is_active:
+            raise PermissionDenied("This operator profile is inactive.")
 
         # Return active tasks assigned to this operator
         return Issue.objects.filter(

@@ -195,7 +195,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'phone_number', 'hub_token')
+        fields = ('id', 'username', 'email', 'phone_number', 'hub_token', 'is_active')
 
     def get_hub_token(self, obj):
         if hasattr(obj, 'operator_profile') and obj.operator_profile:

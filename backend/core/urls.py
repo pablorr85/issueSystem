@@ -8,6 +8,7 @@ from .views import (
     IssueStatusUpdateView,
     CustomTokenObtainPairView,
     OperatorListView,
+    OperatorToggleActiveView,
     IssueAssignmentView,
     OperatorTaskView,
     OperatorHubView,
@@ -27,11 +28,12 @@ urlpatterns = [
     path('issues/reorder/', IssueReorderView.as_view(), name='issue-reorder'),
     path('issues/<int:pk>/status/', IssueStatusUpdateView.as_view(), name='issue-status-update'),
     path('operators/', OperatorListView.as_view(), name='operator-list'),
+    path('operators/<int:pk>/toggle-active/', OperatorToggleActiveView.as_view(), name='operator-toggle-active'),
     path('issues/<int:pk>/assign/', IssueAssignmentView.as_view(), name='issue-assign'),
-    path('tasks/<uuid:secure_token>/', OperatorTaskView.as_view(), name='operator-task-detail'),
+    path('tasks/bulk-assign/', IssueBulkAssignView.as_view(), name='issue-bulk-assign'),
+    path('tasks/<str:secure_token>/', OperatorTaskView.as_view(), name='operator-task-detail'),
     path('operator/hub/', OperatorHubView.as_view(), name='operator-hub'),
     path('issues/<int:pk>/', IssueUpdateView.as_view(), name='issue-detail-update'),
     path('issues/<int:issue_id>/comments/', IssueCommentsView.as_view(), name='issue-comments'),
-    path('tasks/bulk-assign/', IssueBulkAssignView.as_view(), name='issue-bulk-assign'),
 ]
 

@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
-import { DndContext, useDraggable, useDroppable } from '@dnd-kit/core';
+import LaunchIcon from '@mui/icons-material/Launch';
+import { DndContext, useDraggable, useDroppable, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import type { DragEndEvent } from '@dnd-kit/core';
 import { useAuth } from '../../context/AuthContext';
 import { getTenantConfig, getIssues, updateIssueStatus } from '../../services/api';
@@ -93,6 +94,7 @@ interface CardProps {
 
 const KanbanCard: React.FC<CardProps> = ({ issue }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: String(issue.id),
   });
@@ -117,7 +119,24 @@ const KanbanCard: React.FC<CardProps> = ({ issue }) => {
       )}
       <CardDesc>{issue.description}</CardDesc>
       <CardMetadataRow>
-        <span>ID #{issue.id}</span>
+        <span
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/work/task/${issue.id}`);
+          }}
+          style={{
+            color: 'var(--primary)',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px',
+            textDecoration: 'underline'
+          }}
+          data-testid={`kanban-card-link-${issue.id}`}
+        >
+          ID #{issue.id} <LaunchIcon style={{ fontSize: '0.85rem' }} />
+        </span>
         {zone && <span>📍 {zone}</span>}
       </CardMetadataRow>
       <CardMetadataRow style={{ borderTop: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '8px' }}>
@@ -131,6 +150,15 @@ export const BoardView: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { tenantId, user, logout } = useAuth();
   const navigate = useNavigate();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
+
   const [prevTenantId, setPrevTenantId] = useState<string | null>(tenantId);
   const [config, setConfig] = useState<TenantConfig | null>(null);
   const [loading, setLoading] = useState<boolean>(!!tenantId);
@@ -312,7 +340,7 @@ export const BoardView: React.FC = () => {
             <h3>{t('dashboard.cargandoTablero')}</h3>
           </CenteredLoadingContainer>
         ) : (
-          <DndContext onDragEnd={handleDragEnd}>
+          <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
             <BoardGrid>
               <KanbanColumn id="pending" title={t('dashboard.kanbanPending')} color="#3b82f6" count={pendingIssues.length}>
                 {pendingIssues.map(issue => (

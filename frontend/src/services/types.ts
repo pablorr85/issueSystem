@@ -55,6 +55,7 @@ export interface Operator {
   email: string;
   phone_number: string;
   hub_token?: string | null;
+  is_active: boolean;
 }
 
 export interface OperatorTask {

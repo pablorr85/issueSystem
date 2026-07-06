@@ -4,6 +4,15 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
+## [Sprint 26] - Magic Link Security & Access Control
+### Added
+- Implemented **Operator Deactivation (The "Red Button")**: Added active status tracking (`is_active` boolean field on User model) and a dedicated grid interface in the manager's dashboard with an interactive status toggle button.
+- Implemented **Cryptographic Token Binding**: Upgraded magic links to use Django's `TimestampSigner`/`Signer` cryptographic signing to securely encode `task_id` and `operator_id` in the link payload.
+- Added automatic link invalidation upon task reassignment: The backend verifies the current assignee matches the operator ID in the token, rejecting mismatched requests with `403 Forbidden`.
+- Implemented **Access Denied Mobile View**: Added a dedicated, user-friendly access denied screen displaying a message for invalid, expired, or reassigned magic links, supported by a global Axios interceptor.
+- Implemented **Tenant Staff Access Bypass**: Allowed authenticated staff/managers of the corresponding tenant to access task views directly (via ID, UUID, or signed tokens), with strict tenant-level isolation checking.
+- Implemented **Kanban Card Click Navigation**: Added a propagation-stopped launch link button (`ID #123 <LaunchIcon />`) inside BoardView Kanban cards to navigate to `/work/task/:id`, supported by a PointerSensor distance constraint (`8px`) on `DndContext` to completely prevent drag-and-drop sensor conflicts.
+
 ## [Sprint 25] - Dashboard Analytics Expansion
 ### Added
 - Expanded the backend dashboard statistics endpoint (`IssueStatsView`) using efficient Django ORM aggregation (Count and Q) to fetch active operator workloads, 30-day resolution performance counts, and ranked zone hotspots.

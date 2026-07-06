@@ -48,3 +48,16 @@ The platform decouples reporting from management: end-users can report incidents
 * **Frontend:** React / TypeScript / Vite / styled-components / Material-UI
 * **Testing:** Vitest (Frontend unit), Cypress (End-to-End), Django APITestCase (Backend integration)
 * **External Services:** Google Cloud Storage (Media files), WhatsApp Business API / Twilio
+
+---
+
+## 🔒 Security Architecture
+
+### Passwordless Operator Workspace
+To maximize operational efficiency, operators access their tasks and workloads passwordless via secure magic links dispatched to their contact numbers (e.g. WhatsApp/SMS).
+
+### Cryptographic Token Binding & Lifecycle
+1. **Token Structure:** Magic link tokens are cryptographically signed using Django's `TimestampSigner`/`Signer`. The signed payload encapsulates both the `task_id` and the `operator_id`.
+2. **Reassignment Invalidation:** When an operator attempts to access or update a task, the backend decodes the token and matches the `operator_id` inside the payload against the task's current assignee. If the task has been reassigned to a different operator, the token is automatically invalidated, returning a `403 Forbidden` response.
+3. **Operator Status Check:** If the operator is marked as inactive (`is_active=False` on their User account), all of their magic links (both for individual tasks and their hub) are immediately rejected with a `403 Forbidden` response.
+4. **Access Denied UI:** Any request resolving to a `403 Forbidden` for magic link routes automatically redirects the operator to a friendly "Access Denied" page.

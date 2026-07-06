@@ -36,6 +36,7 @@ export interface DashboardProps {
   assignedFilter: string;
   onAssignedFilterChange: (assigned: string) => void;
   onEditIssue: (issue: Issue) => void;
+  onToggleOperatorActive: (id: number, currentStatus: boolean) => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -52,6 +53,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   assignedFilter,
   onAssignedFilterChange,
   onEditIssue,
+  onToggleOperatorActive,
 }) => {
   const { t } = useTranslation();
   const reportingUrl = `${window.location.origin}/${tenant.id}/report`;
@@ -245,6 +247,53 @@ export const Dashboard: React.FC<DashboardProps> = ({
           totalPages={totalPages}
           loading={loading}
         />
+      </DashboardCard>
+
+      <DashboardCard style={{ marginTop: '30px' }} data-testid="operator-management-card">
+        <h3 style={{ margin: '0 0 20px 0', fontSize: '1.25rem', fontWeight: 800, color: 'white', borderLeft: '4px solid var(--primary)', paddingLeft: '10px' }}>
+          {t("dashboard.operatorManagementTitle", "Operator Management")}
+        </h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
+          {operators.map((op) => (
+            <div
+              key={op.id}
+              data-testid={`operator-card-${op.id}`}
+              style={{
+                background: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '12px',
+                padding: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span style={{ fontWeight: 700, color: 'white' }}>{op.username}</span>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary, #c5c2d9)' }}>
+                  {op.phone_number || t("dashboard.noPhone", "No phone")}
+                </span>
+              </div>
+              <button
+                data-testid={`toggle-operator-${op.id}`}
+                onClick={() => onToggleOperatorActive(op.id, op.is_active)}
+                style={{
+                  background: op.is_active ? 'var(--primary)' : 'rgba(239, 68, 68, 0.15)',
+                  color: op.is_active ? 'white' : '#ef4444',
+                  border: `1px solid ${op.is_active ? 'var(--primary)' : '#ef4444'}`,
+                  borderRadius: '8px',
+                  padding: '6px 12px',
+                  fontSize: '0.85rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {op.is_active ? t("dashboard.active", "Active") : t("dashboard.inactive", "Inactive")}
+              </button>
+            </div>
+          ))}
+        </div>
       </DashboardCard>
 
       {selectedIds.length > 0 && (
