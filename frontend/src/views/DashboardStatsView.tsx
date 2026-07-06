@@ -188,6 +188,89 @@ const SectionHeader = styled.h2`
   padding-left: 12px;
 `;
 
+const AnalyticsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+`;
+
+const WidgetCard = styled.div`
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+`;
+
+const WidgetTitle = styled.h3`
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 12px;
+`;
+
+const WidgetList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+const WidgetItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+const WidgetItemHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #ffffff;
+`;
+
+const WidgetLabel = styled.span`
+  color: var(--text-secondary, #c5c2d9);
+`;
+
+const WidgetValue = styled.span`
+  font-weight: bold;
+`;
+
+const ProgressBarContainer = styled.div`
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+`;
+
+const ProgressBar = styled.div<{ $percent: number; $color?: string }>`
+  width: ${({ $percent }) => $percent}%;
+  height: 100%;
+  background: ${({ $color }) => $color || 'var(--primary)'};
+  border-radius: 4px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+`;
+
+const EmptyStateText = styled.p`
+  font-size: 0.9rem;
+  color: var(--text-secondary, #c5c2d9);
+  text-align: center;
+  margin: 20px 0;
+  font-style: italic;
+`;
+
 export const DashboardStatsView: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { tenantId, user, logout } = useAuth();
@@ -358,6 +441,113 @@ export const DashboardStatsView: React.FC = () => {
             </StatContent>
           </StatCard>
         </StatsGrid>
+
+        <SectionHeader>{t('dashboard.analyticsTitle')}</SectionHeader>
+        <AnalyticsGrid>
+          {/* Workload Widget */}
+          <WidgetCard data-testid="widget-workload">
+            <WidgetTitle>
+              <DashboardIcon fontSize="small" style={{ color: 'var(--primary)' }} />
+              {t('dashboard.widgetWorkloadTitle')}
+            </WidgetTitle>
+            <WidgetList>
+              {statsLoading ? (
+                <EmptyStateText>{t('dashboard.loadingData')}</EmptyStateText>
+              ) : !stats?.operator_workload || stats.operator_workload.length === 0 ? (
+                <EmptyStateText>{t('dashboard.noOperators')}</EmptyStateText>
+              ) : (
+                stats.operator_workload.map(op => {
+                  const maxTasksLimit = 5;
+                  const percent = Math.min(100, (op.task_count / maxTasksLimit) * 100);
+                  let barColor = '#10b981';
+                  if (op.task_count > 4) {
+                    barColor = '#ef4444';
+                  } else if (op.task_count > 2) {
+                    barColor = '#f59e0b';
+                  }
+
+                  return (
+                    <WidgetItem key={op.id}>
+                      <WidgetItemHeader>
+                        <WidgetLabel>{op.username}</WidgetLabel>
+                        <WidgetValue>{op.task_count} {op.task_count === 1 ? t('dashboard.taskSingle') : t('dashboard.taskPlural')}</WidgetValue>
+                      </WidgetItemHeader>
+                      <ProgressBarContainer>
+                        <ProgressBar $percent={percent} $color={barColor} />
+                      </ProgressBarContainer>
+                    </WidgetItem>
+                  );
+                })
+              )}
+            </WidgetList>
+          </WidgetCard>
+
+          {/* Resolution Leaderboard */}
+          <WidgetCard data-testid="widget-leaderboard">
+            <WidgetTitle>
+              <ListAltIcon fontSize="small" style={{ color: 'var(--primary)' }} />
+              {t('dashboard.widgetLeaderboardTitle')}
+            </WidgetTitle>
+            <WidgetList>
+              {statsLoading ? (
+                <EmptyStateText>{t('dashboard.loadingData')}</EmptyStateText>
+              ) : !stats?.operator_performance || stats.operator_performance.length === 0 ? (
+                <EmptyStateText>{t('dashboard.noResolutions')}</EmptyStateText>
+              ) : (
+                stats.operator_performance.map((op, idx) => {
+                  const maxResolved = Math.max(1, ...stats.operator_performance.map(o => o.resolved_count));
+                  const percent = (op.resolved_count / maxResolved) * 100;
+                  
+                  return (
+                    <WidgetItem key={op.id}>
+                      <WidgetItemHeader>
+                        <WidgetLabel>
+                          {idx + 1}. {op.username}
+                        </WidgetLabel>
+                        <WidgetValue>{op.resolved_count} {t('dashboard.resolvedSuffix')}</WidgetValue>
+                      </WidgetItemHeader>
+                      <ProgressBarContainer>
+                        <ProgressBar $percent={percent} />
+                      </ProgressBarContainer>
+                    </WidgetItem>
+                  );
+                })
+              )}
+            </WidgetList>
+          </WidgetCard>
+
+          {/* Hotspots Widget */}
+          <WidgetCard data-testid="widget-hotspots">
+            <WidgetTitle>
+              <ReportProblemIcon fontSize="small" style={{ color: 'var(--primary)' }} />
+              {t('dashboard.widgetHotspotsTitle')}
+            </WidgetTitle>
+            <WidgetList>
+              {statsLoading ? (
+                <EmptyStateText>{t('dashboard.loadingData')}</EmptyStateText>
+              ) : !stats?.zone_hotspots || stats.zone_hotspots.length === 0 ? (
+                <EmptyStateText>{t('dashboard.noHotspots')}</EmptyStateText>
+              ) : (
+                stats.zone_hotspots.map(spot => {
+                  const maxIncidents = Math.max(1, ...stats.zone_hotspots.map(s => s.count));
+                  const percent = (spot.count / maxIncidents) * 100;
+
+                  return (
+                    <WidgetItem key={spot.zone}>
+                      <WidgetItemHeader>
+                        <WidgetLabel>📍 {spot.zone}</WidgetLabel>
+                        <WidgetValue>{spot.count} {spot.count === 1 ? t('dashboard.incidentSingle') : t('dashboard.incidentPlural')}</WidgetValue>
+                      </WidgetItemHeader>
+                      <ProgressBarContainer>
+                        <ProgressBar $percent={percent} $color="#f59e0b" />
+                      </ProgressBarContainer>
+                    </WidgetItem>
+                  );
+                })
+              )}
+            </WidgetList>
+          </WidgetCard>
+        </AnalyticsGrid>
 
         <SectionHeader>{t('dashboard.workspacesTitle')}</SectionHeader>
         <ActionsGrid>

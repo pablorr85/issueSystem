@@ -106,7 +106,20 @@
     "kanbanDone": "Done",
     "cargandoTablero": "Loading board...",
     "assignmentFilterLabel": "Filter by Assignment",
-    "filterAssigned": "Assigned"
+    "filterAssigned": "Assigned",
+    "analyticsTitle": "Dashboard Analytics",
+    "widgetWorkloadTitle": "Operator Active Workload",
+    "widgetLeaderboardTitle": "Resolution Leaderboard (30d)",
+    "widgetHotspotsTitle": "Zone Hotspots",
+    "loadingData": "Loading...",
+    "noOperators": "No active operators.",
+    "noResolutions": "No tasks resolved yet.",
+    "noHotspots": "No hotspots recorded.",
+    "taskSingle": "task",
+    "taskPlural": "tasks",
+    "resolvedSuffix": "resolved",
+    "incidentSingle": "incident",
+    "incidentPlural": "incidents"
   },
   "comments": {
     "title": "Audit Log & Comments",

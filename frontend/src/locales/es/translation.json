@@ -106,7 +106,20 @@
     "kanbanDone": "Finalizadas",
     "cargandoTablero": "Cargando tablero...",
     "assignmentFilterLabel": "Filtrar por Asignación",
-    "filterAssigned": "Asignadas"
+    "filterAssigned": "Asignadas",
+    "analyticsTitle": "Analíticas de Gestión",
+    "widgetWorkloadTitle": "Carga de Trabajo de Operarios",
+    "widgetLeaderboardTitle": "Clasificación de Resolución (30d)",
+    "widgetHotspotsTitle": "Zonas Conflictivas (Hotspots)",
+    "loadingData": "Cargando datos analíticos...",
+    "noOperators": "No hay operarios activos.",
+    "noResolutions": "No se han resuelto tareas recientemente.",
+    "noHotspots": "No hay registros de zonas.",
+    "taskSingle": "tarea",
+    "taskPlural": "tareas",
+    "resolvedSuffix": "resueltas",
+    "incidentSingle": "incidencia",
+    "incidentPlural": "incidencias"
   },
   "comments": {
     "title": "Cuaderno de Bitácora",

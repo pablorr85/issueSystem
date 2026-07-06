@@ -4,6 +4,15 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
+## [Sprint 23] - Dashboard Analytics Expansion
+### Added
+- Expanded the backend dashboard statistics endpoint (`IssueStatsView`) using efficient Django ORM aggregation (Count and Q) to fetch active operator workloads, 30-day resolution performance counts, and ranked zone hotspots.
+- Implemented **Operator Active Workload Widget**: Added progress-bar styling color-coded by capacity load to easily identify operator availability at a glance.
+- Implemented **Resolution Leaderboard Widget**: Top list showing operators ranked by tasks resolved within the last 30 days.
+- Implemented **Zone Hotspots Widget**: Clean listing ranking the top 5 zones with the highest incident volume.
+- Styled widgets using tenant-brand primary HSL values and implemented loading states and empty state fallbacks.
+- Added comprehensive integration test suite `DashboardAnalyticsAPITests` verifying correct statistics calculations on the API.
+
 ## [Sprint 22] - Code Quality, Performance Optimization & Restructuring
 ### Added
 - Created `resolved_at` DateTimeField on `Issue` model to persistently store issue resolution time, backed by schema migration `0009` and data migration `0010` to backfill historical resolved issues from audit logs.

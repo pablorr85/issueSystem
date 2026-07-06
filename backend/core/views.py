@@ -6,6 +6,9 @@ from rest_framework.response import Response
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.db.models import Count, Q
+from django.utils import timezone
+from datetime import timedelta
 
 from .models import Tenant, Issue, User, OperatorProfile, IssueComment
 from .serializers import (
@@ -96,18 +99,105 @@ class IssueStatsView(APIView):
             return Response({
                 'unassigned_count': 0,
                 'in_progress_count': 0,
-                'blocked_count': 0
+                'blocked_count': 0,
+                'operator_workload': [],
+                'operator_performance': [],
+                'zone_hotspots': []
             })
         
         issues = Issue.objects.filter(tenant=tenant)
         unassigned = issues.filter(assigned_to__isnull=True).exclude(status__in=['resolved', 'wont_fix']).count()
         in_progress = issues.filter(status='in_progress').count()
         blocked = issues.filter(status='blocked').count()
+
+        # 1. Operator Workload (Active tasks grouped by active operators)
+        workload = User.objects.filter(
+            tenant=tenant,
+            operator_profile__isnull=False
+        ).annotate(
+            task_count=Count(
+                'assigned_issues',
+                filter=Q(assigned_issues__status__in=['pending', 'in_progress', 'blocked'])
+            )
+        ).order_by('-task_count', 'username')
         
+        operator_workload = [
+            {
+                "id": op.id,
+                "username": op.username,
+                "task_count": op.task_count
+            }
+            for op in workload
+        ]
+
+        # 2. Operator Performance (Resolved tasks in last 30 days)
+        thirty_days_ago = timezone.now() - timedelta(days=30)
+        performance = User.objects.filter(
+            tenant=tenant,
+            operator_profile__isnull=False
+        ).annotate(
+            resolved_count=Count(
+                'assigned_issues',
+                filter=Q(
+                    assigned_issues__status__in=['resolved', 'wont_fix'],
+                    assigned_issues__resolved_at__gte=thirty_days_ago
+                )
+            )
+        ).order_by('-resolved_count', 'username')
+        
+        operator_performance = [
+            {
+                "id": op.id,
+                "username": op.username,
+                "resolved_count": op.resolved_count
+            }
+            for op in performance
+        ]
+
+        # 3. Zone Hotspots (Top 5 zones with most incidents)
+        zone_field = tenant.custom_fields.filter(
+            Q(name__icontains='zona') | Q(name__icontains='zone') | Q(name__icontains='location')
+        ).first()
+
+        zone_hotspots = []
+        if zone_field:
+            zone_key = zone_field.name
+            queryset = Issue.objects.filter(tenant=tenant).values(f'extra_data__{zone_key}').annotate(
+                incident_count=Count('id')
+            ).order_by('-incident_count')
+            
+            for item in queryset:
+                zone_val = item.get(f'extra_data__{zone_key}')
+                if zone_val:
+                    zone_hotspots.append({
+                        "zone": str(zone_val),
+                        "count": item['incident_count']
+                    })
+        else:
+            # Fallback: aggregate in memory if no specific zone custom field is defined
+            from collections import Counter
+            counter = Counter()
+            all_issues = Issue.objects.filter(tenant=tenant).values_list('extra_data', flat=True)
+            for extra in all_issues:
+                if isinstance(extra, dict) and extra:
+                    key = next((k for k in extra.keys() if 'location' in k.lower() or 'zone' in k.lower()), None)
+                    if not key and extra:
+                        key = list(extra.keys())[0]
+                    if key:
+                        val = extra[key]
+                        counter[str(val)] += 1
+            zone_hotspots = [{"zone": zone, "count": cnt} for zone, cnt in counter.most_common(5)]
+
+        # Limit to top 5 hotspots
+        zone_hotspots = zone_hotspots[:5]
+
         return Response({
             'unassigned_count': unassigned,
             'in_progress_count': in_progress,
-            'blocked_count': blocked
+            'blocked_count': blocked,
+            'operator_workload': operator_workload,
+            'operator_performance': operator_performance,
+            'zone_hotspots': zone_hotspots
         })
 
 

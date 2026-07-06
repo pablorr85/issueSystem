@@ -1,4 +1,6 @@
 import uuid
+from datetime import timedelta
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
@@ -862,6 +864,93 @@ class DynamicFieldSchemaValidationTests(APITestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("is not a valid option", str(response.data))
+
+
+class DashboardAnalyticsAPITests(APITestCase):
+    def setUp(self):
+        self.tenant = Tenant.objects.create(
+            name="Analytics Tenant",
+            logo_url="http://example.com/logo.png",
+            visual_config={"primaryColor": "#00ff00"}
+        )
+        self.admin = User.objects.create_user(
+            username="analytics_admin",
+            password="password",
+            tenant=self.tenant
+        )
+        
+        # Operators
+        self.op1 = User.objects.create_user(username="operator_one", password="password", tenant=self.tenant)
+        self.profile1 = OperatorProfile.objects.create(user=self.op1, phone_number="+1")
+        
+        self.op2 = User.objects.create_user(username="operator_two", password="password", tenant=self.tenant)
+        self.profile2 = OperatorProfile.objects.create(user=self.op2, phone_number="+2")
+
+        # Custom field for zones
+        self.zone_field = CustomField.objects.create(
+            tenant=self.tenant,
+            name="zona_parque",
+            field_type="select",
+            options=["North", "South", "East", "West"]
+        )
+
+        # Issues for Workload (pending/in_progress/blocked)
+        # op1: 2 active tasks
+        Issue.objects.create(tenant=self.tenant, description="Task 1", status="pending", assigned_to=self.op1, extra_data={"zona_parque": "North"})
+        Issue.objects.create(tenant=self.tenant, description="Task 2", status="in_progress", assigned_to=self.op1, extra_data={"zona_parque": "North"})
+        
+        # op2: 1 active task
+        Issue.objects.create(tenant=self.tenant, description="Task 3", status="blocked", assigned_to=self.op2, extra_data={"zona_parque": "South"})
+
+        # Resolved task within last 30 days for op2 (performance)
+        res_issue = Issue.objects.create(
+            tenant=self.tenant, 
+            description="Task 4", 
+            status="resolved", 
+            assigned_to=self.op2,
+            extra_data={"zona_parque": "East"}
+        )
+        # Explicitly set resolved_at
+        res_issue.resolved_at = timezone.now() - timedelta(days=5)
+        res_issue.save()
+
+    def test_dashboard_stats_aggregation_success(self):
+        self.client.force_authenticate(user=self.admin)
+        url = reverse('issue-stats')
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.data
+        
+        # KPI checks
+        self.assertEqual(data['unassigned_count'], 0)
+        self.assertEqual(data['in_progress_count'], 1)
+        self.assertEqual(data['blocked_count'], 1)
+
+        # Workload checks
+        workload = data['operator_workload']
+        op1_stat = next(w for w in workload if w['username'] == 'operator_one')
+        op2_stat = next(w for w in workload if w['username'] == 'operator_two')
+        self.assertEqual(op1_stat['task_count'], 2)
+        self.assertEqual(op2_stat['task_count'], 1)
+
+        # Performance checks
+        performance = data['operator_performance']
+        op2_perf = next(p for p in performance if p['username'] == 'operator_two')
+        op1_perf = next(p for p in performance if p['username'] == 'operator_one')
+        self.assertEqual(op2_perf['resolved_count'], 1)
+        self.assertEqual(op1_perf['resolved_count'], 0)
+
+        # Hotspots checks
+        hotspots = data['zone_hotspots']
+        self.assertEqual(hotspots[0]['zone'], 'North')
+        self.assertEqual(hotspots[0]['count'], 2)
+        
+        east_spot = next(h for h in hotspots if h['zone'] == 'East')
+        south_spot = next(h for h in hotspots if h['zone'] == 'South')
+        self.assertEqual(east_spot['count'], 1)
+        self.assertEqual(south_spot['count'], 1)
+
 
 
 

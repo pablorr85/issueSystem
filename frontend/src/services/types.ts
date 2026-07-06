@@ -93,9 +93,29 @@ export interface IssueComment {
   created_at: string;
 }
 
+export interface OperatorWorkload {
+  id: number;
+  username: string;
+  task_count: number;
+}
+
+export interface OperatorPerformance {
+  id: number;
+  username: string;
+  resolved_count: number;
+}
+
+export interface ZoneHotspot {
+  zone: string;
+  count: number;
+}
+
 export interface IssueStats {
   unassigned_count: number;
   in_progress_count: number;
   blocked_count: number;
+  operator_workload: OperatorWorkload[];
+  operator_performance: OperatorPerformance[];
+  zone_hotspots: ZoneHotspot[];
 }
 
