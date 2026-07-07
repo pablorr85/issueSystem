@@ -143,6 +143,41 @@ class OperatorTaskWorkflowTests(APITestCase):
         self.assertEqual(self.issue.assigned_to, self.operator_user)
         self.assertEqual(self.issue.extra_data, {'urgency': 'high'})
 
+    def test_issue_title_handling(self):
+        # 1. Create issue with title
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse('issue-create')
+        data = {
+            'tenant_id': self.tenant.id,
+            'title': 'Test Task Title',
+            'description': 'Test description of the issue',
+            'extra_data': {}
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['title'], 'Test Task Title')
+
+        # 2. Create issue without title (should fallback to description[:50])
+        data_no_title = {
+            'tenant_id': self.tenant.id,
+            'description': 'Very long description that should be truncated to fifty characters when creating a title fallback',
+            'extra_data': {}
+        }
+        response = self.client.post(url, data_no_title, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['title'], 'Very long description that should be truncated to ')
+
+        # 3. Update title
+        issue_id = response.data['id']
+        detail_url = reverse('issue-detail-update', kwargs={'pk': issue_id})
+        update_data = {
+            'title': 'Updated Title',
+            'description': 'Some description'
+        }
+        response = self.client.patch(detail_url, update_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['title'], 'Updated Title')
+
     def test_update_issue_details_cross_tenant_denied(self):
         # Authenticate as admin of self.tenant, try to update other_tenant's issue
         other_issue = Issue.objects.create(

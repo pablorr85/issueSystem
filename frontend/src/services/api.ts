@@ -45,6 +45,7 @@ export const getTenantConfig = async (
 export const createIssue = async (payload: IssuePayload): Promise<Issue> => {
   const formData = new FormData();
   formData.append("tenant_id", payload.tenant_id);
+  formData.append("title", payload.title);
   formData.append("description", payload.description);
   if (payload.photo_url) {
     formData.append("photo_url", payload.photo_url);
@@ -98,6 +99,7 @@ export const updateIssueStatus = async (
 export const updateIssue = async (
   id: number,
   payload: {
+    title?: string;
     description?: string;
     status?: string;
     assigned_to?: number | null;
@@ -111,6 +113,9 @@ export const updateIssue = async (
   }
 
   const formData = new FormData();
+  if (payload.title !== undefined) {
+    formData.append("title", payload.title);
+  }
   if (payload.description !== undefined) {
     formData.append("description", payload.description);
   }

@@ -44,7 +44,7 @@ class IssueSerializer(serializers.ModelSerializer):
     class Meta:
         model = Issue
         fields = (
-            'id', 'tenant_id', 'status', 'description', 'photo_url', 'image', 'extra_data',
+            'id', 'tenant_id', 'title', 'status', 'description', 'photo_url', 'image', 'extra_data',
             'assigned_to', 'assigned_to_name', 'secure_token', 'created_at', 'updated_at', 'resolved_at'
         )
         read_only_fields = ('id', 'secure_token', 'created_at', 'updated_at', 'resolved_at')
@@ -53,6 +53,13 @@ class IssueSerializer(serializers.ModelSerializer):
         return get_issue_resolved_at(obj)
 
     def validate(self, attrs):
+        # Ensure title is present on creation, fallback to description[:50]
+        if not self.instance:
+            title = attrs.get('title')
+            if not title or not title.strip():
+                desc = attrs.get('description', '')
+                attrs['title'] = desc[:50] if desc else "New Issue"
+
         # Prevent reassigning resolved issues
         if self.instance and self.instance.status in ('resolved', 'wont_fix'):
             if 'assigned_to' in attrs and attrs['assigned_to'] != self.instance.assigned_to:
@@ -172,7 +179,7 @@ class IssueListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Issue
         fields = (
-            'id', 'tenant_id', 'status', 'description', 'photo_url', 'image', 'extra_data',
+            'id', 'tenant_id', 'title', 'status', 'description', 'photo_url', 'image', 'extra_data',
             'assigned_to', 'assigned_to_name', 'secure_token', 'created_at', 'updated_at', 'resolved_at'
         )
 
@@ -243,7 +250,7 @@ class OperatorTaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Issue
         fields = (
-            'id', 'status', 'description', 'photo_url', 'image', 'extra_data',
+            'id', 'title', 'status', 'description', 'photo_url', 'image', 'extra_data',
             'assigned_to', 'assigned_to_name', 'secure_token', 'operator_hub_token',
             'tenant_name', 'tenant_logo_url', 'tenant_visual_config',
             'created_at', 'updated_at', 'resolved_at'

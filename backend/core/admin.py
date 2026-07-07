@@ -22,9 +22,9 @@ class CustomFieldAdmin(admin.ModelAdmin):
 
 @admin.register(Issue)
 class IssueAdmin(admin.ModelAdmin):
-    list_display = ('id', 'tenant', 'status', 'created_at', 'updated_at')
+    list_display = ('id', 'tenant', 'title', 'status', 'created_at', 'updated_at')
     list_filter = ('tenant', 'status')
-    search_fields = ('description', 'tenant__name')
+    search_fields = ('title', 'description', 'tenant__name')
     readonly_fields = ('created_at', 'updated_at')
 
 

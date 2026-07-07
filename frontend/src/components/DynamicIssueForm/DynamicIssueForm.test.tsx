@@ -49,6 +49,7 @@ describe('DynamicIssueForm Component', () => {
     );
 
     // Standard fields
+    expect(screen.getByLabelText(/Short Summary \*/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Problem Description \*/i)).toBeInTheDocument();
     expect(screen.getByTestId('upload-zone')).toBeInTheDocument();
 
@@ -73,6 +74,7 @@ describe('DynamicIssueForm Component', () => {
     fireEvent.click(submitButton);
 
     // Should show validation errors and not call onSubmit
+    expect(screen.getByText(/Title is required/i)).toBeInTheDocument();
     expect(screen.getByText(/Description is required/i)).toBeInTheDocument();
     expect(screen.getByText(/Zone is required/i)).toBeInTheDocument();
     expect(screen.getByText(/Category is required/i)).toBeInTheDocument();
@@ -90,6 +92,9 @@ describe('DynamicIssueForm Component', () => {
     );
 
     // Fill in standard fields
+    fireEvent.change(screen.getByLabelText(/Short Summary \*/i), {
+      target: { value: 'Water leak in bear enclosure title' }
+    });
     fireEvent.change(screen.getByLabelText(/Problem Description \*/i), {
       target: { value: 'Water leak in bear enclosure' }
     });
@@ -115,6 +120,7 @@ describe('DynamicIssueForm Component', () => {
 
     expect(mockOnSubmit).toHaveBeenCalledWith({
       tenant_id: 'f818979b-2ea0-43cb-8dd1-7c1729ee1fea',
+      title: 'Water leak in bear enclosure title',
       description: 'Water leak in bear enclosure',
       image: null,
       extra_data: {

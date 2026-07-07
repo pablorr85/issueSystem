@@ -52,6 +52,7 @@ const getInitialExtraData = (tenant: TenantConfig): Record<string, CustomFieldVa
 export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSubmit, submitting }) => {
   const { t } = useTranslation();
   const [prevTenant, setPrevTenant] = useState<TenantConfig>(tenant);
+  const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -122,6 +123,7 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
     setErrors({});
     setImageFile(null);
     setImagePreview(null);
+    setTitle('');
   }
 
   const handleExtraChange = (name: string, value: CustomFieldValue) => {
@@ -141,6 +143,10 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
+
+    if (!title.trim()) {
+      newErrors.title = t('dynamicIssueForm.titleRequired');
+    }
 
     if (!description.trim()) {
       newErrors.description = t('dynamicIssueForm.descriptionRequired');
@@ -176,6 +182,7 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
 
     const payload: IssuePayload = {
       tenant_id: tenant.id,
+      title: title.trim(),
       description: description.trim(),
       image: imageFile,
       extra_data: processedExtra
@@ -183,6 +190,7 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
 
     onSubmit(payload).then(() => {
       // Reset form on success
+      setTitle('');
       setDescription('');
       setImageFile(null);
       setImagePreview(null);
@@ -206,6 +214,30 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
       </FormTitle>
 
       <FormContainer onSubmit={handleSubmit} noValidate>
+        {/* Title */}
+        <StyledTextField
+          label={t('dynamicIssueForm.titleLabel')}
+          variant="outlined"
+          value={title}
+          onChange={(e) => {
+            setTitle(e.target.value);
+            if (errors.title) {
+              setErrors(prev => {
+                const next = { ...prev };
+                delete next.title;
+                return next;
+              });
+            }
+          }}
+          disabled={submitting}
+          error={!!errors.title}
+          helperText={errors.title}
+          required
+          slotProps={{
+            htmlInput: { 'data-testid': 'title-input', maxLength: 100 }
+          }}
+        />
+
         {/* Description */}
         <StyledTextField
           label={t('dynamicIssueForm.descriptionLabel')}

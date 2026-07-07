@@ -17,6 +17,8 @@
   },
   "dynamicIssueForm": {
     "title": "Reportar una Incidencia ({{name}})",
+    "titleLabel": "Resumen Breve",
+    "titleRequired": "El título es requerido.",
     "descriptionLabel": "Descripción de la Incidencia",
     "descriptionRequired": "La descripción es requerida.",
     "photoLabel": "URL de la Foto (Opcional)",
@@ -36,6 +38,7 @@
     "filterResolved": "Resueltas",
     "tableID": "ID",
     "tableStatus": "Estado",
+    "tableTitle": "Título",
     "tableDescription": "Descripción",
     "tableCreatedAt": "Fecha de Creación",
     "tableActions": "Acciones",

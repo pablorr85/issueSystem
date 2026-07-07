@@ -12,6 +12,7 @@ vi.mock('../services/api', () => ({
 const mockTasks: OperatorTask[] = [
   {
     id: 1,
+    title: 'Normal urgency task',
     status: 'pending',
     description: 'Normal urgency task',
     extra_data: { urgency: 'normal' },
@@ -26,6 +27,7 @@ const mockTasks: OperatorTask[] = [
   },
   {
     id: 2,
+    title: 'Critical urgency task',
     status: 'in_progress',
     description: 'Critical urgency task',
     extra_data: { urgencia: 'critical' },
@@ -40,6 +42,7 @@ const mockTasks: OperatorTask[] = [
   },
   {
     id: 3,
+    title: 'High urgency task',
     status: 'pending',
     description: 'High urgency task',
     extra_data: { urgency: 'high' },

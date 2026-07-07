@@ -61,7 +61,7 @@ export const IssueComments: React.FC<IssueCommentsProps> = ({
   const [text, setText] = useState<string>("");
 
   const [prevIssueId, setPrevIssueId] = useState<number | string>(issueId);
-  const [prevToken, setPrevToken] = useState<string>(token);
+  const [prevToken, setPrevToken] = useState<string | undefined>(token);
 
   if (issueId !== prevIssueId || token !== prevToken) {
     setPrevIssueId(issueId);

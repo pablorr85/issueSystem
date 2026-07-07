@@ -4,6 +4,18 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
+## [Sprint 27] - Introduce Task Titles for UI Clarity
+### Added
+- Introduced a required `title` field (max 100 characters) to the `Issue` data model.
+- Created a Django database migration including a custom Python data migration backfill to copy the first 50 characters of `description` into `title` for all pre-existing records.
+- Added automatic serializer fallback to generate titles from descriptions (`description[:50]`) for programmatic API creations and testing backward compatibility.
+- Exposed the `title` field in Django Admin list displays, filters, and search query scopes.
+- Redesigned the Backlog view table (TanStack table) to replace the Description column with a Title column, rendering the title in bold and the full description compactly underneath.
+- Updated the Kanban card display in BoardView to render the task title prominently as a bold card header, showing description text underneath with clean two-line CSS clamping.
+- Displayed the task title prominently at the top of the mobile Operator Task detail view.
+- Added Title input fields and required validations (max 100 characters) to the Public Reporting Form and the Manager's Edit Issue modal.
+- Integrated full English and Spanish translations for all title-related labels, input place-helpers, and required validation errors.
+
 ## [Sprint 26] - Magic Link Security & Access Control
 ### Added
 - Implemented **Operator Deactivation (The "Red Button")**: Added active status tracking (`is_active` boolean field on User model) and a dedicated grid interface in the manager's dashboard with an interactive status toggle button.

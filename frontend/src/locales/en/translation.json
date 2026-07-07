@@ -17,6 +17,8 @@
   },
   "dynamicIssueForm": {
     "title": "Report an Issue ({{name}})",
+    "titleLabel": "Short Summary",
+    "titleRequired": "Title is required.",
     "descriptionLabel": "Description",
     "descriptionRequired": "Description is required.",
     "photoLabel": "Photo URL (Optional)",
@@ -36,6 +38,7 @@
     "filterResolved": "Resolved",
     "tableID": "ID",
     "tableStatus": "Status",
+    "tableTitle": "Title",
     "tableDescription": "Description",
     "tableCreatedAt": "Created At",
     "tableActions": "Actions",

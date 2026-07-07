@@ -105,6 +105,12 @@ class Issue(models.Model):
         choices=STATUS_CHOICES,
         help_text="Status of the issue (e.g. pending, in_progress, resolved, wont_fix)."
     )
+    title: str = models.CharField(
+        max_length=100,
+        default="",
+        blank=True,
+        help_text="Concise summary title of the issue."
+    )
     description: str = models.TextField(
         help_text="Detailed description of the issue."
     )

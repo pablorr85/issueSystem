@@ -54,8 +54,8 @@ const mockTenant: TenantConfig = {
 };
 
 const mockOperators = [
-  { id: 10, username: 'operator1', email: 'op1@example.com', phone_number: '+123' },
-  { id: 11, username: 'operator2', email: 'op2@example.com', phone_number: '+456' }
+  { id: 10, username: 'operator1', email: 'op1@example.com', phone_number: '+123', is_active: true },
+  { id: 11, username: 'operator2', email: 'op2@example.com', phone_number: '+456', is_active: true }
 ];
 
 const mockIssuesResponse: PaginatedResponse<Issue> = {
@@ -66,6 +66,7 @@ const mockIssuesResponse: PaginatedResponse<Issue> = {
     {
       id: 101,
       tenant_id: 'f818979b-2ea0-43cb-8dd1-7c1729ee1fea',
+      title: 'Broken handrail near marine pool title',
       status: 'pending',
       description: 'Broken handrail near marine pool',
       extra_data: {

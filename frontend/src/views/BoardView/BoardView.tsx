@@ -117,7 +117,16 @@ const KanbanCard: React.FC<CardProps> = ({ issue }) => {
       {getImageUrl(issue.image || issue.photo_url) && (
         <CardImage src={getImageUrl(issue.image || issue.photo_url)} alt="Issue visual proof" />
       )}
-      <CardDesc>{issue.description}</CardDesc>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <h4 style={{ margin: 0, fontWeight: 'bold', fontSize: '1rem', color: '#ffffff' }} data-testid={`kanban-card-title-${issue.id}`}>
+          {issue.title}
+        </h4>
+        {issue.description && (
+          <CardDesc style={{ opacity: 0.7, fontSize: '0.85rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            {issue.description}
+          </CardDesc>
+        )}
+      </div>
       <CardMetadataRow>
         <span
           onClick={(e) => {

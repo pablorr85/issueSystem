@@ -60,6 +60,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
   onSuccess
 }) => {
   const { t } = useTranslation();
+  const [title, setTitle] = useState<string>(issue.title || '');
   const [description, setDescription] = useState<string>(issue.description);
   const [statusVal, setStatusVal] = useState<string>(issue.status);
   const [assignedTo, setAssignedTo] = useState<string>(
@@ -83,6 +84,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
 
   if (issue.id !== prevIssueId) {
     setPrevIssueId(issue.id);
+    setTitle(issue.title || '');
     setDescription(issue.description);
     setStatusVal(issue.status);
     setAssignedTo(issue.assigned_to !== null && issue.assigned_to !== undefined ? String(issue.assigned_to) : '');
@@ -137,6 +139,10 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
   };
 
   const handleSave = async () => {
+    if (!title.trim()) {
+      setError(t('dynamicIssueForm.titleRequired', 'Title is required.'));
+      return;
+    }
     if (!description.trim()) {
       setError(t('dynamicIssueForm.descriptionRequired', 'Description is required.'));
       return;
@@ -149,12 +155,14 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
 
     try {
       const payload: {
+        title: string;
         description: string;
         status: string;
         assigned_to: number | null;
         extra_data: Record<string, unknown>;
         image?: File | null;
       } = {
+        title: title.trim(),
         description,
         status: statusVal,
         assigned_to: operatorId,
@@ -192,6 +200,19 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
         )}
 
         <FormContainer>
+          {/* Title field */}
+          <StyledTextField
+            label={t('dynamicIssueForm.titleLabel', 'Short Summary') + ' *'}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            disabled={saving}
+            fullWidth
+            variant="outlined"
+            slotProps={{
+              htmlInput: { 'data-testid': 'edit-title-input', maxLength: 100 }
+            }}
+          />
+
           {/* Description field */}
           <StyledTextField
             label={t('dashboard.tableDescription', 'Description') + ' *'}

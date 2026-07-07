@@ -6,7 +6,7 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
 import { Dashboard } from '../../pages/Dashboard';
 import { useAuth } from '../../context/AuthContext';
-import { getTenantConfig, getIssues, getOperators } from '../../services/api';
+import { getTenantConfig, getIssues, getOperators, toggleOperatorActive } from '../../services/api';
 import type { TenantConfig, Issue, Operator } from '../../services/types';
 import { EditIssueModal } from '../../components/EditIssueModal/EditIssueModal';
 import {
@@ -195,6 +195,20 @@ export const BacklogView: React.FC = () => {
     setSearchParams(newParams);
   };
 
+  const handleToggleOperatorActive = async (operatorId: number, currentStatus: boolean) => {
+    try {
+      const res = await toggleOperatorActive(operatorId, !currentStatus);
+      setOperators((prev) =>
+        prev.map((op) =>
+          op.id === operatorId ? { ...op, is_active: res.is_active } : op
+        )
+      );
+    } catch (err) {
+      console.error("Failed to toggle operator status:", err);
+      alert(t("dashboard.errorToggleOperator", "Failed to update operator status."));
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -251,6 +265,7 @@ export const BacklogView: React.FC = () => {
             assignedFilter={assignedFilter}
             onAssignedFilterChange={handleAssignedFilterChange}
             onEditIssue={setEditingIssue}
+            onToggleOperatorActive={handleToggleOperatorActive}
           />
         )}
 

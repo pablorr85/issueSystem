@@ -27,6 +27,7 @@ export interface TenantConfig {
 }
 export interface IssuePayload {
   tenant_id: string;
+  title: string;
   description: string;
   photo_url?: string;
   image?: File | null;
@@ -36,6 +37,7 @@ export interface IssuePayload {
 export interface Issue {
   id: number;
   tenant_id: string;
+  title: string;
   status: "pending" | "in_progress" | "resolved" | "blocked" | "wont_fix";
   description: string;
   photo_url?: string;
@@ -60,6 +62,7 @@ export interface Operator {
 
 export interface OperatorTask {
   id: number;
+  title: string;
   status: "pending" | "in_progress" | "resolved" | "blocked" | "wont_fix";
   description: string;
   photo_url?: string;

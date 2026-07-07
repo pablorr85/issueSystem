@@ -241,17 +241,39 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
           return val === filterValue;
         },
       }),
-      columnHelper.accessor("description", {
-        header: () => t("dashboard.tableDescription"),
+      columnHelper.accessor("title", {
+        header: () => t("dashboard.tableTitle"),
         cell: (info) => {
           const issue = info.row.original;
           return (
-            <DescriptionCellSpan
+            <div
               onClick={() => onEditIssue(issue)}
-              data-testid={`edit-issue-desc-${issue.id}`}
+              style={{ display: "flex", flexDirection: "column", cursor: "pointer", gap: "2px" }}
             >
-              {issue.description}
-            </DescriptionCellSpan>
+              <span
+                style={{ fontWeight: "bold", color: "var(--text-primary, #ffffff)" }}
+                data-testid={`edit-issue-title-${issue.id}`}
+              >
+                {issue.title}
+              </span>
+              {issue.description && (
+                <DescriptionCellSpan
+                  style={{
+                    fontSize: "0.85rem",
+                    color: "rgba(255, 255, 255, 0.5)",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    maxWidth: "350px",
+                    display: "block",
+                    padding: 0
+                  }}
+                  data-testid={`edit-issue-desc-${issue.id}`}
+                >
+                  {issue.description}
+                </DescriptionCellSpan>
+              )}
+            </div>
           );
         },
       }),

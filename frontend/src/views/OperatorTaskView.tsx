@@ -227,6 +227,12 @@ export const OperatorTaskView: React.FC = () => {
           </TaskPillsContainer>
         </TaskTitleRow>
 
+        {task.title && (
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', margin: '16px 0 12px 0', color: '#ffffff' }} data-testid="task-title">
+            {task.title}
+          </h2>
+        )}
+
         {getImageUrl(task.image || task.photo_url) ? (
           <TaskPhoto
             src={getImageUrl(task.image || task.photo_url)}
