@@ -191,10 +191,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return filters;
   }, [statusFilter, operatorFilterValue, urgencyFilterValue, urgencyColumnId]);
 
-  // Reset page when filter changes
+  // Reset page when filter changes (handled by parent setStatusFilter)
   const handleFilterChange = (val: string) => {
     setStatusFilter(val);
-    setCurrentPage(1);
   };
 
   const totalPages = Math.ceil(totalCount / 20) || 1;
