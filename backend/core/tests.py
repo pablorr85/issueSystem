@@ -6,7 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import Tenant, Issue, OperatorProfile
+from .models import Tenant, Issue, OperatorProfile, TaskLog
 
 User = get_user_model()
 
@@ -1143,4 +1143,133 @@ class MagicLinkSecurityAndAccessControlTests(APITestCase):
         id_url = reverse('operator-task-detail', kwargs={'secure_token': str(self.issue.id)})
         response = self.client.get(id_url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+from django.core.files.uploadedfile import SimpleUploadedFile
+
+class TaskLogTests(APITestCase):
+    def setUp(self):
+        # Create Tenant
+        self.tenant = Tenant.objects.create(name="Wild Park")
+        
+        # Create Users
+        self.admin = User.objects.create_user(username="admin", password="password", tenant=self.tenant)
+        self.op_user = User.objects.create_user(username="operator", password="password", tenant=self.tenant)
+        self.operator = OperatorProfile.objects.create(user=self.op_user, phone_number="12345")
+        
+        # Create Issue
+        self.issue = Issue.objects.create(
+            tenant=self.tenant,
+            title="Broken Bench",
+            description="Park bench is broken",
+            status="pending",
+            assigned_to=self.op_user
+        )
+
+    def test_task_log_signals_recalculate_totals(self):
+        # Initial cached values
+        self.assertNilOrZero = lambda val: self.assertTrue(val is None or float(val) == 0.0)
+        self.assertNilOrZero(self.issue.total_cost)
+        self.assertNilOrZero(self.issue.total_time_spent_hours)
+        
+        # Create a log entry
+        log1 = TaskLog.objects.create(
+            task=self.issue,
+            text="Initial check",
+            cost=25.50,
+            time_spent_hours=1.5,
+            author_type="OPERATOR",
+            author_operator=self.operator
+        )
+        
+        self.issue.refresh_from_db()
+        self.assertEqual(float(self.issue.total_cost), 25.50)
+        self.assertEqual(float(self.issue.total_time_spent_hours), 1.5)
+        
+        # Create another log entry
+        log2 = TaskLog.objects.create(
+            task=self.issue,
+            text="Fixed bench",
+            cost=10.00,
+            time_spent_hours=0.5,
+            author_type="OPERATOR",
+            author_operator=self.operator
+        )
+        
+        self.issue.refresh_from_db()
+        self.assertEqual(float(self.issue.total_cost), 35.50)
+        self.assertEqual(float(self.issue.total_time_spent_hours), 2.0)
+        
+        # Delete a log entry
+        log1.delete()
+        self.issue.refresh_from_db()
+        self.assertEqual(float(self.issue.total_cost), 10.00)
+        self.assertEqual(float(self.issue.total_time_spent_hours), 0.5)
+
+    def test_logs_endpoint_jwt_authentication(self):
+        # Authenticate manager
+        self.client.force_authenticate(user=self.admin)
+        url = reverse('task-logs', kwargs={'issue_id': self.issue.id})
+        
+        # Post new log
+        response = self.client.post(url, {
+            'text': 'Manager update',
+            'cost': 15.00,
+            'time_spent_hours': 2.0
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['author_type'], 'MANAGER')
+        self.assertEqual(response.data['author_name'], 'admin')
+        
+        # Get logs
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
+    def test_logs_endpoint_operator_token_authentication(self):
+        url = reverse('task-logs', kwargs={'issue_id': self.issue.id})
+        token = str(self.issue.secure_token)
+        
+        # Post log without token -> 403
+        response = self.client.post(url, {'text': 'Op update'})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+        # Post log with token
+        response = self.client.post(f"{url}?token={token}", {
+            'text': 'Op update',
+            'cost': 5.00,
+            'time_spent_hours': 1.0
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['author_type'], 'OPERATOR')
+        self.assertEqual(response.data['author_name'], 'operator')
+
+    def test_close_task_enforces_photo_proof(self):
+        url = reverse('task-logs', kwargs={'issue_id': self.issue.id})
+        token = str(self.issue.secure_token)
+        
+        # Close task without photo -> 400 Bad Request
+        response = self.client.post(f"{url}?token={token}", {
+            'text': 'Closing task attempt',
+            'close_task': 'true'
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('image', response.data)
+        
+        # Close task with photo
+        test_image = SimpleUploadedFile(
+            "test_proof.gif",
+            b'GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;',
+            content_type="image/gif"
+        )
+        response = self.client.post(f"{url}?token={token}", {
+            'text': 'Closing task with proof',
+            'close_task': 'true',
+            'image': test_image
+        }, format='multipart')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.issue.refresh_from_db()
+        self.assertEqual(self.issue.status, 'resolved')
+
 

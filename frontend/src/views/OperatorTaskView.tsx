@@ -9,7 +9,8 @@ import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import { getOperatorTask, updateOperatorTaskStatus } from "../services/api";
 import { getUrgencyLevel, getUrgencyIcon } from "../utils/urgency";
 import type { OperatorTask } from "../services/types";
-import { IssueComments } from "../components/IssueComments/IssueComments";
+import { TaskLogbook } from "../components/TaskLogbook/TaskLogbook";
+import { CompletionReportModal } from "../components/CompletionReportModal/CompletionReportModal";
 import {
   Container,
   MobileCard,
@@ -57,27 +58,26 @@ export const OperatorTaskView: React.FC = () => {
   const [updating, setUpdating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [isResolveModalOpen, setIsResolveModalOpen] = useState<boolean>(false);
 
-  useEffect(() => {
+  const fetchTask = () => {
     if (!secure_token) return;
-    let active = true;
     getOperatorTask(secure_token)
       .then((res) => {
-        if (!active) return;
         setTask(res);
         setLoading(false);
       })
       .catch((err) => {
-        if (!active) return;
         console.error(err);
         setError(
           t("dashboard.errorUpdateTask", "Task not found or invalid token."),
         );
         setLoading(false);
       });
-    return () => {
-      active = false;
-    };
+  };
+
+  useEffect(() => {
+    fetchTask();
   }, [secure_token, t]);
 
   useEffect(() => {
@@ -324,7 +324,7 @@ export const OperatorTaskView: React.FC = () => {
                 <>
                   <ResolveButton
                     variant="contained"
-                    onClick={() => handleUpdateStatus("resolved")}
+                    onClick={() => setIsResolveModalOpen(true)}
                     startIcon={<CheckIcon />}
                     data-testid="task-resolve-btn"
                   >
@@ -341,15 +341,48 @@ export const OperatorTaskView: React.FC = () => {
                 </>
               )}
               {(task.status === "resolved" || task.status === "wont_fix") && (
-                <Alert
-                  severity={task.status === "resolved" ? "success" : "info"}
-                  icon={<CheckIcon />}
-                >
-                  {t(
-                    "dashboard.taskUpdated",
-                    "Task status updated successfully!",
+                <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                  <Alert
+                    severity={task.status === "resolved" ? "success" : "info"}
+                    icon={<CheckIcon />}
+                  >
+                    {task.status === "resolved" 
+                      ? t("operatorHub.resolvedSummary", "Task resolved successfully!")
+                      : t("operatorHub.wontFixSummary", "Task marked as Wont Fix.")}
+                  </Alert>
+                  {task.status === "resolved" && (parseFloat(String(task.total_cost || 0)) > 0 || parseFloat(String(task.total_time_spent_hours || 0)) > 0) && (
+                    <div style={{
+                      display: 'flex',
+                      gap: '12px',
+                      padding: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      fontSize: '0.9rem',
+                      fontWeight: 500,
+                      justifyContent: 'space-around',
+                      width: '100%',
+                      boxSizing: 'border-box'
+                    }}>
+                      {task.total_cost !== null && task.total_cost !== undefined && parseFloat(String(task.total_cost)) > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>{t('logbook.totalCost', 'Total Cost')}</span>
+                          <span style={{ color: '#81c784', fontSize: '1.1rem', fontWeight: 700 }}>
+                            {parseFloat(String(task.total_cost)).toFixed(2)} €
+                          </span>
+                        </div>
+                      )}
+                      {task.total_time_spent_hours !== null && task.total_time_spent_hours !== undefined && parseFloat(String(task.total_time_spent_hours)) > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>{t('logbook.totalTime', 'Total Time')}</span>
+                          <span style={{ color: '#64b5f6', fontSize: '1.1rem', fontWeight: 700 }}>
+                            {parseFloat(String(task.total_time_spent_hours)).toFixed(1)} h
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   )}
-                </Alert>
+                </div>
               )}
               {task.operator_hub_token && (
                 <BackToHubButton
@@ -366,19 +399,24 @@ export const OperatorTaskView: React.FC = () => {
           )}
         </ActionArea>
 
-        <IssueComments
+        <TaskLogbook
           issueId={task.id}
           token={secure_token}
-          showQuickBlock={
-            task.status !== "resolved" &&
-            task.status !== "wont_fix" &&
-            task.status !== "blocked"
-          }
-          onStatusChange={async (newStatus) => {
-            handleUpdateStatus(newStatus);
-          }}
+          onLogAdded={fetchTask}
         />
       </MobileCard>
+      
+      <CompletionReportModal
+        open={isResolveModalOpen}
+        issueId={task.id}
+        token={secure_token}
+        onClose={() => setIsResolveModalOpen(false)}
+        onSuccess={() => {
+          setIsResolveModalOpen(false);
+          fetchTask();
+        }}
+      />
+
       {lightboxImage && (
         <LightboxOverlay
           onClick={() => setLightboxImage(null)}

@@ -215,7 +215,16 @@ export const DashboardView: React.FC = () => {
             issue={editingIssue}
             tenant={config}
             operators={operators}
-            onClose={() => setEditingIssue(null)}
+            onClose={(updatedIssue) => {
+              if (updatedIssue && updatedIssue.id) {
+                setIssues((prev) =>
+                  prev.map((item) =>
+                    item.id === updatedIssue.id ? updatedIssue : item
+                  )
+                );
+              }
+              setEditingIssue(null);
+            }}
             onSuccess={(updatedIssue) => {
               setIssues((prev) =>
                 prev.map((item) =>

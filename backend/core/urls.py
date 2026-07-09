@@ -16,6 +16,7 @@ from .views import (
     IssueReorderView,
     IssueCommentsView,
     IssueBulkAssignView,
+    TaskLogView,
 )
 
 urlpatterns = [
@@ -35,5 +36,6 @@ urlpatterns = [
     path('operator/hub/', OperatorHubView.as_view(), name='operator-hub'),
     path('issues/<int:pk>/', IssueUpdateView.as_view(), name='issue-detail-update'),
     path('issues/<int:issue_id>/comments/', IssueCommentsView.as_view(), name='issue-comments'),
+    path('issues/<int:issue_id>/logs/', TaskLogView.as_view(), name='task-logs'),
 ]
 

@@ -273,6 +273,20 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
                   {issue.description}
                 </DescriptionCellSpan>
               )}
+              {(parseFloat(String(issue.total_cost || 0)) > 0 || parseFloat(String(issue.total_time_spent_hours || 0)) > 0) && (
+                <div style={{ display: 'flex', gap: '8px', marginTop: '4px', fontSize: '0.75rem', fontWeight: 600 }}>
+                  {parseFloat(String(issue.total_cost || 0)) > 0 && (
+                    <span style={{ color: '#81c784', background: 'rgba(129, 199, 132, 0.12)', padding: '1px 6px', borderRadius: '4px' }}>
+                      {parseFloat(String(issue.total_cost)).toFixed(2)} €
+                    </span>
+                  )}
+                  {parseFloat(String(issue.total_time_spent_hours || 0)) > 0 && (
+                    <span style={{ color: '#64b5f6', background: 'rgba(100, 181, 246, 0.12)', padding: '1px 6px', borderRadius: '4px' }}>
+                      {parseFloat(String(issue.total_time_spent_hours)).toFixed(1)} h
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           );
         },

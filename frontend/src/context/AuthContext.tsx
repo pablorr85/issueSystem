@@ -23,23 +23,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     tenantId: localStorage.getItem('tenantId'),
   });
 
-  // Attach token interceptor to API client
-  useEffect(() => {
-    const interceptor = api.interceptors.request.use(
-      (config) => {
-        const token = localStorage.getItem('token');
-        if (token && !config.headers.Authorization) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
 
-    return () => {
-      api.interceptors.request.eject(interceptor);
-    };
-  }, []);
 
   const login = async (username: string, password: string) => {
     try {

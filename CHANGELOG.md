@@ -4,6 +4,16 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
+## [Sprint 28] - Activity Logbook, Proof of Work, Cost & Time Tracking
+### Added
+- Created a new `TaskLog` model to track chronological comments, costs, time spent, and uploaded media attachments for every task, linked via foreign keys to issues and author profiles.
+- Added cumulative database cache fields `total_cost` and `total_time_spent_hours` to the `Issue` model, maintained automatically via real-time Django database signal hooks (`post_save`, `post_delete`).
+- Built the `TaskLogbook` component displaying the chronological activity timeline, highlighting logs with numeric time or cost updates, and allowing incremental submissions.
+- Built the `CompletionReportModal` to enforce "Proof of Work" (compulsory image upload and validation checks) before operators can mark a task as resolved.
+- Integrated the `TaskLogbook` and `CompletionReportModal` into the mobile-focused `OperatorTaskView` to replace basic comments and streamline task resolution.
+- Integrated the `TaskLogbook` and KPI total headers showing cumulative costs and hours into the manager's `EditIssueModal`.
+- Configured robust unit and E2E validation test suites for both Django and React components to ensure complete reliability.
+
 ## [Sprint 27] - Introduce Task Titles for UI Clarity
 ### Added
 - Introduced a required `title` field (max 100 characters) to the `Issue` data model.

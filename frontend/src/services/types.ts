@@ -49,6 +49,8 @@ export interface Issue {
   created_at: string;
   updated_at: string;
   resolved_at?: string;
+  total_cost?: string | number | null;
+  total_time_spent_hours?: string | number | null;
 }
 
 export interface Operator {
@@ -78,6 +80,8 @@ export interface OperatorTask {
   created_at: string;
   updated_at: string;
   resolved_at?: string;
+  total_cost?: string | number | null;
+  total_time_spent_hours?: string | number | null;
 }
 
 export interface PaginatedResponse<T> {
@@ -95,6 +99,19 @@ export interface IssueComment {
   comment_text: string;
   is_system_log: boolean;
   created_at: string;
+}
+
+export interface TaskLog {
+  id: number;
+  task: number;
+  text: string;
+  image?: string | null;
+  cost?: string | number | null;
+  time_spent_hours?: string | number | null;
+  created_at: string;
+  author_type: "MANAGER" | "OPERATOR";
+  author_name: string;
+  role: "manager" | "operator" | "system";
 }
 
 export interface OperatorWorkload {

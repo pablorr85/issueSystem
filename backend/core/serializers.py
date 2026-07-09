@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Tenant, CustomField, Issue, User, IssueComment
+from .models import Tenant, CustomField, Issue, User, IssueComment, TaskLog
 
 class CustomFieldSerializer(serializers.ModelSerializer):
     """
@@ -45,9 +45,10 @@ class IssueSerializer(serializers.ModelSerializer):
         model = Issue
         fields = (
             'id', 'tenant_id', 'title', 'status', 'description', 'photo_url', 'image', 'extra_data',
-            'assigned_to', 'assigned_to_name', 'secure_token', 'created_at', 'updated_at', 'resolved_at'
+            'assigned_to', 'assigned_to_name', 'secure_token', 'created_at', 'updated_at', 'resolved_at',
+            'total_cost', 'total_time_spent_hours'
         )
-        read_only_fields = ('id', 'secure_token', 'created_at', 'updated_at', 'resolved_at')
+        read_only_fields = ('id', 'secure_token', 'created_at', 'updated_at', 'resolved_at', 'total_cost', 'total_time_spent_hours')
 
     def get_resolved_at(self, obj):
         return get_issue_resolved_at(obj)
@@ -180,7 +181,8 @@ class IssueListSerializer(serializers.ModelSerializer):
         model = Issue
         fields = (
             'id', 'tenant_id', 'title', 'status', 'description', 'photo_url', 'image', 'extra_data',
-            'assigned_to', 'assigned_to_name', 'secure_token', 'created_at', 'updated_at', 'resolved_at'
+            'assigned_to', 'assigned_to_name', 'secure_token', 'created_at', 'updated_at', 'resolved_at',
+            'total_cost', 'total_time_spent_hours'
         )
 
     def get_resolved_at(self, obj):
@@ -253,12 +255,12 @@ class OperatorTaskSerializer(serializers.ModelSerializer):
             'id', 'title', 'status', 'description', 'photo_url', 'image', 'extra_data',
             'assigned_to', 'assigned_to_name', 'secure_token', 'operator_hub_token',
             'tenant_name', 'tenant_logo_url', 'tenant_visual_config',
-            'created_at', 'updated_at', 'resolved_at'
+            'created_at', 'updated_at', 'resolved_at', 'total_cost', 'total_time_spent_hours'
         )
         read_only_fields = (
             'id', 'secure_token', 'assigned_to', 'assigned_to_name', 'operator_hub_token',
             'tenant_name', 'tenant_logo_url', 'tenant_visual_config',
-            'created_at', 'updated_at', 'resolved_at'
+            'created_at', 'updated_at', 'resolved_at', 'total_cost', 'total_time_spent_hours'
         )
 
     def get_operator_hub_token(self, obj):
@@ -309,6 +311,32 @@ class IssueCommentSerializer(serializers.ModelSerializer):
         if obj.author_operator:
             return "operator"
         return "unknown"
+
+
+class TaskLogSerializer(serializers.ModelSerializer):
+    author_name = serializers.SerializerMethodField()
+    role = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TaskLog
+        fields = (
+            'id', 'task', 'text', 'image', 'cost', 'time_spent_hours',
+            'created_at', 'author_type', 'author_name', 'role'
+        )
+        read_only_fields = ('id', 'task', 'created_at', 'author_type', 'author_name', 'role')
+
+    def get_author_name(self, obj):
+        if obj.author_user:
+            return obj.author_user.username
+        if obj.author_operator:
+            return obj.author_operator.user.username
+        return "Unknown"
+
+    def get_role(self, obj):
+        if obj.author_type:
+            return obj.author_type.lower()
+        return "operator"
+
 
 
 

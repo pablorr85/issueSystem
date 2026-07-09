@@ -2,7 +2,7 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { DashboardView } from '../../views/DashboardView';
-import { getTenantConfig, getIssues, getOperators, assignIssue, getIssueComments } from '../../services/api';
+import { getTenantConfig, getIssues, getOperators, assignIssue, getIssueComments, getIssue, getTaskLogs, addTaskLog } from '../../services/api';
 import type { TenantConfig, PaginatedResponse, Issue } from '../../services/types';
 
 // Mock Auth Context
@@ -23,7 +23,10 @@ vi.mock('../../services/api', () => ({
   updateIssueStatus: vi.fn(),
   updateIssue: vi.fn(),
   getIssueComments: vi.fn(),
-  addIssueComment: vi.fn()
+  addIssueComment: vi.fn(),
+  getIssue: vi.fn(),
+  getTaskLogs: vi.fn(),
+  addTaskLog: vi.fn()
 }));
 
 const mockTenant: TenantConfig = {
@@ -88,6 +91,8 @@ describe('Dashboard Page Component', () => {
     vi.mocked(getTenantConfig).mockResolvedValue(mockTenant);
     vi.mocked(getOperators).mockResolvedValue(mockOperators);
     vi.mocked(getIssueComments).mockResolvedValue([]);
+    vi.mocked(getTaskLogs).mockResolvedValue([]);
+    vi.mocked(getIssue).mockResolvedValue(mockIssuesResponse.results[0]);
   });
 
   test('renders header title and dynamically maps custom fields columns', async () => {

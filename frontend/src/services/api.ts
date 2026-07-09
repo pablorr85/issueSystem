@@ -8,6 +8,7 @@ import type {
   OperatorTask,
   IssueComment,
   IssueStats,
+  TaskLog,
 } from "./types";
 
 const API_BASE_URL =
@@ -19,6 +20,17 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token && !config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
 
 api.interceptors.response.use(
   (response) => response,
@@ -79,6 +91,11 @@ export const getIssues = async (
   const response = await api.get<PaginatedResponse<Issue>>("/issues/", {
     params,
   });
+  return response.data;
+};
+
+export const getIssue = async (id: number): Promise<Issue> => {
+  const response = await api.get<Issue>(`/issues/${id}/`);
   return response.data;
 };
 
@@ -249,6 +266,61 @@ export const toggleOperatorActive = async (
   const response = await api.post<{ id: number; username: string; is_active: boolean }>(
     `/operators/${id}/toggle-active/`,
     { is_active: isActive }
+  );
+  return response.data;
+};
+
+export const getTaskLogs = async (
+  issueId: number,
+  token?: string,
+): Promise<TaskLog[]> => {
+  const params: Record<string, string> = {};
+  if (token) params.token = token;
+
+  const response = await api.get<TaskLog[]>(`/issues/${issueId}/logs/`, {
+    params,
+  });
+  return response.data;
+};
+
+export const addTaskLog = async (
+  issueId: number,
+  data: {
+    text: string;
+    cost?: number;
+    time_spent_hours?: number;
+    image?: File | null;
+    close_task?: boolean;
+  },
+  token?: string,
+): Promise<TaskLog> => {
+  const params: Record<string, string> = {};
+  if (token) params.token = token;
+
+  const formData = new FormData();
+  formData.append("text", data.text);
+  if (data.cost !== undefined && data.cost !== null) {
+    formData.append("cost", String(data.cost));
+  }
+  if (data.time_spent_hours !== undefined && data.time_spent_hours !== null) {
+    formData.append("time_spent_hours", String(data.time_spent_hours));
+  }
+  if (data.image) {
+    formData.append("image", data.image);
+  }
+  if (data.close_task !== undefined && data.close_task !== null) {
+    formData.append("close_task", String(data.close_task));
+  }
+
+  const response = await api.post<TaskLog>(
+    `/issues/${issueId}/logs/`,
+    formData,
+    {
+      params,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
   );
   return response.data;
 };

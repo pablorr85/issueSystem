@@ -13,9 +13,9 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { updateIssue } from '../../services/api';
+import { updateIssue, getIssue } from '../../services/api';
 import type { Issue, Operator, TenantConfig, CustomField } from '../../services/types';
-import { IssueComments } from '../IssueComments/IssueComments';
+import { TaskLogbook } from '../TaskLogbook/TaskLogbook';
 import { normalizeOptions } from '../../utils/options';
 import {
   StyledDialog,
@@ -47,7 +47,7 @@ export interface EditIssueModalProps {
   issue: Issue;
   tenant: TenantConfig;
   operators: Operator[];
-  onClose: () => void;
+  onClose: (updatedIssue?: Issue) => void;
   onSuccess: (updatedIssue: Issue) => void;
 }
 
@@ -80,10 +80,21 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
+  const [currentIssue, setCurrentIssue] = useState<Issue>(issue);
   const [prevIssueId, setPrevIssueId] = useState<number>(issue.id);
+
+  const fetchUpdatedIssue = async () => {
+    try {
+      const updated = await getIssue(issue.id);
+      setCurrentIssue(updated);
+    } catch (err) {
+      console.error("Failed to refetch issue details:", err);
+    }
+  };
 
   if (issue.id !== prevIssueId) {
     setPrevIssueId(issue.id);
+    setCurrentIssue(issue);
     setTitle(issue.title || '');
     setDescription(issue.description);
     setStatusVal(issue.status);
@@ -186,10 +197,24 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
   const customFields: CustomField[] = tenant.custom_fields || [];
 
   return (
-    <StyledDialog open={open} onClose={onClose} aria-labelledby="edit-issue-dialog-title">
-      <StyledDialogTitle id="edit-issue-dialog-title">
-        <EditIcon sx={{ color: 'var(--primary)' }} />
-        {t('dashboard.editIssue', 'Edit Issue')} #{issue.id}
+    <StyledDialog open={open} onClose={() => onClose(currentIssue)} aria-labelledby="edit-issue-dialog-title">
+      <StyledDialogTitle id="edit-issue-dialog-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <EditIcon sx={{ color: 'var(--primary)' }} />
+          <span>{t('dashboard.editIssue', 'Edit Issue')} #{currentIssue.id}</span>
+        </div>
+        <div style={{ display: 'flex', gap: '12px', fontSize: '0.85rem', fontWeight: 600, marginRight: '16px' }}>
+          {currentIssue.total_cost !== null && currentIssue.total_cost !== undefined && (
+            <span style={{ color: '#81c784', background: 'rgba(129, 199, 132, 0.15)', padding: '4px 10px', borderRadius: '8px', border: '1px solid rgba(129, 199, 132, 0.3)' }}>
+              Cost: {parseFloat(String(currentIssue.total_cost)).toFixed(2)} €
+            </span>
+          )}
+          {currentIssue.total_time_spent_hours !== null && currentIssue.total_time_spent_hours !== undefined && (
+            <span style={{ color: '#64b5f6', background: 'rgba(100, 181, 246, 0.15)', padding: '4px 10px', borderRadius: '8px', border: '1px solid rgba(100, 181, 246, 0.3)' }}>
+              Time: {parseFloat(String(currentIssue.total_time_spent_hours)).toFixed(1)} h
+            </span>
+          )}
+        </div>
       </StyledDialogTitle>
 
       <DialogContent>
@@ -397,12 +422,12 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
             </div>
           )}
 
-          <IssueComments issueId={issue.id} />
+          <TaskLogbook issueId={issue.id} onLogAdded={fetchUpdatedIssue} />
         </FormContainer>
       </DialogContent>
  
       <StyledDialogActions>
-        <CancelButton onClick={onClose} disabled={saving}>
+        <CancelButton onClick={() => onClose(currentIssue)} disabled={saving}>
           {t('dashboard.cancel', 'Cancel')}
         </CancelButton>
         <SaveButton

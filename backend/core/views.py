@@ -1,4 +1,4 @@
-from rest_framework import generics, status
+from rest_framework import generics, status, serializers
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -11,7 +11,7 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from datetime import timedelta
 
-from .models import Tenant, Issue, User, OperatorProfile, IssueComment
+from .models import Tenant, Issue, User, OperatorProfile, IssueComment, TaskLog
 from .serializers import (
     TenantConfigSerializer,
     IssueSerializer,
@@ -22,6 +22,7 @@ from .serializers import (
     IssueAssignmentSerializer,
     OperatorTaskSerializer,
     IssueCommentSerializer,
+    TaskLogSerializer,
 )
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -698,6 +699,128 @@ class IssueBulkAssignView(APIView):
                     thread.start()
 
         return Response({"status": "success", "updated_count": len(changed_issues)}, status=status.HTTP_200_OK)
+
+
+class TaskLogView(generics.ListCreateAPIView):
+    """
+    API view to list task logs and add log entries to a specific task (Issue).
+    Enforces same security and authentication guidelines as IssueCommentsView.
+    Accepts incremental cost, time spent, text comment, and optional image.
+    Enforces 'Proof of Work' (image required) if close_task=True is passed.
+    """
+    serializer_class = TaskLogSerializer
+    permission_classes = []  # Controlled manually in get_queryset/perform_create
+
+    def get_issue(self):
+        issue_id = self.kwargs.get('issue_id')
+        try:
+            return Issue.objects.get(pk=issue_id)
+        except (Issue.DoesNotExist, ValueError):
+            raise NotFound("Task not found.")
+
+    def get_queryset(self):
+        issue = self.get_issue()
+        request = self.request
+        token_str = request.query_params.get('token') or request.headers.get('X-Hub-Token')
+
+        # 1. JWT authentication for managers/employees
+        if request.user and request.user.is_authenticated:
+            if request.user.tenant != issue.tenant:
+                raise PermissionDenied("You do not have permission to access logs for this task.")
+            return issue.logs.all().select_related('author_user', 'author_operator', 'author_operator__user').order_by('created_at')
+
+        # 2. Token-based authentication for operators
+        if token_str:
+            # Secure task token
+            try:
+                task_token = uuid.UUID(token_str)
+                if issue.secure_token == task_token:
+                    return issue.logs.all().select_related('author_user', 'author_operator', 'author_operator__user').order_by('created_at')
+            except ValueError:
+                pass
+
+            # Operator hub token
+            try:
+                hub_token = uuid.UUID(token_str)
+                profile = OperatorProfile.objects.get(hub_token=hub_token)
+                if issue.assigned_to == profile.user:
+                    return issue.logs.all().select_related('author_user', 'author_operator', 'author_operator__user').order_by('created_at')
+            except (OperatorProfile.DoesNotExist, ValueError):
+                pass
+
+        raise PermissionDenied("Unauthorized access to logs.")
+
+    def perform_create(self, serializer):
+        issue = self.get_issue()
+        request = self.request
+        token_str = request.query_params.get('token') or request.headers.get('X-Hub-Token')
+
+        author_user = None
+        author_operator = None
+        author_type = 'OPERATOR'
+
+        # 1. JWT auth user
+        if request.user and request.user.is_authenticated:
+            if request.user.tenant != issue.tenant:
+                raise PermissionDenied("You do not have permission to log on this task.")
+            author_user = request.user
+            author_type = 'MANAGER'
+        
+        # 2. Token auth
+        elif token_str:
+            # Secure task token
+            try:
+                task_token = uuid.UUID(token_str)
+                if issue.secure_token == task_token:
+                    if issue.assigned_to:
+                        try:
+                            author_operator = issue.assigned_to.operator_profile
+                        except OperatorProfile.DoesNotExist:
+                            pass
+            except ValueError:
+                pass
+
+            # Operator hub token
+            if not author_operator:
+                try:
+                    hub_token = uuid.UUID(token_str)
+                    profile = OperatorProfile.objects.get(hub_token=hub_token)
+                    if issue.assigned_to == profile.user:
+                        author_operator = profile
+                except (OperatorProfile.DoesNotExist, ValueError):
+                    pass
+            
+            author_type = 'OPERATOR'
+
+        if not author_user and not author_operator:
+            raise PermissionDenied("Unauthorized to add logs.")
+
+        # Check close_task flag
+        close_task = request.data.get('close_task')
+        if isinstance(close_task, str):
+            close_task = close_task.lower() in ('true', '1')
+        else:
+            close_task = bool(close_task)
+
+        if close_task:
+            # Enforce "Proof of Work" photo upload when closing task
+            has_photo = request.FILES.get('image') or serializer.validated_data.get('image')
+            if not has_photo:
+                raise serializers.ValidationError({"image": "Proof of work (photo) is required to resolve this task."})
+
+        # Save the log
+        log_instance = serializer.save(
+            task=issue,
+            author_type=author_type,
+            author_user=author_user,
+            author_operator=author_operator
+        )
+
+        if close_task:
+            # Atomically update status to resolved
+            issue.status = 'resolved'
+            issue.save(update_fields=['status'])
+
 
 
 

@@ -157,6 +157,20 @@ class Issue(models.Model):
         blank=True,
         help_text="Timestamp when the issue was resolved or marked wont_fix."
     )
+    total_cost = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Cached total material/labor cost logged for this task."
+    )
+    total_time_spent_hours = models.DecimalField(
+        max_digits=7,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Cached total effective time logged in hours for this task."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -263,6 +277,80 @@ class IssueComment(models.Model):
         elif self.author_operator:
             author = self.author_operator.user.username
         return f"Comment by {author} on Issue #{self.issue.id} at {self.created_at}"
+
+
+class TaskLog(models.Model):
+    """
+    Chronological activity logbook for tracking expenses, wrench time,
+    and photo proof of work.
+    """
+    task = models.ForeignKey(
+        Issue,
+        on_delete=models.CASCADE,
+        related_name='logs',
+        help_text="The task (issue) this log belongs to."
+    )
+    text = models.TextField(
+        help_text="Text description or update comment."
+    )
+    image = models.ImageField(
+        upload_to='task_logs/',
+        null=True,
+        blank=True,
+        help_text="Uploaded evidence or proof of work photo."
+    )
+    cost = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Incremental material or service cost for this step."
+    )
+    time_spent_hours = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Incremental effective labor time spent in hours (e.g. 1.5)."
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Timestamp when the log was created."
+    )
+    author_type = models.CharField(
+        max_length=20,
+        choices=[('MANAGER', 'Manager'), ('OPERATOR', 'Operator')],
+        default='OPERATOR',
+        help_text="Role type of the author."
+    )
+    author_user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='task_logs',
+        help_text="Admin/Manager user who created this log, if applicable."
+    )
+    author_operator = models.ForeignKey(
+        OperatorProfile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='task_logs',
+        help_text="Operator profile who created this log, if applicable."
+    )
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self) -> str:
+        author = "System"
+        if self.author_user:
+            author = self.author_user.username
+        elif self.author_operator:
+            author = self.author_operator.user.username
+        return f"Log by {author} on Task #{self.task.id} at {self.created_at}"
+
 
 
 

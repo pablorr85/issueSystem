@@ -1,10 +1,12 @@
 import sys
 import threading
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
 from django.conf import settings
 from django.utils import timezone
-from .models import Issue, IssueComment
+from django.db.models import Sum
+from decimal import Decimal
+from .models import Issue, IssueComment, TaskLog
 from .services.whatsapp import send_whatsapp_message
 
 @receiver(pre_save, sender=Issue)
@@ -105,3 +107,30 @@ def issue_post_save(sender, instance, created, **kwargs):
 
         if comments_to_create:
             IssueComment.objects.bulk_create(comments_to_create)
+
+
+def update_issue_totals(issue):
+    totals = issue.logs.aggregate(
+        total_cost=Sum('cost'),
+        total_time=Sum('time_spent_hours')
+    )
+    issue.total_cost = totals['total_cost']
+    issue.total_time_spent_hours = totals['total_time']
+    issue.save(update_fields=['total_cost', 'total_time_spent_hours'])
+
+
+@receiver(post_save, sender=TaskLog)
+def task_log_post_save(sender, instance, **kwargs):
+    """
+    Recalculate Issue total cost and time spent when a TaskLog is saved.
+    """
+    update_issue_totals(instance.task)
+
+
+@receiver(post_delete, sender=TaskLog)
+def task_log_post_delete(sender, instance, **kwargs):
+    """
+    Recalculate Issue total cost and time spent when a TaskLog is deleted.
+    """
+    update_issue_totals(instance.task)
+
