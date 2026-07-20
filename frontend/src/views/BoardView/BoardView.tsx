@@ -5,11 +5,13 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
 import LaunchIcon from '@mui/icons-material/Launch';
+import PrintIcon from '@mui/icons-material/Print';
 import { DndContext, useDraggable, useDroppable, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import type { DragEndEvent } from '@dnd-kit/core';
 import { useAuth } from '../../context/AuthContext';
 import { getTenantConfig, getIssues, updateIssueStatus } from '../../services/api';
 import type { TenantConfig, Issue } from '../../services/types';
+import { WorkOrderPrintView } from '../../components/WorkOrderPrintView';
 import {
   AppContainer,
   CenteredLoadingContainer,
@@ -90,9 +92,10 @@ const KanbanColumn: React.FC<ColumnProps> = ({ id, title, color, children, count
 
 interface CardProps {
   issue: Issue;
+  onPrint?: (issue: Issue) => void;
 }
 
-const KanbanCard: React.FC<CardProps> = ({ issue }) => {
+const KanbanCard: React.FC<CardProps> = ({ issue, onPrint }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -103,7 +106,8 @@ const KanbanCard: React.FC<CardProps> = ({ issue }) => {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
   } : undefined;
 
-  const zone = getZoneValue(issue.extra_data);
+  const zone = issue.zone_name || getZoneValue(issue.extra_data);
+  const displayLabel = issue.order_number || `ID #${issue.id}`;
 
   return (
     <CardContainer
@@ -144,12 +148,34 @@ const KanbanCard: React.FC<CardProps> = ({ issue }) => {
           }}
           data-testid={`kanban-card-link-${issue.id}`}
         >
-          ID #{issue.id} <LaunchIcon style={{ fontSize: '0.85rem' }} />
+          {displayLabel} <LaunchIcon style={{ fontSize: '0.85rem' }} />
         </span>
         {zone && <span>📍 {zone}</span>}
       </CardMetadataRow>
       <CardMetadataRow style={{ borderTop: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '8px' }}>
         <span>👤 {issue.assigned_to_name || t('dashboard.unassigned')}</span>
+        {onPrint && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onPrint(issue);
+            }}
+            title={t('workOrder.printButton', 'Print Work Order')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-secondary, #c5c2d9)',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '2px 4px',
+              borderRadius: '4px'
+            }}
+            data-testid={`print-work-order-btn-${issue.id}`}
+          >
+            <PrintIcon style={{ fontSize: '1rem' }} />
+          </button>
+        )}
       </CardMetadataRow>
     </CardContainer>
   );
@@ -174,6 +200,7 @@ export const BoardView: React.FC = () => {
 
   const [issues, setIssues] = useState<Issue[]>([]);
   const [issuesLoading, setIssuesLoading] = useState<boolean>(true);
+  const [printIssue, setPrintIssue] = useState<Issue | null>(null);
 
   if (tenantId !== prevTenantId) {
     setPrevTenantId(tenantId);
@@ -198,7 +225,7 @@ export const BoardView: React.FC = () => {
       })
       .catch(err => {
         if (!active) return;
-        console.error('Failed to load tenant config for board:', err);
+        console.error("Failed to load tenant config:", err);
         setLoading(false);
       });
     return () => {
@@ -207,44 +234,10 @@ export const BoardView: React.FC = () => {
   }, [tenantId, i18n]);
 
   useEffect(() => {
-    if (config?.visual_config?.primary_color) {
-      const hex = config.visual_config.primary_color;
-      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-      if (result) {
-        const r = parseInt(result[1], 16) / 255;
-        const g = parseInt(result[2], 16) / 255;
-        const b = parseInt(result[3], 16) / 255;
-        const max = Math.max(r, g, b), min = Math.min(r, g, b);
-        let h = 0, s = 0, l = (max + min) / 2;
-        if (max !== min) {
-          const d = max - min;
-          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-          switch (max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-          }
-          h /= 6;
-        }
-        h = Math.round(h * 360);
-        s = Math.round(s * 100);
-        l = Math.round(l * 100);
-
-        document.documentElement.style.setProperty('--primary-hue', `${h}`);
-        document.documentElement.style.setProperty('--primary', `hsl(${h}, ${s}%, ${l}%)`);
-        document.documentElement.style.setProperty('--primary-hover', `hsl(${h}, ${s}%, ${l - 10}%)`);
-      }
-    } else {
-      document.documentElement.style.setProperty('--primary-hue', '260');
-      document.documentElement.style.setProperty('--primary', 'hsl(260, 85%, 60%)');
-      document.documentElement.style.setProperty('--primary-hover', 'hsl(260, 85%, 50%)');
-    }
-  }, [config]);
-
-  // Fetch Board Issues (assigned_to NOT NULL, active or resolved in < 24h)
-  useEffect(() => {
     if (!config) return;
     let active = true;
+    document.documentElement.style.setProperty('--primary-color', config.visual_config.primary_color || '#2563eb');
+    document.documentElement.style.setProperty('--secondary-color', config.visual_config.secondary_color || '#3b82f6');
     getIssues(config.id, undefined, undefined, true)
       .then(res => {
         if (!active) return;
@@ -274,7 +267,7 @@ export const BoardView: React.FC = () => {
 
     const targetStatus: Issue['status'] = newStatus === 'done'
       ? (issue.status === 'wont_fix' ? 'wont_fix' : 'resolved')
-      : newStatus;
+      : (newStatus as Issue['status']);
 
     if (issue.status === targetStatus) return;
 
@@ -305,6 +298,7 @@ export const BoardView: React.FC = () => {
   // Group Issues by column
   const pendingIssues = useMemo(() => issues.filter(i => i.status === 'pending'), [issues]);
   const inProgressIssues = useMemo(() => issues.filter(i => i.status === 'in_progress'), [issues]);
+  const qaIssues = useMemo(() => issues.filter(i => i.status === 'qa'), [issues]);
   const blockedIssues = useMemo(() => issues.filter(i => i.status === 'blocked'), [issues]);
   const doneIssues = useMemo(() => issues.filter(i => ['resolved', 'wont_fix'].includes(i.status)), [issues]);
 
@@ -318,6 +312,13 @@ export const BoardView: React.FC = () => {
 
   return (
     <AppContainer $wide>
+      {printIssue && (
+        <WorkOrderPrintView
+          issue={printIssue}
+          tenantName={config?.name}
+          onClose={() => setPrintIssue(null)}
+        />
+      )}
       <AppHeader>
         <AppTitle>{t('app.appTitle')}</AppTitle>
         <AppSubtitle>{t('app.appSubtitle')}</AppSubtitle>
@@ -353,25 +354,31 @@ export const BoardView: React.FC = () => {
             <BoardGrid>
               <KanbanColumn id="pending" title={t('dashboard.kanbanPending')} color="#3b82f6" count={pendingIssues.length}>
                 {pendingIssues.map(issue => (
-                  <KanbanCard key={issue.id} issue={issue} />
+                  <KanbanCard key={issue.id} issue={issue} onPrint={setPrintIssue} />
                 ))}
               </KanbanColumn>
 
               <KanbanColumn id="in_progress" title={t('dashboard.kanbanInProgress')} color="#10b981" count={inProgressIssues.length}>
                 {inProgressIssues.map(issue => (
-                  <KanbanCard key={issue.id} issue={issue} />
+                  <KanbanCard key={issue.id} issue={issue} onPrint={setPrintIssue} />
+                ))}
+              </KanbanColumn>
+
+              <KanbanColumn id="qa" title={t('dashboard.kanbanQA', 'Verification (QA)')} color="#f59e0b" count={qaIssues.length}>
+                {qaIssues.map(issue => (
+                  <KanbanCard key={issue.id} issue={issue} onPrint={setPrintIssue} />
                 ))}
               </KanbanColumn>
 
               <KanbanColumn id="blocked" title={t('dashboard.kanbanBlocked')} color="#ef4444" count={blockedIssues.length}>
                 {blockedIssues.map(issue => (
-                  <KanbanCard key={issue.id} issue={issue} />
+                  <KanbanCard key={issue.id} issue={issue} onPrint={setPrintIssue} />
                 ))}
               </KanbanColumn>
 
               <KanbanColumn id="done" title={t('dashboard.kanbanDone')} color="#6b7280" count={doneIssues.length}>
                 {doneIssues.map(issue => (
-                  <KanbanCard key={issue.id} issue={issue} />
+                  <KanbanCard key={issue.id} issue={issue} onPrint={setPrintIssue} />
                 ))}
               </KanbanColumn>
             </BoardGrid>

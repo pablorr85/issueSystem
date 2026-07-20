@@ -1,5 +1,15 @@
 from rest_framework import serializers
-from .models import Tenant, CustomField, Issue, User, IssueComment, TaskLog
+from .models import Tenant, CustomField, Zone, Issue, User, IssueComment, TaskLog
+
+
+class ZoneSerializer(serializers.ModelSerializer):
+    """
+    Serializer for exposing and creating Tenant physical zones/facilities.
+    """
+    class Meta:
+        model = Zone
+        fields = ('id', 'name', 'created_at')
+
 
 class CustomFieldSerializer(serializers.ModelSerializer):
     """
@@ -15,10 +25,11 @@ class TenantConfigSerializer(serializers.ModelSerializer):
     Serializer for exposing tenant configuration and its dynamic custom fields.
     """
     custom_fields = CustomFieldSerializer(many=True, read_only=True)
+    zones = ZoneSerializer(many=True, read_only=True)
 
     class Meta:
         model = Tenant
-        fields = ('id', 'name', 'logo_url', 'visual_config', 'custom_fields', 'default_language')
+        fields = ('id', 'name', 'logo_url', 'visual_config', 'custom_fields', 'zones', 'default_language')
 
 
 def get_issue_resolved_at(obj):
@@ -31,6 +42,7 @@ class IssueSerializer(serializers.ModelSerializer):
     Validates dynamic extra_data against the Tenant's CustomField schemas.
     """
     tenant_id = serializers.UUIDField(write_only=True, required=False)
+    zone_name = serializers.CharField(source='zone.name', read_only=True, default='')
     assigned_to = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
         allow_null=True,
@@ -44,11 +56,12 @@ class IssueSerializer(serializers.ModelSerializer):
     class Meta:
         model = Issue
         fields = (
-            'id', 'tenant_id', 'title', 'status', 'description', 'photo_url', 'image', 'extra_data',
-            'assigned_to', 'assigned_to_name', 'secure_token', 'created_at', 'updated_at', 'resolved_at',
+            'id', 'tenant_id', 'order_number', 'zone', 'zone_name', 'title', 'status', 'description',
+            'qa_checklist', 'photo_url', 'image', 'extra_data', 'assigned_to', 'assigned_to_name',
+            'secure_token', 'started_at', 'completed_at', 'created_at', 'updated_at', 'resolved_at',
             'total_cost', 'total_time_spent_hours'
         )
-        read_only_fields = ('id', 'secure_token', 'created_at', 'updated_at', 'resolved_at', 'total_cost', 'total_time_spent_hours')
+        read_only_fields = ('id', 'order_number', 'secure_token', 'created_at', 'updated_at', 'started_at', 'completed_at', 'resolved_at', 'total_cost', 'total_time_spent_hours')
 
     def get_resolved_at(self, obj):
         return get_issue_resolved_at(obj)
@@ -172,6 +185,7 @@ class IssueListSerializer(serializers.ModelSerializer):
     Serializer for paginated read-only list of issues, exposing the tenant UUID.
     """
     tenant_id = serializers.UUIDField(source='tenant.id', read_only=True)
+    zone_name = serializers.CharField(source='zone.name', read_only=True, default='')
     assigned_to = serializers.PrimaryKeyRelatedField(read_only=True)
     assigned_to_name = serializers.CharField(source='assigned_to.username', read_only=True, default='')
     secure_token = serializers.UUIDField(read_only=True)
@@ -180,8 +194,9 @@ class IssueListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Issue
         fields = (
-            'id', 'tenant_id', 'title', 'status', 'description', 'photo_url', 'image', 'extra_data',
-            'assigned_to', 'assigned_to_name', 'secure_token', 'created_at', 'updated_at', 'resolved_at',
+            'id', 'tenant_id', 'order_number', 'zone', 'zone_name', 'title', 'status', 'description',
+            'qa_checklist', 'photo_url', 'image', 'extra_data', 'assigned_to', 'assigned_to_name',
+            'secure_token', 'started_at', 'completed_at', 'created_at', 'updated_at', 'resolved_at',
             'total_cost', 'total_time_spent_hours'
         )
 

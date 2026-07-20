@@ -9,6 +9,7 @@ import type {
   IssueComment,
   IssueStats,
   TaskLog,
+  Zone,
 } from "./types";
 
 const API_BASE_URL =
@@ -54,18 +55,36 @@ export const getTenantConfig = async (
   return response.data;
 };
 
+export const getZones = async (): Promise<Zone[]> => {
+  const response = await api.get<Zone[]>("/zones/");
+  return response.data;
+};
+
+export const createZone = async (name: string): Promise<Zone> => {
+  const response = await api.post<Zone>("/zones/", { name });
+  return response.data;
+};
+
 export const createIssue = async (payload: IssuePayload): Promise<Issue> => {
   const formData = new FormData();
   formData.append("tenant_id", payload.tenant_id);
   formData.append("title", payload.title);
   formData.append("description", payload.description);
+  formData.append("extra_data", JSON.stringify(payload.extra_data));
+
+  if (payload.zone !== undefined && payload.zone !== null) {
+    formData.append("zone", String(payload.zone));
+  }
+  if (payload.qa_checklist !== undefined) {
+    formData.append("qa_checklist", payload.qa_checklist);
+  }
+
   if (payload.photo_url) {
     formData.append("photo_url", payload.photo_url);
   }
   if (payload.image) {
     formData.append("image", payload.image);
   }
-  formData.append("extra_data", JSON.stringify(payload.extra_data));
 
   const response = await api.post<Issue>("/issues/create/", formData, {
     headers: {
@@ -122,10 +141,24 @@ export const updateIssue = async (
     assigned_to?: number | null;
     extra_data?: Record<string, unknown>;
     image?: File | null;
+    zone?: number | null;
+    qa_checklist?: string;
   },
 ): Promise<Issue> => {
-  if (payload.image === undefined) {
-    const response = await api.patch<Issue>(`/issues/${id}/`, payload);
+  const isOnlyStatusUpdate =
+    payload.status !== undefined &&
+    payload.title === undefined &&
+    payload.description === undefined &&
+    payload.assigned_to === undefined &&
+    payload.extra_data === undefined &&
+    payload.image === undefined &&
+    payload.zone === undefined &&
+    payload.qa_checklist === undefined;
+
+  if (isOnlyStatusUpdate) {
+    const response = await api.patch<Issue>(`/issues/${id}/status/`, {
+      status: payload.status,
+    });
     return response.data;
   }
 
@@ -139,6 +172,12 @@ export const updateIssue = async (
   if (payload.status !== undefined) {
     formData.append("status", payload.status);
   }
+  if (payload.zone !== undefined) {
+    formData.append("zone", payload.zone !== null ? String(payload.zone) : "");
+  }
+  if (payload.qa_checklist !== undefined) {
+    formData.append("qa_checklist", payload.qa_checklist);
+  }
   if (payload.assigned_to !== undefined) {
     formData.append(
       "assigned_to",
@@ -148,10 +187,12 @@ export const updateIssue = async (
   if (payload.extra_data !== undefined) {
     formData.append("extra_data", JSON.stringify(payload.extra_data));
   }
-  if (payload.image !== null) {
-    formData.append("image", payload.image);
-  } else {
-    formData.append("image", "");
+  if (payload.image !== undefined) {
+    if (payload.image !== null) {
+      formData.append("image", payload.image);
+    } else {
+      formData.append("image", "");
+    }
   }
 
   const response = await api.patch<Issue>(`/issues/${id}/`, formData, {

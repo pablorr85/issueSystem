@@ -17,9 +17,11 @@ from .views import (
     IssueCommentsView,
     IssueBulkAssignView,
     TaskLogView,
+    ZoneListCreateView,
 )
 
 urlpatterns = [
+    path('zones/', ZoneListCreateView.as_view(), name='zone-list-create'),
     path('tenant/<uuid:id>/config/', TenantConfigView.as_view(), name='tenant-config'),
     path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

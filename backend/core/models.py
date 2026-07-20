@@ -80,6 +80,27 @@ class CustomField(models.Model):
         return f"{self.tenant.name} - {self.name} ({self.field_type})"
 
 
+class Zone(models.Model):
+    """
+    Represents a specific physical location, building block, or area within a Tenant facility.
+    """
+    tenant: Tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name='zones',
+        db_index=True,
+        help_text="Tenant that owns this zone/facility area."
+    )
+    name: str = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('tenant', 'name')
+
+    def __str__(self) -> str:
+        return f"{self.tenant.name} - {self.name}"
+
+
 class Issue(models.Model):
     """
     The core entity representing a reported maintenance or repair problem.
@@ -87,6 +108,7 @@ class Issue(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('in_progress', 'In Progress'),
+        ('qa', 'QA / Verification'),
         ('resolved', 'Resolved'),
         ('blocked', 'Blocked'),
         ('wont_fix', 'Wont Fix'),
@@ -99,11 +121,26 @@ class Issue(models.Model):
         db_index=True,
         help_text="Tenant this issue belongs to."
     )
+    order_number: str = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text="Auto-generated sequential order identifier (e.g. WO-00042)."
+    )
+    zone = models.ForeignKey(
+        Zone,
+        on_delete=models.SET_NULL,
+        related_name='issues',
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Physical zone/area associated with this issue."
+    )
     status: str = models.CharField(
         max_length=50,
         default='pending',
         choices=STATUS_CHOICES,
-        help_text="Status of the issue (e.g. pending, in_progress, resolved, wont_fix)."
+        help_text="Status of the issue (e.g. pending, in_progress, qa, resolved, wont_fix)."
     )
     title: str = models.CharField(
         max_length=100,
@@ -113,6 +150,11 @@ class Issue(models.Model):
     )
     description: str = models.TextField(
         help_text="Detailed description of the issue."
+    )
+    qa_checklist: str = models.TextField(
+        blank=True,
+        default="",
+        help_text="Custom verification checklist steps specified by manager, separated by line breaks."
     )
     photo_url: str = models.URLField(
         max_length=500,
@@ -152,6 +194,16 @@ class Issue(models.Model):
         blank=True,
         help_text="Secure passwordless lookup token for operators."
     )
+    started_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp when execution started."
+    )
+    completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp when execution completed (or submitted to QA)."
+    )
     resolved_at = models.DateTimeField(
         null=True,
         blank=True,
@@ -178,9 +230,12 @@ class Issue(models.Model):
         if not self.secure_token:
             self.secure_token = uuid.uuid4()
         super().save(*args, **kwargs)
+        if not self.order_number:
+            self.order_number = f"WO-{self.id:05d}"
+            super().save(update_fields=['order_number'])
 
     def __str__(self) -> str:
-        return f"Issue #{self.id} ({self.tenant.name}) - {self.status}"
+        return f"Issue #{self.id} ({self.order_number or 'No WO'}) ({self.tenant.name}) - {self.status}"
 
 
 

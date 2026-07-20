@@ -11,9 +11,10 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from datetime import timedelta
 
-from .models import Tenant, Issue, User, OperatorProfile, IssueComment, TaskLog
+from .models import Tenant, Zone, Issue, User, OperatorProfile, IssueComment, TaskLog
 from .serializers import (
     TenantConfigSerializer,
+    ZoneSerializer,
     IssueSerializer,
     IssueListSerializer,
     IssueStatusUpdateSerializer,
@@ -24,6 +25,22 @@ from .serializers import (
     IssueCommentSerializer,
     TaskLogSerializer,
 )
+
+
+class ZoneListCreateView(generics.ListCreateAPIView):
+    """
+    API endpoint to list and create physical zones for the current tenant.
+    """
+    serializer_class = ZoneSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Zone.objects.filter(tenant=user.tenant).order_by('name')
+
+    def perform_create(self, serializer):
+        serializer.save(tenant=self.request.user.tenant)
+
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     """
@@ -90,17 +107,26 @@ class IssuePagination(PageNumberPagination):
 
 class IssueStatsView(APIView):
     """
-    API endpoint that returns high-level dashboard metrics for a tenant.
-    Access restricted to authenticated employees of the tenant.
+    API endpoint returning dashboard metrics:
+    - Unassigned issues count
+    - In Progress issues count
+    - QA / Verification count
+    - Blocked issues count
+    - Operator active workload
+    - 30-day operator resolution performance
+    - Zone incident hotspots
     """
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
-        tenant = request.user.tenant
+    def get(self, request):
+        user = request.user
+        tenant = user.tenant
+
         if not tenant:
             return Response({
                 'unassigned_count': 0,
                 'in_progress_count': 0,
+                'qa_count': 0,
                 'blocked_count': 0,
                 'operator_workload': [],
                 'operator_performance': [],
@@ -110,6 +136,7 @@ class IssueStatsView(APIView):
         issues = Issue.objects.filter(tenant=tenant)
         unassigned = issues.filter(assigned_to__isnull=True).exclude(status__in=['resolved', 'wont_fix']).count()
         in_progress = issues.filter(status='in_progress').count()
+        qa_count = issues.filter(status='qa').count()
         blocked = issues.filter(status='blocked').count()
 
         # 1. Operator Workload (Active tasks grouped by active operators)
@@ -119,7 +146,7 @@ class IssueStatsView(APIView):
         ).annotate(
             task_count=Count(
                 'assigned_issues',
-                filter=Q(assigned_issues__status__in=['pending', 'in_progress', 'blocked'])
+                filter=Q(assigned_issues__status__in=['pending', 'in_progress', 'qa', 'blocked'])
             )
         ).order_by('-task_count', 'username')
         
@@ -162,7 +189,13 @@ class IssueStatsView(APIView):
         ).first()
 
         zone_hotspots = []
-        if zone_field:
+        if Zone.objects.filter(tenant=tenant).exists():
+            z_qs = Zone.objects.filter(tenant=tenant).annotate(incident_count=Count('issues')).order_by('-incident_count')[:5]
+            for z in z_qs:
+                if z.incident_count > 0:
+                    zone_hotspots.append({"zone": z.name, "count": z.incident_count})
+
+        if not zone_hotspots and zone_field:
             zone_key = zone_field.name
             queryset = Issue.objects.filter(tenant=tenant).values(f'extra_data__{zone_key}').annotate(
                 incident_count=Count('id')
@@ -175,7 +208,7 @@ class IssueStatsView(APIView):
                         "zone": str(zone_val),
                         "count": item['incident_count']
                     })
-        else:
+        elif not zone_hotspots:
             # Fallback: aggregate in memory if no specific zone custom field is defined
             from collections import Counter
             counter = Counter()
@@ -196,6 +229,7 @@ class IssueStatsView(APIView):
         return Response({
             'unassigned_count': unassigned,
             'in_progress_count': in_progress,
+            'qa_count': qa_count,
             'blocked_count': blocked,
             'operator_workload': operator_workload,
             'operator_performance': operator_performance,
@@ -222,7 +256,7 @@ class IssueListView(generics.ListAPIView):
     def get_queryset(self):
         # Enforce multi-tenant data isolation at database level
         user = self.request.user
-        queryset = Issue.objects.filter(tenant=user.tenant).select_related('tenant', 'assigned_to').order_by('order_index', '-created_at')
+        queryset = Issue.objects.filter(tenant=user.tenant).select_related('tenant', 'assigned_to', 'zone').order_by('order_index', '-created_at')
         
         board_param = self.request.query_params.get('board')
         if board_param == 'true':
@@ -236,7 +270,7 @@ class IssueListView(generics.ListAPIView):
             # Condition 2: status is active (not Done/WontFix, or Done/WontFix updated within last 24h)
             cutoff = timezone.now() - timedelta(hours=24)
             queryset = queryset.filter(
-                Q(status__in=['pending', 'in_progress', 'blocked']) |
+                Q(status__in=['pending', 'in_progress', 'qa', 'blocked']) |
                 Q(status__in=['resolved', 'wont_fix'], updated_at__gte=cutoff)
             )
         else:

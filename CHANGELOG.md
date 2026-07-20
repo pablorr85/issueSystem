@@ -4,6 +4,18 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
+## [Sprint 29] - Printable Work Orders & Configurable QA Flow
+### Added
+- Created `Zone` model linked to `Tenant` for structured facility/area management (`GET/POST /api/zones/`).
+- Extended `Issue` model with `order_number` (`WO-00001` format), `zone`, `started_at`, `completed_at`, `qa_checklist`, and added `'qa'` ("Verification / QA") status choice.
+- Implemented Django `issue_pre_save` signal automation to stamp `started_at` when entering `in_progress` and `completed_at` when entering `qa` or `resolved`.
+- Expanded `IssueSerializer` and `IssueListSerializer` to expose order numbers, zones, QA checklists, and execution timestamps.
+- Updated Operations Kanban Board (`BoardView`) to support 5 columns including the new "Verification (QA)" stage.
+- Engineered `WorkOrderPrintView` component styled with A4 `@media print` rules, signature lines, total material/service cost & effective time worked display (or manual pen line if empty), and dynamic `[ ]` checklist checkboxes for physical paper work orders.
+- Integrated "Print Work Order" trigger buttons on Kanban cards and inside `EditIssueModal`.
+- Added standardized default QA "Definition of Done" (DoD) checklist fallback items (Cleanliness, Functionality, Safety, Visual Inspection) to work orders and added a "+ Load Default Checklist (DoD)" quick action in `EditIssueModal`.
+- Added localization catalogs for Spanish and English covering all QA workflow and Work Order print elements.
+
 ## [Sprint 28] - Activity Logbook, Proof of Work, Cost & Time Tracking
 ### Added
 - Created a new `TaskLog` model to track chronological comments, costs, time spent, and uploaded media attachments for every task, linked via foreign keys to issues and author profiles.

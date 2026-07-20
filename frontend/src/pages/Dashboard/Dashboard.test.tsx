@@ -26,7 +26,9 @@ vi.mock('../../services/api', () => ({
   addIssueComment: vi.fn(),
   getIssue: vi.fn(),
   getTaskLogs: vi.fn(),
-  addTaskLog: vi.fn()
+  addTaskLog: vi.fn(),
+  getZones: vi.fn().mockResolvedValue([]),
+  createZone: vi.fn().mockResolvedValue({ id: 1, name: 'Test Zone' })
 }));
 
 const mockTenant: TenantConfig = {

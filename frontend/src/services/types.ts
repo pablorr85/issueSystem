@@ -16,12 +16,19 @@ export interface CustomField {
   options: (string | CustomFieldOption)[];
 }
 
+export interface Zone {
+  id: number;
+  name: string;
+  created_at: string;
+}
+
 export interface TenantConfig {
   id: string;
   name: string;
   logo_url: string | null;
   visual_config: TenantVisualConfig;
   custom_fields: CustomField[];
+  zones?: Zone[];
   is_public_reporting_enabled: boolean;
   default_language: "es" | "en";
 }
@@ -32,20 +39,30 @@ export interface IssuePayload {
   photo_url?: string;
   image?: File | null;
   extra_data: Record<string, unknown>;
+  zone?: number | null;
+  qa_checklist?: string;
 }
+
+export type IssueStatus = "pending" | "in_progress" | "qa" | "resolved" | "blocked" | "wont_fix";
 
 export interface Issue {
   id: number;
   tenant_id: string;
+  order_number?: string | null;
+  zone?: number | null;
+  zone_name?: string;
   title: string;
-  status: "pending" | "in_progress" | "resolved" | "blocked" | "wont_fix";
+  status: IssueStatus;
   description: string;
+  qa_checklist?: string;
   photo_url?: string;
   image?: string | null;
   extra_data: Record<string, unknown>;
   assigned_to: number | null;
   assigned_to_name: string;
   secure_token: string;
+  started_at?: string | null;
+  completed_at?: string | null;
   created_at: string;
   updated_at: string;
   resolved_at?: string;
@@ -64,9 +81,13 @@ export interface Operator {
 
 export interface OperatorTask {
   id: number;
+  order_number?: string | null;
+  zone?: number | null;
+  zone_name?: string;
   title: string;
-  status: "pending" | "in_progress" | "resolved" | "blocked" | "wont_fix";
+  status: IssueStatus;
   description: string;
+  qa_checklist?: string;
   photo_url?: string;
   image?: string | null;
   extra_data: Record<string, unknown>;
@@ -77,6 +98,8 @@ export interface OperatorTask {
   tenant_name: string;
   tenant_logo_url: string | null;
   tenant_visual_config: TenantVisualConfig;
+  started_at?: string | null;
+  completed_at?: string | null;
   created_at: string;
   updated_at: string;
   resolved_at?: string;
@@ -134,6 +157,7 @@ export interface ZoneHotspot {
 export interface IssueStats {
   unassigned_count: number;
   in_progress_count: number;
+  qa_count?: number;
   blocked_count: number;
   operator_workload: OperatorWorkload[];
   operator_performance: OperatorPerformance[];

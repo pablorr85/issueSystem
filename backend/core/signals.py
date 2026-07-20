@@ -28,6 +28,12 @@ def issue_pre_save(sender, instance, **kwargs):
         instance._old_assigned_to = None
         instance._old_status = None
 
+    if instance.status == 'in_progress' and not instance.started_at:
+        instance.started_at = timezone.now()
+
+    if instance.status in ('qa', 'resolved', 'wont_fix') and not instance.completed_at:
+        instance.completed_at = timezone.now()
+
     if instance.status in ('resolved', 'wont_fix'):
         if instance._old_status not in ('resolved', 'wont_fix'):
             instance.resolved_at = timezone.now()

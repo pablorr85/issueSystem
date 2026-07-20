@@ -8,14 +8,17 @@ import {
   CircularProgress,
   Alert,
   Switch,
-  FormControlLabel
+  FormControlLabel,
+  Button
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { updateIssue, getIssue } from '../../services/api';
-import type { Issue, Operator, TenantConfig, CustomField } from '../../services/types';
+import PrintIcon from '@mui/icons-material/Print';
+import { updateIssue, getIssue, getZones } from '../../services/api';
+import type { Issue, Operator, TenantConfig, CustomField, Zone } from '../../services/types';
 import { TaskLogbook } from '../TaskLogbook/TaskLogbook';
+import { WorkOrderPrintView } from '../WorkOrderPrintView';
 import { normalizeOptions } from '../../utils/options';
 import {
   StyledDialog,
@@ -62,10 +65,16 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
   const { t } = useTranslation();
   const [title, setTitle] = useState<string>(issue.title || '');
   const [description, setDescription] = useState<string>(issue.description);
+  const [qaChecklist, setQaChecklist] = useState<string>(issue.qa_checklist || '');
   const [statusVal, setStatusVal] = useState<string>(issue.status);
   const [assignedTo, setAssignedTo] = useState<string>(
     issue.assigned_to !== null && issue.assigned_to !== undefined ? String(issue.assigned_to) : ''
   );
+  const [zoneVal, setZoneVal] = useState<string>(
+    issue.zone !== null && issue.zone !== undefined ? String(issue.zone) : ''
+  );
+  const [zones, setZones] = useState<Zone[]>(tenant.zones || []);
+  const [showPrintView, setShowPrintView] = useState<boolean>(false);
   
   // Dynamic fields state
   const [extraData, setExtraData] = useState<Record<string, unknown>>(issue.extra_data || {});
@@ -83,6 +92,14 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
   const [currentIssue, setCurrentIssue] = useState<Issue>(issue);
   const [prevIssueId, setPrevIssueId] = useState<number>(issue.id);
 
+  useEffect(() => {
+    if (typeof getZones === 'function') {
+      getZones()
+        .then(res => setZones(res || []))
+        .catch(err => console.error("Failed to fetch zones:", err));
+    }
+  }, []);
+
   const fetchUpdatedIssue = async () => {
     try {
       const updated = await getIssue(issue.id);
@@ -97,8 +114,10 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
     setCurrentIssue(issue);
     setTitle(issue.title || '');
     setDescription(issue.description);
+    setQaChecklist(issue.qa_checklist || '');
     setStatusVal(issue.status);
     setAssignedTo(issue.assigned_to !== null && issue.assigned_to !== undefined ? String(issue.assigned_to) : '');
+    setZoneVal(issue.zone !== null && issue.zone !== undefined ? String(issue.zone) : '');
     setExtraData(issue.extra_data || {});
     setImageFile(null);
     setImagePreview(issue.image || null);
@@ -149,6 +168,16 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
     }
   };
 
+  const handleLoadDefaultChecklist = () => {
+    const defaults = [
+      t('workOrder.defaultChecklist1', 'Cleanliness: Work area cleaned, sanitized, and clear of debris or tools.'),
+      t('workOrder.defaultChecklist2', 'Functionality: Operation and functional checks successfully completed.'),
+      t('workOrder.defaultChecklist3', 'Safety: Covers, guards, and safety components reinstalled and verified.'),
+      t('workOrder.defaultChecklist4', 'Visual Inspection: Aesthetic finish and structural condition approved.')
+    ].join('\n');
+    setQaChecklist(defaults);
+  };
+
   const handleSave = async () => {
     if (!title.trim()) {
       setError(t('dynamicIssueForm.titleRequired', 'Title is required.'));
@@ -163,20 +192,25 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
     setError(null);
 
     const operatorId = assignedTo === '' ? null : Number(assignedTo);
+    const selectedZoneId = zoneVal === '' ? null : Number(zoneVal);
 
     try {
       const payload: {
         title: string;
         description: string;
+        qa_checklist: string;
         status: string;
         assigned_to: number | null;
+        zone: number | null;
         extra_data: Record<string, unknown>;
         image?: File | null;
       } = {
         title: title.trim(),
         description,
+        qa_checklist: qaChecklist,
         status: statusVal,
         assigned_to: operatorId,
+        zone: selectedZoneId,
         extra_data: extraData
       };
 
@@ -198,10 +232,24 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
 
   return (
     <StyledDialog open={open} onClose={() => onClose(currentIssue)} aria-labelledby="edit-issue-dialog-title">
+      {showPrintView && (
+        <WorkOrderPrintView
+          issue={{
+            ...currentIssue,
+            title,
+            description,
+            qa_checklist: qaChecklist,
+            status: statusVal as Issue['status'],
+            zone_name: zones.find(z => String(z.id) === zoneVal)?.name || currentIssue.zone_name
+          }}
+          tenantName={tenant.name}
+          onClose={() => setShowPrintView(false)}
+        />
+      )}
       <StyledDialogTitle id="edit-issue-dialog-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <EditIcon sx={{ color: 'var(--primary)' }} />
-          <span>{t('dashboard.editIssue', 'Edit Issue')} #{currentIssue.id}</span>
+          <span>{t('dashboard.editIssue', 'Edit Issue')} {currentIssue.order_number ? `(${currentIssue.order_number})` : `#${currentIssue.id}`}</span>
         </div>
         <div style={{ display: 'flex', gap: '12px', fontSize: '0.85rem', fontWeight: 600, marginRight: '16px' }}>
           {currentIssue.total_cost !== null && currentIssue.total_cost !== undefined && (
@@ -238,11 +286,34 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
             }}
           />
 
+          {/* Zone Selection */}
+          <StyledFormControl fullWidth variant="outlined">
+            <InputLabel id="edit-zone-label">{t('workOrder.zoneLabel', 'Zone / Facility Area')}</InputLabel>
+            <Select
+              labelId="edit-zone-label"
+              value={zoneVal}
+              label={t('workOrder.zoneLabel', 'Zone / Facility Area')}
+              onChange={(e) => setZoneVal(e.target.value as string)}
+              disabled={saving}
+              displayEmpty
+              inputProps={{ 'data-testid': 'edit-zone-select' }}
+            >
+              <MenuItem value="">
+                <em>{t('workOrder.unassignedZone', 'General Facility')}</em>
+              </MenuItem>
+              {zones.map((z) => (
+                <MenuItem key={z.id} value={String(z.id)}>
+                  {z.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </StyledFormControl>
+
           {/* Description field */}
           <StyledTextField
             label={t('dashboard.tableDescription', 'Description') + ' *'}
             multiline
-            rows={4}
+            rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             disabled={saving}
@@ -252,6 +323,36 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
               htmlInput: { 'data-testid': 'edit-description-input' }
             }}
           />
+
+          {/* QA Verification Checklist */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary, #c5c2d9)' }}>
+                {t('workOrder.qaChecklistLabel', 'QA Verification Checklist (one step per line)')}
+              </span>
+              <Button
+                size="small"
+                onClick={handleLoadDefaultChecklist}
+                style={{ fontSize: '0.75rem', textTransform: 'none', color: 'var(--primary)' }}
+                data-testid="load-default-checklist-btn"
+              >
+                + {t('workOrder.loadDefaultChecklist', 'Load Default Checklist (DoD)')}
+              </Button>
+            </div>
+            <StyledTextField
+              multiline
+              rows={3}
+              value={qaChecklist}
+              onChange={(e) => setQaChecklist(e.target.value)}
+              disabled={saving}
+              fullWidth
+              variant="outlined"
+              helperText={t('workOrder.qaChecklistHelper', 'Write custom verification steps separated by line breaks')}
+              slotProps={{
+                htmlInput: { 'data-testid': 'edit-qa-checklist-input' }
+              }}
+            />
+          </div>
           
           {/* Photo/Evidence Upload */}
           <div>
@@ -311,6 +412,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
             >
               <MenuItem value="pending">{t('dashboard.filterPending', 'Pending')}</MenuItem>
               <MenuItem value="in_progress">{t('dashboard.filterInProgress', 'In Progress')}</MenuItem>
+              <MenuItem value="qa">{t('dashboard.kanbanQA', 'Verification (QA)')}</MenuItem>
               <MenuItem value="resolved">{t('dashboard.filterResolved', 'Resolved')}</MenuItem>
               <MenuItem value="blocked">{t('dashboard.filterBlocked', 'Blocked')}</MenuItem>
               <MenuItem value="wont_fix">{t('dashboard.actionWontFix', 'Wont Fix')}</MenuItem>
@@ -425,19 +527,31 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
           <TaskLogbook issueId={issue.id} onLogAdded={fetchUpdatedIssue} />
         </FormContainer>
       </DialogContent>
- 
-      <StyledDialogActions>
-        <CancelButton onClick={() => onClose(currentIssue)} disabled={saving}>
-          {t('dashboard.cancel', 'Cancel')}
-        </CancelButton>
-        <SaveButton
-          onClick={handleSave}
-          disabled={saving}
-          variant="contained"
-          data-testid="save-edit-btn"
+
+      <StyledDialogActions style={{ justifyContent: 'space-between', width: '100%', padding: '16px 24px' }}>
+        <Button
+          onClick={() => setShowPrintView(true)}
+          startIcon={<PrintIcon />}
+          variant="outlined"
+          color="primary"
+          data-testid="open-print-order-btn"
         >
-          {saving ? <CircularProgress size={20} sx={{ color: 'white' }} /> : t('dashboard.saveChanges', 'Save Changes')}
-        </SaveButton>
+          {t('workOrder.printButton', 'Print Work Order')}
+        </Button>
+
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <CancelButton onClick={() => onClose(currentIssue)} disabled={saving}>
+            {t('dashboard.cancel', 'Cancel')}
+          </CancelButton>
+          <SaveButton
+            onClick={handleSave}
+            disabled={saving}
+            variant="contained"
+            data-testid="save-edit-btn"
+          >
+            {saving ? <CircularProgress size={20} sx={{ color: 'white' }} /> : t('dashboard.saveChanges', 'Save Changes')}
+          </SaveButton>
+        </div>
       </StyledDialogActions>
       {lightboxImage && (
         <LightboxOverlay onClick={() => setLightboxImage(null)} data-testid="lightbox-overlay">
