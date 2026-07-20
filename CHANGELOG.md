@@ -4,6 +4,17 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
+## [Sprint 30] - Custom Date Picker, In-Header Column Filters & Compact Backlog Table
+### Added
+- Built interactive `ColumnHeaderFilter` component embedding filter popover menus directly inside table column headers for Status, Operator/Assignment, and Urgency, complete with active indicator badges (`var(--primary)`).
+- Developed `CustomDatePicker` component featuring a dark glassmorphism popover calendar with Month/Year dropdown selectors, 6-week day grid, and quick action buttons ("Hoy", "Limpiar"), resolving native browser shadow DOM picker glitches on Windows Chrome/Edge.
+- Streamlined top filter toolbar into a single clean control row with "+ Reportar Incidencia" on the left and Date Range filters + "Exportar Excel" aligned on the right.
+- Redesigned Backlog table into a high-density compact layout (`8px 12px` cell padding, `0.85rem` font size, `240px` Title/Description clamping), eliminating horizontal scrollbars on standard viewports.
+- Added full Spanish and English translation keys for months (`months.*`), days of week (`daysOfWeek.*`), and common actions (`common.*`).
+- Refactored frontend codebase for strict TypeScript (`any` replaced with `unknown` type guards) and separated all inline styles into `styled-components` (`Dashboard.styles.ts`, `CustomDatePicker.styles.ts`).
+- Added component `index.ts` entrypoints for `CustomDatePicker` and `WorkOrderPrintView` according to architecture standards.
+- Expanded automated test suite with 3 Django backend unit tests for `Zone` API and signals (47 total Django tests passing) and 8 Vitest frontend unit tests for `CustomDatePicker` and `WorkOrderPrintView` (31 total Vitest tests passing).
+
 ## [Sprint 29] - Printable Work Orders & Configurable QA Flow
 ### Added
 - Created `Zone` model linked to `Tenant` for structured facility/area management (`GET/POST /api/zones/`).
