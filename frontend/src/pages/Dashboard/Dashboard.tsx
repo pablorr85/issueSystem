@@ -124,7 +124,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       ...customFields.map((f) => f.name)
     ];
 
-    const escapeCsv = (val: any) => {
+    const escapeCsv = (val: unknown) => {
       if (val === null || val === undefined) return '""';
       const str = String(val).replace(/"/g, '""');
       return `"${str}"`;
