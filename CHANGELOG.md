@@ -14,6 +14,8 @@ All notable changes to the **Solvo** project are documented in this file.
 - Engineered `WorkOrderPrintView` component styled with A4 `@media print` rules, signature lines, total material/service cost & effective time worked display (or manual pen line if empty), and dynamic `[ ]` checklist checkboxes for physical paper work orders.
 - Integrated "Print Work Order" trigger buttons on Kanban cards and inside `EditIssueModal`.
 - Added standardized default QA "Definition of Done" (DoD) checklist fallback items (Cleanliness, Functionality, Safety, Visual Inspection) to work orders and added a "+ Load Default Checklist (DoD)" quick action in `EditIssueModal`.
+- Added creation date range filtering (`startDate` and `endDate`) in the Backlog view powered by a custom dark glassmorphism Date Picker (`CustomDatePicker`) with Month, Year, and Day grid popovers, avoiding native browser shadow DOM picker glitches.
+- Added "Export to Excel" (`.csv` with UTF-8 BOM encoding and `;` delimiters) button to export filtered table data directly for Excel analysis with proper character formatting.
 - Added localization catalogs for Spanish and English covering all QA workflow and Work Order print elements.
 
 ## [Sprint 28] - Activity Logbook, Proof of Work, Cost & Time Tracking

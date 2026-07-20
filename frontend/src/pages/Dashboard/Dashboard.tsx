@@ -60,12 +60,110 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const [operatorFilterValue, setOperatorFilterValue] = useState<string>("");
   const [urgencyFilterValue, setUrgencyFilterValue] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkAssignee, setBulkAssignee] = useState<string>("");
   const [savingBulk, setSavingBulk] = useState<boolean>(false);
   const [toastOpen, setToastOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>("");
+
+  const customFields = tenant.custom_fields || [];
+  const urgencyField = useMemo(() => customFields.find((f) =>
+    ["urgency", "urgencia"].includes(f.name.toLowerCase())
+  ), [customFields]);
+  const urgencyColumnId = urgencyField?.name || "";
+
+  const filteredIssues = useMemo(() => {
+    return issues.filter((issue) => {
+      if (operatorFilterValue !== "" && issue.assigned_to !== Number(operatorFilterValue)) {
+        return false;
+      }
+      if (urgencyColumnId && urgencyFilterValue !== "") {
+        const val = issue.extra_data?.[urgencyColumnId];
+        if (String(val || "").toLowerCase() !== urgencyFilterValue.toLowerCase()) {
+          return false;
+        }
+      }
+      if (startDate || endDate) {
+        if (!issue.created_at) return false;
+        const createdDate = new Date(issue.created_at);
+        if (startDate) {
+          const start = new Date(`${startDate}T00:00:00`);
+          if (createdDate < start) return false;
+        }
+        if (endDate) {
+          const end = new Date(`${endDate}T23:59:59`);
+          if (createdDate > end) return false;
+        }
+      }
+      return true;
+    });
+  }, [issues, operatorFilterValue, urgencyColumnId, urgencyFilterValue, startDate, endDate]);
+
+  const handleExportExcel = useCallback(() => {
+    if (!filteredIssues || filteredIssues.length === 0) {
+      alert(t("dashboard.noIssuesFiltered", "No issues found to export."));
+      return;
+    }
+
+    const headers = [
+      "ID",
+      "Order Number",
+      "Title",
+      "Description",
+      "Status",
+      "Assigned Operator",
+      "Zone",
+      "Created At",
+      "Started At",
+      "Completed At",
+      "Total Cost (€)",
+      "Time Spent (Hours)",
+      ...customFields.map((f) => f.name)
+    ];
+
+    const escapeCsv = (val: any) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const rows = filteredIssues.map((issue) => {
+      const extraData = issue.extra_data || {};
+      const customFieldVals = customFields.map((f) => extraData[f.name] ?? "");
+
+      return [
+        escapeCsv(issue.id),
+        escapeCsv(issue.order_number || ""),
+        escapeCsv(issue.title || ""),
+        escapeCsv(issue.description || ""),
+        escapeCsv(issue.status),
+        escapeCsv(issue.assigned_to_name || ""),
+        escapeCsv(issue.zone_name || ""),
+        escapeCsv(issue.created_at ? new Date(issue.created_at).toLocaleString() : ""),
+        escapeCsv(issue.started_at ? new Date(issue.started_at).toLocaleString() : ""),
+        escapeCsv(issue.completed_at ? new Date(issue.completed_at).toLocaleString() : ""),
+        escapeCsv(issue.total_cost ?? ""),
+        escapeCsv(issue.total_time_spent_hours ?? ""),
+        ...customFieldVals.map(escapeCsv)
+      ].join(";");
+    });
+
+    const csvContent = "\uFEFF" + [headers.map(escapeCsv).join(";"), ...rows].join("\r\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const timestamp = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.setAttribute("download", `incidencias_export_${tenant.name.replace(/\s+/g, '_')}_${timestamp}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, [filteredIssues, customFields, tenant.name, t]);
   const handleToggleSelectIssue = useCallback((id: number) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -124,9 +222,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }
   };
 
-  // Custom fields schemas defined for this tenant
-  const customFields = useMemo(() => tenant.custom_fields || [], [tenant.custom_fields]);
-
   const handleAssignOperator = useCallback(
     (issueId: number, operatorIdVal: number | string) => {
       const operatorId = operatorIdVal === "" ? null : Number(operatorIdVal);
@@ -163,11 +258,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     },
     [issues, operators, t, setIssues]
   );
-
-  const urgencyField = useMemo(() => customFields.find((f) =>
-    ["urgency", "urgencia"].includes(f.name.toLowerCase())
-  ), [customFields]);
-  const urgencyColumnId = urgencyField?.name || "";
 
   const handleOperatorFilterChange = (val: string) => {
     setOperatorFilterValue(val);
@@ -223,10 +313,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
           loading={loading}
           assignedFilter={assignedFilter}
           onAssignedFilterChange={onAssignedFilterChange}
+          startDate={startDate}
+          onStartDateChange={setStartDate}
+          endDate={endDate}
+          onEndDateChange={setEndDate}
+          onExportExcel={handleExportExcel}
         />
 
         <DashboardTable
-          issues={issues}
+          issues={filteredIssues}
           setIssues={setIssues}
           operators={operators}
           loading={loading}
