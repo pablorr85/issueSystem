@@ -216,5 +216,32 @@
     "defaultChecklist4": "Inspección Visual: Calidad del acabado y estado estético comprobado y aprobado.",
     "operatorSignature": "Firma del Operario",
     "managerSignature": "Firma del Supervisor"
+  },
+  "months": {
+    "january": "Enero",
+    "february": "Febrero",
+    "march": "Marzo",
+    "april": "Abril",
+    "may": "Mayo",
+    "june": "Junio",
+    "july": "Julio",
+    "august": "Agosto",
+    "september": "Septiembre",
+    "october": "Octubre",
+    "november": "Noviembre",
+    "december": "Diciembre"
+  },
+  "daysOfWeek": {
+    "mon": "Lu",
+    "tue": "Ma",
+    "wed": "Mi",
+    "thu": "Ju",
+    "fri": "Vi",
+    "sat": "Sá",
+    "sun": "Do"
+  },
+  "common": {
+    "clear": "Limpiar",
+    "today": "Hoy"
   }
 }

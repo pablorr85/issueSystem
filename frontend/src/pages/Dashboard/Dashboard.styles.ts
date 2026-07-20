@@ -10,6 +10,7 @@ import {
   Select,
   Button,
   FormControl,
+  Box,
 } from "@mui/material";
 
 export const DashboardContainer = styled.div`
@@ -44,11 +45,48 @@ export const DashboardTitle = styled(Typography)`
 
 export const FilterSection = styled.div`
   display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: stretch;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+`;
+
+export const FilterRowPrimary = styled(Box)`
+  display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  padding: 16px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+`;
+
+export const FilterRowSecondary = styled(Box)`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+`;
+
+export const ExportExcelButton = styled(Button)`
+  background-color: #2e7d32 !important;
+  font-weight: 600 !important;
+  height: 40px !important;
+  border-radius: 8px !important;
+  text-transform: none !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+
+  &:hover {
+    background-color: #1b5e20 !important;
+  }
+`;
+
+export const ClearDatesButton = styled(Button)`
+  color: #a09cb4 !important;
+  text-transform: none !important;
+  font-size: 0.8rem !important;
 `;
 
 export const StyledFormControl = styled(FormControl)`

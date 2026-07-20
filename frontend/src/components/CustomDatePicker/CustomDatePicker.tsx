@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Popover, MenuItem, Select, Button } from '@mui/material';
+import { Popover, Button } from '@mui/material';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ClearIcon from '@mui/icons-material/Clear';
 import { useTranslation } from 'react-i18next';
 import {
+  DatePickerWrapper,
   DatePickerInputBox,
   DateInputLabel,
   DateInputValueText,
@@ -13,11 +14,14 @@ import {
   CalendarHeader,
   HeaderNavButton,
   SelectsContainer,
+  HeaderSelect,
+  HeaderMenuItem,
   DaysOfWeekGrid,
   DayOfWeekCell,
   DaysGrid,
   DayCell,
   CalendarFooter,
+  popoverSlotProps,
 } from './CustomDatePicker.styles';
 
 export interface CustomDatePickerProps {
@@ -37,7 +41,8 @@ const DEFAULT_MONTH_NAMES_ES = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
 
-const DAYS_OF_WEEK = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'];
+const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+const DEFAULT_DAYS_OF_WEEK_ES = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'];
 
 export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   label,
@@ -186,7 +191,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   }, []);
 
   return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
+    <DatePickerWrapper>
       <DatePickerInputBox onClick={handleOpenPopover} data-testid={testId}>
         <DateInputLabel>{label}</DateInputLabel>
         <DateInputValueText $hasValue={!!value}>
@@ -201,15 +206,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
         onClose={handleClosePopover}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-        slotProps={{
-          paper: {
-            style: {
-              background: 'transparent',
-              boxShadow: 'none',
-              marginTop: '6px',
-            },
-          },
-        }}
+        slotProps={popoverSlotProps}
       >
         <CalendarPopoverBox>
           <CalendarHeader>
@@ -219,52 +216,32 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
 
             <SelectsContainer>
               {/* Month Select */}
-              <Select
+              <HeaderSelect
                 size="small"
                 value={viewMonth}
+                $minWidth="135px"
                 onChange={(e) => setViewMonth(Number(e.target.value))}
-                sx={{
-                  color: 'white',
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  height: '32px',
-                  minWidth: '135px',
-                  '& .MuiSelect-select': { py: 0, pr: '28px !important', pl: '10px !important' },
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.15)' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.3)' },
-                  '& .MuiSelect-icon': { color: '#a09cb4', right: '6px' }
-                }}
               >
                 {DEFAULT_MONTH_NAMES_ES.map((name, idx) => (
-                  <MenuItem key={idx} value={idx} style={{ fontSize: '0.85rem' }}>
+                  <HeaderMenuItem key={idx} value={idx}>
                     {t(`months.${MONTH_KEYS[idx]}`, name)}
-                  </MenuItem>
+                  </HeaderMenuItem>
                 ))}
-              </Select>
+              </HeaderSelect>
 
               {/* Year Select */}
-              <Select
+              <HeaderSelect
                 size="small"
                 value={viewYear}
+                $minWidth="95px"
                 onChange={(e) => setViewYear(Number(e.target.value))}
-                sx={{
-                  color: 'white',
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  height: '32px',
-                  minWidth: '95px',
-                  '& .MuiSelect-select': { py: 0, pr: '28px !important', pl: '10px !important' },
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.15)' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.3)' },
-                  '& .MuiSelect-icon': { color: '#a09cb4', right: '6px' }
-                }}
               >
                 {yearOptions.map((y) => (
-                  <MenuItem key={y} value={y} style={{ fontSize: '0.85rem' }}>
+                  <HeaderMenuItem key={y} value={y}>
                     {y}
-                  </MenuItem>
+                  </HeaderMenuItem>
                 ))}
-              </Select>
+              </HeaderSelect>
             </SelectsContainer>
 
             <HeaderNavButton onClick={handleNextMonth} size="small">
@@ -274,8 +251,10 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
 
           {/* Days of Week Header */}
           <DaysOfWeekGrid>
-            {DAYS_OF_WEEK.map((d, i) => (
-              <DayOfWeekCell key={i}>{d}</DayOfWeekCell>
+            {DAY_KEYS.map((key, i) => (
+              <DayOfWeekCell key={key}>
+                {t(`daysOfWeek.${key}`, DEFAULT_DAYS_OF_WEEK_ES[i])}
+              </DayOfWeekCell>
             ))}
           </DaysOfWeekGrid>
 
@@ -327,6 +306,6 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
           </CalendarFooter>
         </CalendarPopoverBox>
       </Popover>
-    </div>
+    </DatePickerWrapper>
   );
 };

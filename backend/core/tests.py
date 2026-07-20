@@ -6,7 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import Tenant, Issue, OperatorProfile, TaskLog
+from .models import Tenant, Zone, Issue, OperatorProfile, TaskLog
 
 User = get_user_model()
 
@@ -1271,5 +1271,75 @@ class TaskLogTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.issue.refresh_from_db()
         self.assertEqual(self.issue.status, 'resolved')
+
+
+class ZoneAndWorkOrderTests(APITestCase):
+    def setUp(self):
+        self.tenant = Tenant.objects.create(name="Zone Tenant")
+        self.user = User.objects.create_user(
+            username="zone_admin",
+            password="password123",
+            tenant=self.tenant
+        )
+        self.other_tenant = Tenant.objects.create(name="Other Tenant")
+        self.other_zone = Zone.objects.create(tenant=self.other_tenant, name="Other Facility")
+        self.client.force_authenticate(user=self.user)
+
+    def test_zone_list_and_create_api(self):
+        url = reverse('zone-list-create')
+        
+        # Create a new zone
+        create_res = self.client.post(url, {'name': 'HVAC Room North'})
+        self.assertEqual(create_res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(create_res.data['name'], 'HVAC Room North')
+
+        # List zones (verifying multi-tenant isolation)
+        list_res = self.client.get(url)
+        self.assertEqual(list_res.status_code, status.HTTP_200_OK)
+        zone_names = [z['name'] for z in list_res.data]
+        self.assertIn('HVAC Room North', zone_names)
+        self.assertNotIn('Other Facility', zone_names)
+
+    def test_issue_started_at_and_completed_at_signals(self):
+        issue = Issue.objects.create(
+            tenant=self.tenant,
+            title="Pump Failure",
+            description="Pump 2 broken",
+            status="pending"
+        )
+        self.assertIsNone(issue.started_at)
+        self.assertIsNone(issue.completed_at)
+
+        # Move to in_progress -> started_at should be set
+        issue.status = "in_progress"
+        issue.save()
+        issue.refresh_from_db()
+        self.assertIsNotNone(issue.started_at)
+        self.assertIsNone(issue.completed_at)
+
+        # Move to qa -> completed_at should be set
+        issue.status = "qa"
+        issue.save()
+        issue.refresh_from_db()
+        self.assertIsNotNone(issue.completed_at)
+
+    def test_work_order_fields_and_qa_checklist_serialization(self):
+        zone = Zone.objects.create(tenant=self.tenant, name="Sector 7G")
+        issue = Issue.objects.create(
+            tenant=self.tenant,
+            title="Valve replacement",
+            description="Replace pressure valve",
+            zone=zone,
+            qa_checklist="Clean area\nTest pressure"
+        )
+        self.assertTrue(issue.order_number.startswith("WO-"))
+        
+        url = reverse('issue-detail-update', kwargs={'pk': issue.id})
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['zone_name'], "Sector 7G")
+        self.assertEqual(res.data['qa_checklist'], "Clean area\nTest pressure")
+        self.assertIn("WO-", res.data['order_number'])
+
 
 

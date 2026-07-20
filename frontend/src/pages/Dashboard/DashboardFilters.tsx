@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { MenuItem, InputLabel, Button, Box } from "@mui/material";
+import { MenuItem, InputLabel, Box } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -9,6 +9,10 @@ import type { Operator } from "../../services/types";
 import { CustomDatePicker } from "../../components/CustomDatePicker/CustomDatePicker";
 import {
   FilterSection,
+  FilterRowPrimary,
+  FilterRowSecondary,
+  ExportExcelButton,
+  ClearDatesButton,
   ReportButton,
   StyledFormControl,
   FilterSelect,
@@ -62,9 +66,9 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
   };
 
   return (
-    <FilterSection style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'stretch', padding: '16px 20px' }}>
+    <FilterSection>
       {/* Row 1: Status, Operator, Urgency, Assignment & Report Button */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+      <FilterRowPrimary>
         <ReportButton
           variant="contained"
           onClick={() => navigate(`/${tenantId}/report`)}
@@ -162,20 +166,10 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
             </FilterSelect>
           </StyledFormControl>
         )}
-      </Box>
+      </FilterRowPrimary>
 
       {/* Row 2: Custom Date Range Picker & Excel Export Button */}
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '12px',
-          paddingTop: '8px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.05)'
-        }}
-      >
+      <FilterRowSecondary>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <CustomDatePicker
             label={t("dashboard.startDateLabel", "Fecha Desde")}
@@ -192,38 +186,28 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
           />
 
           {(startDate || endDate) && (
-            <Button
+            <ClearDatesButton
               size="small"
               onClick={handleClearDates}
               startIcon={<ClearIcon fontSize="small" />}
               data-testid="clear-dates-btn"
-              sx={{ color: '#a09cb4', textTransform: 'none', fontSize: '0.8rem' }}
             >
               {t("dashboard.clearDateFilters", "Limpiar Fechas")}
-            </Button>
+            </ClearDatesButton>
           )}
         </Box>
 
-        <Button
+        <ExportExcelButton
           variant="contained"
           color="success"
           size="medium"
           onClick={onExportExcel}
           startIcon={<FileDownloadIcon />}
           data-testid="export-excel-btn"
-          sx={{
-            backgroundColor: '#2e7d32',
-            '&:hover': { backgroundColor: '#1b5e20' },
-            fontWeight: 600,
-            height: '40px',
-            borderRadius: '8px',
-            textTransform: 'none',
-            px: 2.5
-          }}
         >
-          {t("dashboard.exportExcelButton", "Exportar")}
-        </Button>
-      </Box>
+          {t("dashboard.exportExcelButton", "Exportar Excel")}
+        </ExportExcelButton>
+      </FilterRowSecondary>
     </FilterSection>
   );
 };

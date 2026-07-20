@@ -1,5 +1,10 @@
 import styled from "styled-components";
-import { Box, Button, IconButton } from "@mui/material";
+import { Box, Button, IconButton, Select, MenuItem } from "@mui/material";
+
+export const DatePickerWrapper = styled.div`
+  position: relative;
+  display: inline-block;
+`;
 
 export const DatePickerInputBox = styled(Box)`
   display: flex;
@@ -77,6 +82,38 @@ export const SelectsContainer = styled(Box)`
   align-items: center;
 `;
 
+export const HeaderSelect = styled(Select)<{ $minWidth?: string }>`
+  color: white !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  height: 32px !important;
+  min-width: ${(props) => props.$minWidth || "95px"} !important;
+
+  & .MuiSelect-select {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    padding-right: 28px !important;
+    padding-left: 10px !important;
+  }
+
+  & .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(255, 255, 255, 0.15) !important;
+  }
+
+  &:hover .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+  }
+
+  & .MuiSelect-icon {
+    color: #a09cb4 !important;
+    right: 6px !important;
+  }
+`;
+
+export const HeaderMenuItem = styled(MenuItem)`
+  font-size: 0.85rem !important;
+`;
+
 export const DaysOfWeekGrid = styled(Box)`
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -136,3 +173,13 @@ export const CalendarFooter = styled(Box)`
   padding-top: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 `;
+
+export const popoverSlotProps = {
+  paper: {
+    style: {
+      background: "transparent",
+      boxShadow: "none",
+      marginTop: "6px",
+    },
+  },
+};
