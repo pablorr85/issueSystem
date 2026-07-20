@@ -302,17 +302,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <DashboardCard>
         <DashboardFilters
           tenantId={tenant.id}
-          statusFilter={statusFilter}
-          onStatusFilterChange={handleFilterChange}
-          operatorFilterValue={operatorFilterValue}
-          onOperatorFilterChange={handleOperatorFilterChange}
-          urgencyFilterValue={urgencyFilterValue}
-          onUrgencyFilterChange={handleUrgencyFilterChange}
-          urgencyColumnId={urgencyColumnId}
-          operators={operators}
-          loading={loading}
-          assignedFilter={assignedFilter}
-          onAssignedFilterChange={onAssignedFilterChange}
           startDate={startDate}
           onStartDateChange={setStartDate}
           endDate={endDate}
@@ -332,6 +321,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
           selectedIds={selectedIds}
           onToggleSelectIssue={handleToggleSelectIssue}
           onToggleSelectAll={handleToggleSelectAll}
+          statusFilter={statusFilter}
+          onStatusFilterChange={handleFilterChange}
+          operatorFilterValue={operatorFilterValue}
+          onOperatorFilterChange={handleOperatorFilterChange}
+          urgencyFilterValue={urgencyFilterValue}
+          onUrgencyFilterChange={handleUrgencyFilterChange}
+          assignedFilter={assignedFilter}
+          onAssignedFilterChange={onAssignedFilterChange}
         />
 
         <DashboardPagination

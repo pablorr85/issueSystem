@@ -139,7 +139,8 @@ export const TableWrapper = styled.div`
 `;
 
 export const StyledTable = styled(Table)`
-  min-width: 650px;
+  width: 100%;
+  table-layout: auto;
 `;
 
 export const StyledTableHead = styled(TableHead)`
@@ -151,11 +152,12 @@ export const StyledTableBody = styled(TableBody)``;
 export const StyledTableHeadCell = styled(TableCell)`
   color: #a09cb4 !important;
   font-weight: 600 !important;
-  font-size: 0.9rem !important;
+  font-size: 0.8rem !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
-  padding: 16px !important;
+  letter-spacing: 0.04em !important;
+  padding: 10px 12px !important;
+  white-space: nowrap;
 `;
 
 export const StyledTableRow = styled(TableRow)<{ $isCritical?: boolean }>`
@@ -185,8 +187,8 @@ export const StyledTableRow = styled(TableRow)<{ $isCritical?: boolean }>`
 export const StyledTableCell = styled(TableCell)`
   color: #e2e1e9 !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
-  padding: 14px 16px !important;
-  font-size: 0.95rem !important;
+  padding: 8px 12px !important;
+  font-size: 0.85rem !important;
 `;
 
 export const StatusBadge = styled.span<{ $status: string }>`

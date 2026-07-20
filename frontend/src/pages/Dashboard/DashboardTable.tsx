@@ -89,6 +89,8 @@ const formatDate = (dateString: string) => {
   }
 };
 
+import { ColumnHeaderFilter } from "./ColumnHeaderFilter";
+
 export interface DashboardTableProps {
   issues: Issue[];
   setIssues: React.Dispatch<React.SetStateAction<Issue[]>>;
@@ -101,6 +103,14 @@ export interface DashboardTableProps {
   selectedIds: number[];
   onToggleSelectIssue: (id: number) => void;
   onToggleSelectAll: () => void;
+  statusFilter?: string;
+  onStatusFilterChange?: (val: string) => void;
+  operatorFilterValue?: string;
+  onOperatorFilterChange?: (val: string) => void;
+  assignedFilter?: string;
+  onAssignedFilterChange?: (val: string) => void;
+  urgencyFilterValue?: string;
+  onUrgencyFilterChange?: (val: string) => void;
 }
 
 export const DashboardTable: React.FC<DashboardTableProps> = ({
@@ -115,6 +125,14 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
   selectedIds,
   onToggleSelectIssue,
   onToggleSelectAll,
+  statusFilter = "",
+  onStatusFilterChange,
+  operatorFilterValue = "",
+  onOperatorFilterChange,
+  assignedFilter = "",
+  onAssignedFilterChange,
+  urgencyFilterValue = "",
+  onUrgencyFilterChange,
 }) => {
   const { t } = useTranslation();
 
@@ -218,7 +236,26 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
       }),
       columnHelper.accessor("status", {
         id: "status",
-        header: () => t("dashboard.tableStatus"),
+        header: () =>
+          onStatusFilterChange ? (
+            <ColumnHeaderFilter
+              title={t("dashboard.tableStatus")}
+              selectedValue={statusFilter}
+              onSelect={onStatusFilterChange}
+              options={[
+                { label: t("dashboard.filterAll"), value: "" },
+                { label: t("dashboard.filterPending"), value: "pending" },
+                { label: t("dashboard.filterInProgress"), value: "in_progress" },
+                { label: t("dashboard.kanbanQA", "Verificación (QA)"), value: "qa" },
+                { label: t("dashboard.filterResolved"), value: "resolved" },
+                { label: t("dashboard.filterBlocked"), value: "blocked" },
+                { label: t("dashboard.actionWontFix"), value: "wont_fix" },
+              ]}
+              testId="header-filter-status"
+            />
+          ) : (
+            t("dashboard.tableStatus")
+          ),
         cell: (info) => {
           const status = info.getValue();
           return (
@@ -248,10 +285,18 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
           return (
             <div
               onClick={() => onEditIssue(issue)}
-              style={{ display: "flex", flexDirection: "column", cursor: "pointer", gap: "2px" }}
+              style={{ display: "flex", flexDirection: "column", cursor: "pointer", gap: "2px", maxWidth: "240px" }}
             >
               <span
-                style={{ fontWeight: "bold", color: "var(--text-primary, #ffffff)" }}
+                style={{
+                  fontWeight: "bold",
+                  color: "var(--text-primary, #ffffff)",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  display: "block",
+                  maxWidth: "240px"
+                }}
                 data-testid={`edit-issue-title-${issue.id}`}
               >
                 {issue.title}
@@ -264,7 +309,7 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
-                    maxWidth: "350px",
+                    maxWidth: "240px",
                     display: "block",
                     padding: 0
                   }}
@@ -302,7 +347,25 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
         (row: Issue) => row.extra_data?.[field.name],
         {
           id: field.name,
-          header: () => field.name.replace(/_/g, " "),
+          header: () =>
+            isUrgencyField && onUrgencyFilterChange ? (
+              <ColumnHeaderFilter
+                title={field.name.replace(/_/g, " ")}
+                selectedValue={urgencyFilterValue}
+                onSelect={onUrgencyFilterChange}
+                options={[
+                  { label: t("dashboard.filterAllUrgencies"), value: "" },
+                  { label: t("operatorHub.urgencyCritical"), value: "critical" },
+                  { label: t("operatorHub.urgencyHigh"), value: "high" },
+                  { label: t("operatorHub.urgencyMedium"), value: "medium" },
+                  { label: t("operatorHub.urgencyLow"), value: "low" },
+                  { label: t("operatorHub.urgencyNone"), value: "normal" },
+                ]}
+                testId="header-filter-urgency"
+              />
+            ) : (
+              field.name.replace(/_/g, " ")
+            ),
           cell: (info) => {
             const rawVal = info.getValue();
             let displayVal = "-";
@@ -367,7 +430,31 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
         (row: Issue) => row.assigned_to,
         {
           id: "assigned_to",
-          header: () => t("dashboard.tableAssignOperator"),
+          header: () =>
+            onOperatorFilterChange && onAssignedFilterChange ? (
+              <ColumnHeaderFilter
+                title={t("dashboard.tableAssignOperator")}
+                selectedValue={operatorFilterValue || assignedFilter}
+                onSelect={(val) => {
+                  if (val === "true" || val === "false") {
+                    onOperatorFilterChange("");
+                    onAssignedFilterChange(val);
+                  } else {
+                    onAssignedFilterChange("");
+                    onOperatorFilterChange(val);
+                  }
+                }}
+                options={[
+                  { label: t("dashboard.filterAllOperators"), value: "" },
+                  { label: t("dashboard.unassigned"), value: "false" },
+                  { label: t("dashboard.filterAssigned", "Asignado"), value: "true" },
+                  ...operators.map((op) => ({ label: op.username, value: String(op.id) })),
+                ]}
+                testId="header-filter-operator"
+              />
+            ) : (
+              t("dashboard.tableAssignOperator")
+            ),
           cell: (info) => {
             const issue = info.row.original;
             const isResolved = ["resolved", "wont_fix"].includes(issue.status);
@@ -430,7 +517,25 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
     ];
 
     return [...baseCols, ...dynamicCols, ...endCols];
-  }, [customFields, operators, t, handleAssignOperator, onEditIssue, selectedIds, onToggleSelectAll, onToggleSelectIssue, issues]);
+  }, [
+    customFields,
+    operators,
+    t,
+    handleAssignOperator,
+    onEditIssue,
+    selectedIds,
+    onToggleSelectAll,
+    onToggleSelectIssue,
+    issues,
+    statusFilter,
+    onStatusFilterChange,
+    operatorFilterValue,
+    onOperatorFilterChange,
+    assignedFilter,
+    onAssignedFilterChange,
+    urgencyFilterValue,
+    onUrgencyFilterChange,
+  ]);
 
   const table = useReactTable({
     data: issues,

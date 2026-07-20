@@ -144,11 +144,12 @@ describe('Dashboard Page Component', () => {
       expect(getIssues).toHaveBeenCalledWith(mockTenant.id, undefined, 1, undefined, undefined);
     });
 
-    // Query status select filter
-    const statusSelect = screen.getByTestId('dashboard-status-filter');
-    
-    // Trigger filter change to 'resolved'
-    fireEvent.change(statusSelect, { target: { value: 'resolved' } });
+    // Query status filter icon in column header
+    const statusFilterIcon = screen.getByTestId('header-filter-status');
+    fireEvent.click(statusFilterIcon);
+
+    const resolvedItem = await screen.findByRole('menuitem', { name: 'Resolved' });
+    fireEvent.click(resolvedItem);
 
     await waitFor(() => {
       // Should reset page to 1 and query with resolved filter

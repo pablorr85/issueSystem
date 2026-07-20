@@ -40,17 +40,6 @@ export interface DashboardFiltersProps {
 
 export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
   tenantId,
-  statusFilter,
-  onStatusFilterChange,
-  operatorFilterValue,
-  onOperatorFilterChange,
-  urgencyFilterValue,
-  onUrgencyFilterChange,
-  urgencyColumnId,
-  operators,
-  loading,
-  assignedFilter,
-  onAssignedFilterChange,
   startDate,
   onStartDateChange,
   endDate,
@@ -67,8 +56,7 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
 
   return (
     <FilterSection>
-      {/* Row 1: Status, Operator, Urgency, Assignment & Report Button */}
-      <FilterRowPrimary>
+      <FilterRowSecondary style={{ borderTop: "none", paddingTop: 0 }}>
         <ReportButton
           variant="contained"
           onClick={() => navigate(`/${tenantId}/report`)}
@@ -78,99 +66,7 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
           {t("app.tabReport")}
         </ReportButton>
 
-        <StyledFormControl variant="outlined" size="small">
-          <InputLabel id="filter-status-label">
-            {t("dashboard.statusFilterLabel")}
-          </InputLabel>
-          <FilterSelect
-            labelId="filter-status-label"
-            value={statusFilter}
-            label={t("dashboard.statusFilterLabel")}
-            onChange={(e) => onStatusFilterChange(e.target.value as string)}
-            disabled={loading}
-            inputProps={{ "data-testid": "dashboard-status-filter" }}
-          >
-            <MenuItem value="">
-              <em>{t("dashboard.filterAll")}</em>
-            </MenuItem>
-            <MenuItem value="pending">{t("dashboard.filterPending")}</MenuItem>
-            <MenuItem value="in_progress">{t("dashboard.filterInProgress")}</MenuItem>
-            <MenuItem value="resolved">{t("dashboard.filterResolved")}</MenuItem>
-            <MenuItem value="blocked">{t("dashboard.filterBlocked")}</MenuItem>
-            <MenuItem value="wont_fix">{t("dashboard.filterWontFix")}</MenuItem>
-          </FilterSelect>
-        </StyledFormControl>
-
-        <StyledFormControl variant="outlined" size="small">
-          <InputLabel id="filter-assignment-label">
-            {t("dashboard.assignmentFilterLabel", "Asignación")}
-          </InputLabel>
-          <FilterSelect
-            labelId="filter-assignment-label"
-            value={assignedFilter || ""}
-            label={t("dashboard.assignmentFilterLabel", "Asignación")}
-            onChange={(e) => onAssignedFilterChange?.(e.target.value as string)}
-            disabled={loading}
-            inputProps={{ "data-testid": "dashboard-assignment-filter" }}
-          >
-            <MenuItem value="">
-              <em>{t("dashboard.filterAll")}</em>
-            </MenuItem>
-            <MenuItem value="false">{t("dashboard.unassigned")}</MenuItem>
-            <MenuItem value="true">{t("dashboard.filterAssigned", "Asignado")}</MenuItem>
-          </FilterSelect>
-        </StyledFormControl>
-
-        <StyledFormControl variant="outlined" size="small">
-          <InputLabel id="filter-operator-label">
-            {t("dashboard.operatorFilterLabel")}
-          </InputLabel>
-          <FilterSelect
-            labelId="filter-operator-label"
-            value={operatorFilterValue}
-            label={t("dashboard.operatorFilterLabel")}
-            onChange={(e) => onOperatorFilterChange(e.target.value as string)}
-            inputProps={{ "data-testid": "dashboard-operator-filter" }}
-          >
-            <MenuItem value="">
-              <em>{t("dashboard.filterAllOperators")}</em>
-            </MenuItem>
-            {operators.map((op) => (
-              <MenuItem key={op.id} value={String(op.id)}>
-                {op.username}
-              </MenuItem>
-            ))}
-          </FilterSelect>
-        </StyledFormControl>
-
-        {urgencyColumnId && (
-          <StyledFormControl variant="outlined" size="small">
-            <InputLabel id="filter-urgency-label">
-              {t("dashboard.urgencyFilterLabel")}
-            </InputLabel>
-            <FilterSelect
-              labelId="filter-urgency-label"
-              value={urgencyFilterValue}
-              label={t("dashboard.urgencyFilterLabel")}
-              onChange={(e) => onUrgencyFilterChange(e.target.value as string)}
-              inputProps={{ "data-testid": "dashboard-urgency-filter" }}
-            >
-              <MenuItem value="">
-                <em>{t("dashboard.filterAllUrgencies")}</em>
-              </MenuItem>
-              <MenuItem value="critical">{t("operatorHub.urgencyCritical")}</MenuItem>
-              <MenuItem value="high">{t("operatorHub.urgencyHigh")}</MenuItem>
-              <MenuItem value="medium">{t("operatorHub.urgencyMedium")}</MenuItem>
-              <MenuItem value="low">{t("operatorHub.urgencyLow")}</MenuItem>
-              <MenuItem value="normal">{t("operatorHub.urgencyNone")}</MenuItem>
-            </FilterSelect>
-          </StyledFormControl>
-        )}
-      </FilterRowPrimary>
-
-      {/* Row 2: Custom Date Range Picker & Excel Export Button */}
-      <FilterRowSecondary>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", marginLeft: "auto" }}>
           <CustomDatePicker
             label={t("dashboard.startDateLabel", "Fecha Desde")}
             value={startDate}
@@ -195,18 +91,18 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
               {t("dashboard.clearDateFilters", "Limpiar Fechas")}
             </ClearDatesButton>
           )}
-        </Box>
 
-        <ExportExcelButton
-          variant="contained"
-          color="success"
-          size="medium"
-          onClick={onExportExcel}
-          startIcon={<FileDownloadIcon />}
-          data-testid="export-excel-btn"
-        >
-          {t("dashboard.exportExcelButton", "Exportar Excel")}
-        </ExportExcelButton>
+          <ExportExcelButton
+            variant="contained"
+            color="success"
+            size="medium"
+            onClick={onExportExcel}
+            startIcon={<FileDownloadIcon />}
+            data-testid="export-excel-btn"
+          >
+            {t("dashboard.exportExcelButton", "Exportar Excel")}
+          </ExportExcelButton>
+        </Box>
       </FilterRowSecondary>
     </FilterSection>
   );
