@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import React from 'react';
 import { WorkOrderPrintView } from './WorkOrderPrintView';
 import type { Issue } from '../../services/types';
 
@@ -18,7 +17,10 @@ const mockIssue: Issue = {
   description: 'Clean and replace filter in Unit 4',
   status: 'in_progress',
   zone_name: 'Building B - Roof',
+  assigned_to: 1,
   assigned_to_name: 'John Maintenance',
+  secure_token: 'token-42',
+  extra_data: {},
   started_at: '2026-07-20T09:00:00Z',
   completed_at: null,
   total_cost: 150.5,
@@ -34,7 +36,7 @@ describe('WorkOrderPrintView Component', () => {
 
     expect(screen.getByText('WO-00042')).toBeInTheDocument();
     expect(screen.getByText('Replace HVAC Filter')).toBeInTheDocument();
-    expect(screen.getByText('Building B - Roof')).toBeInTheDocument();
+    expect(screen.getAllByText('Building B - Roof')[0]).toBeInTheDocument();
     expect(screen.getByText('John Maintenance')).toBeInTheDocument();
   });
 

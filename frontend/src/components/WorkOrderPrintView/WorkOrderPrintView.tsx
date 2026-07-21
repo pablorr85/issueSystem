@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import PrintIcon from '@mui/icons-material/Print';
 import CloseIcon from '@mui/icons-material/Close';
@@ -90,7 +91,7 @@ export const WorkOrderPrintView: React.FC<WorkOrderPrintViewProps> = ({
       ? `${Number(issue.total_time_spent_hours).toFixed(1)} h`
       : '___________________ h';
 
-  return (
+  const content = (
     <PrintOverlay data-testid="work-order-print-overlay">
       <PrintContainer data-testid="work-order-print-container">
 
@@ -118,10 +119,13 @@ export const WorkOrderPrintView: React.FC<WorkOrderPrintViewProps> = ({
                 {t('workOrder.orderNumber', 'Order Number')}: <strong>{orderNumber}</strong>
               </div>
               <div>
-                {t('workOrder.requestDate', 'Request Date')}: <strong>{formatDate(issue.created_at)}</strong>
+                {t('workOrder.zone', 'Facility Zone')}: <strong>{zone}</strong>
               </div>
               <div>
-                {t('workOrder.status', 'Status')}: <strong>{issue.status.toUpperCase()}</strong>
+                {t('workOrder.date', 'Issued Date')}: <strong>{formatDate(issue.created_at)}</strong>
+              </div>
+              <div>
+                {t('workOrder.status', 'Current Status')}: <strong>{issue.status.toUpperCase()}</strong>
               </div>
             </HeaderMeta>
           </PrintHeader>
@@ -201,6 +205,12 @@ export const WorkOrderPrintView: React.FC<WorkOrderPrintViewProps> = ({
       </PrintContainer>
     </PrintOverlay>
   );
+
+  if (typeof document !== 'undefined' && document.body) {
+    return createPortal(content, document.body);
+  }
+
+  return content;
 };
 
 export default WorkOrderPrintView;

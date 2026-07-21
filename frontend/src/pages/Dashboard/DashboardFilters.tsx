@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { MenuItem, InputLabel, Box } from "@mui/material";
+import { Box } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -9,33 +9,30 @@ import type { Operator } from "../../services/types";
 import { CustomDatePicker } from "../../components/CustomDatePicker/CustomDatePicker";
 import {
   FilterSection,
-  FilterRowPrimary,
   FilterRowSecondary,
   ExportExcelButton,
   ClearDatesButton,
   ReportButton,
-  StyledFormControl,
-  FilterSelect,
 } from "./Dashboard.styles";
 
 export interface DashboardFiltersProps {
   tenantId: string;
-  statusFilter: string;
-  onStatusFilterChange: (val: string) => void;
-  operatorFilterValue: string;
-  onOperatorFilterChange: (val: string) => void;
-  urgencyFilterValue: string;
-  onUrgencyFilterChange: (val: string) => void;
-  urgencyColumnId: string;
-  operators: Operator[];
-  loading: boolean;
-  assignedFilter: string;
-  onAssignedFilterChange: (val: string) => void;
   startDate: string;
   onStartDateChange: (val: string) => void;
   endDate: string;
   onEndDateChange: (val: string) => void;
   onExportExcel: () => void;
+  statusFilter?: string;
+  onStatusFilterChange?: (val: string) => void;
+  operatorFilterValue?: string;
+  onOperatorFilterChange?: (val: string) => void;
+  urgencyFilterValue?: string;
+  onUrgencyFilterChange?: (val: string) => void;
+  urgencyColumnId?: string;
+  operators?: Operator[];
+  loading?: boolean;
+  assignedFilter?: string;
+  onAssignedFilterChange?: (val: string) => void;
 }
 
 export const DashboardFilters: React.FC<DashboardFiltersProps> = ({

@@ -559,6 +559,13 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
           <LightboxCloseButton onClick={() => setLightboxImage(null)}>&times;</LightboxCloseButton>
         </LightboxOverlay>
       )}
+
+      {showPrintView && (
+        <WorkOrderPrintView
+          issue={currentIssue}
+          onClose={() => setShowPrintView(false)}
+        />
+      )}
     </StyledDialog>
   );
 };

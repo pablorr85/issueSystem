@@ -243,13 +243,13 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
               selectedValue={statusFilter}
               onSelect={onStatusFilterChange}
               options={[
-                { label: t("dashboard.filterAll"), value: "" },
-                { label: t("dashboard.filterPending"), value: "pending" },
-                { label: t("dashboard.filterInProgress"), value: "in_progress" },
+                { label: t("dashboard.filterAll", "All Statuses"), value: "" },
+                { label: t("dashboard.filterPending", "Pending"), value: "pending" },
+                { label: t("dashboard.filterInProgress", "In Progress"), value: "in_progress" },
                 { label: t("dashboard.kanbanQA", "Verificación (QA)"), value: "qa" },
-                { label: t("dashboard.filterResolved"), value: "resolved" },
-                { label: t("dashboard.filterBlocked"), value: "blocked" },
-                { label: t("dashboard.actionWontFix"), value: "wont_fix" },
+                { label: t("dashboard.filterResolved", "Resolved"), value: "resolved" },
+                { label: t("dashboard.filterBlocked", "Blocked"), value: "blocked" },
+                { label: t("dashboard.actionWontFix", "Wont Fix"), value: "wont_fix" },
               ]}
               testId="header-filter-status"
             />

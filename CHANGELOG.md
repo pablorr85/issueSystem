@@ -4,6 +4,16 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
+## [Sprint 31] - Clean Backlog Table, QR Relocation, Solvo Wild Zoo Demo Seeding & Work Order Printing
+### Added
+- Relocated public reporting `ShareQRSection` component from the Backlog table page (`BacklogView`/`Dashboard`) to the main Dashboard landing view (`DashboardStatsView` at `/`), keeping the Backlog table interface clean while providing high-visibility QR code access on login.
+- Added "Print Work Order" trigger button (`WorkOrderPrintView`) directly into the passwordless `OperatorTaskView` for on-site paper printing by technicians.
+- Connected `WorkOrderPrintView` rendering overlay to `EditIssueModal` print action button, enabling manager work order printing.
+- Implemented robust global `@media print` CSS rules and React `createPortal` isolation (`index.css` and `WorkOrderPrintView.styles.ts`), collapsing non-print web elements (`body > *:not(...) { display: none !important; }`), clearing background colors/gradients to pure white (`#ffffff`), hiding action headers (`.no-print`), and compacting section margins to guarantee exact 1-page A4 printing with 0 trailing blank pages.
+- Created `WorkOrderPrintPageView` component mounted at `/work-order/:id`, `/work/task/:id/print`, and `/work/task/:secure_token/print` for dedicated standalone work order preview and printing.
+- Redesigned Kanban card (`KanbanCard` in `BoardView`) layout to render ticket/order numbers (`WO-00101`) and physical facility locations (`📍 Zone`) on separate lines for maximum readability.
+- Seeded rich, realistic production demo dataset for tenant **Solvo Wild Zoo**, including 14 Work Orders (`WO-00101` to `WO-00114`), 8 physical facility zones, real active and inactive operator profiles, cumulative costs, logged hours, timeline comments, and QA checklists.
+
 ## [Sprint 30] - Custom Date Picker, In-Header Column Filters & Compact Backlog Table
 ### Added
 - Built interactive `ColumnHeaderFilter` component embedding filter popover menus directly inside table column headers for Status, Operator/Assignment, and Urgency, complete with active indicator badges (`var(--primary)`).

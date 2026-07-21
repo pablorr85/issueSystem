@@ -5,7 +5,6 @@ import type { ColumnFiltersState } from "@tanstack/react-table";
 import { assignIssue, bulkAssignIssues } from "../../services/api";
 import { MenuItem, Snackbar, CircularProgress } from "@mui/material";
 import type { TenantConfig, Issue, Operator } from "../../services/types";
-import { ShareQRSection } from "../../components/ShareQRSection/ShareQRSection";
 import { DashboardFilters } from "./DashboardFilters";
 import { DashboardTable } from "./DashboardTable";
 import { DashboardPagination } from "./DashboardPagination";
@@ -56,7 +55,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onToggleOperatorActive,
 }) => {
   const { t } = useTranslation();
-  const reportingUrl = `${window.location.origin}/${tenant.id}/report`;
 
   const [operatorFilterValue, setOperatorFilterValue] = useState<string>("");
   const [urgencyFilterValue, setUrgencyFilterValue] = useState<string>("");
@@ -296,8 +294,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {t("dashboard.title")}
         </DashboardTitle>
       </DashboardHeader>
-
-      <ShareQRSection tenant={tenant} reportingUrl={reportingUrl} />
 
       <DashboardCard>
         <DashboardFilters

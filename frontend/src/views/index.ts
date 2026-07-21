@@ -8,5 +8,6 @@ export * from './DashboardStatsView';
 export * from './OperatorTaskView';
 export * from './OperatorHubView';
 export * from './AccessDeniedView';
+export * from './WorkOrderPrintPageView';
 
 

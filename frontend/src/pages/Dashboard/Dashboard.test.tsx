@@ -2,7 +2,8 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { DashboardView } from '../../views/DashboardView';
-import { getTenantConfig, getIssues, getOperators, assignIssue, getIssueComments, getIssue, getTaskLogs, addTaskLog } from '../../services/api';
+import { DashboardStatsView } from '../../views/DashboardStatsView';
+import { getTenantConfig, getIssues, getOperators, assignIssue, getIssueComments, getIssue, getTaskLogs, addTaskLog, getIssuesStats } from '../../services/api';
 import type { TenantConfig, PaginatedResponse, Issue } from '../../services/types';
 
 // Mock Auth Context
@@ -17,6 +18,7 @@ vi.mock('../../context/AuthContext', () => ({
 // Mock the API helpers
 vi.mock('../../services/api', () => ({
   getTenantConfig: vi.fn(),
+  getIssuesStats: vi.fn().mockResolvedValue({ unassigned_count: 0, in_progress_count: 0, blocked_count: 0, operator_workload: [], operator_performance: [], zone_hotspots: [] }),
   getIssues: vi.fn(),
   getOperators: vi.fn(),
   assignIssue: vi.fn(),
@@ -92,6 +94,7 @@ describe('Dashboard Page Component', () => {
     vi.clearAllMocks();
     vi.mocked(getTenantConfig).mockResolvedValue(mockTenant);
     vi.mocked(getOperators).mockResolvedValue(mockOperators);
+    vi.mocked(getIssuesStats).mockResolvedValue({ unassigned_count: 0, in_progress_count: 0, blocked_count: 0, operator_workload: [], operator_performance: [], zone_hotspots: [] });
     vi.mocked(getIssueComments).mockResolvedValue([]);
     vi.mocked(getTaskLogs).mockResolvedValue([]);
     vi.mocked(getIssue).mockResolvedValue(mockIssuesResponse.results[0]);
@@ -195,16 +198,18 @@ describe('Dashboard Page Component', () => {
   });
 
   test('renders Share Public Reporting Form section with copy and download buttons', async () => {
-    vi.mocked(getIssues).mockResolvedValue(mockIssuesResponse);
+    vi.mocked(getTenantConfig).mockResolvedValue(mockTenant);
 
     render(
       <MemoryRouter>
-        <DashboardView />
+        <DashboardStatsView />
       </MemoryRouter>
     );
 
     // Wait for the dashboard to finish loading
-    await screen.findByText(/Tenant Manager Dashboard/i);
+    await waitFor(() => {
+      expect(screen.getByTestId('dashboard-header')).toBeInTheDocument();
+    });
 
     // Verify QR section elements are rendered
     expect(screen.getByText(/Share Public Reporting Form/i)).toBeInTheDocument();

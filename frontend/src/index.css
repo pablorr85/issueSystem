@@ -106,3 +106,62 @@ body {
 .animate-fade-in {
   animation: fadeIn 0.5s ease forwards;
 }
+
+/* Global Print Media Rules for Work Order Printing */
+@media print {
+  body > *:not([data-testid="work-order-print-overlay"]) {
+    display: none !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  [data-testid="work-order-print-overlay"],
+  [data-testid="work-order-print-overlay"] * {
+    visibility: visible !important;
+  }
+
+  .no-print,
+  .no-print *,
+  .MuiBackdrop-root,
+  .MuiDialogTitle-root,
+  .MuiDialogContent-root,
+  .MuiDialogActions-root,
+  .MuiDialog-root {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  .MuiPaper-root,
+  .MuiDialog-paper,
+  .MuiDialog-container {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+  }
+}

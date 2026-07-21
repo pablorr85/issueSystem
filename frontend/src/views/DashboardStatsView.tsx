@@ -11,6 +11,7 @@ import styled from 'styled-components';
 import { useAuth } from '../context/AuthContext';
 import { getTenantConfig, getIssuesStats } from '../services/api';
 import type { TenantConfig, IssueStats } from '../services/types';
+import { ShareQRSection } from '../components/ShareQRSection/ShareQRSection';
 import {
   AppContainer,
   CenteredLoadingContainer,
@@ -373,6 +374,8 @@ export const DashboardStatsView: React.FC = () => {
     navigate('/login');
   };
 
+  const reportingUrl = config ? `${window.location.origin}/${config.id}/report` : '';
+
   if (loading) {
     return (
       <CenteredLoadingContainer>
@@ -408,6 +411,10 @@ export const DashboardStatsView: React.FC = () => {
             {t('dashboard.boardTab')}
           </NavLinkButton>
         </NavContainer>
+
+        {config && (
+          <ShareQRSection tenant={config} reportingUrl={reportingUrl} />
+        )}
 
         <SectionHeader>{t('dashboard.kpisTitle')}</SectionHeader>
         <StatsGrid>

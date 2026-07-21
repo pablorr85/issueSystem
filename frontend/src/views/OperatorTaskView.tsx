@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { CircularProgress, Alert } from "@mui/material";
+import { CircularProgress, Alert, Button } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import CheckIcon from "@mui/icons-material/Check";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
+import PrintIcon from "@mui/icons-material/Print";
 import { getOperatorTask, updateOperatorTaskStatus } from "../services/api";
 import { getUrgencyLevel, getUrgencyIcon } from "../utils/urgency";
 import type { OperatorTask } from "../services/types";
 import { TaskLogbook } from "../components/TaskLogbook/TaskLogbook";
 import { CompletionReportModal } from "../components/CompletionReportModal/CompletionReportModal";
+import { WorkOrderPrintView } from "../components/WorkOrderPrintView";
 import {
   Container,
   MobileCard,
@@ -59,6 +61,7 @@ export const OperatorTaskView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [isResolveModalOpen, setIsResolveModalOpen] = useState<boolean>(false);
+  const [showPrintView, setShowPrintView] = useState<boolean>(false);
 
   const fetchTask = () => {
     if (!secure_token) return;
@@ -384,6 +387,25 @@ export const OperatorTaskView: React.FC = () => {
                   )}
                 </div>
               )}
+              <Button
+                variant="outlined"
+                onClick={() => setShowPrintView(true)}
+                startIcon={<PrintIcon />}
+                sx={{
+                  marginTop: '12px',
+                  width: '100%',
+                  borderColor: 'rgba(255, 255, 255, 0.2)',
+                  color: 'white',
+                  '&:hover': {
+                    borderColor: 'var(--primary)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                  }
+                }}
+                data-testid="operator-task-print-btn"
+              >
+                {t('workOrder.printButton', 'Imprimir Orden de Trabajo')}
+              </Button>
+
               {task.operator_hub_token && (
                 <BackToHubButton
                   variant="text"
@@ -427,6 +449,14 @@ export const OperatorTaskView: React.FC = () => {
             &times;
           </LightboxCloseButton>
         </LightboxOverlay>
+      )}
+
+      {showPrintView && (
+        <WorkOrderPrintView
+          issue={task}
+          tenantName={task.tenant_name}
+          onClose={() => setShowPrintView(false)}
+        />
       )}
     </Container>
   );

@@ -12,12 +12,20 @@ export const PrintOverlay = styled.div`
   overflow-y: auto;
 
   @media print {
-    position: static;
-    background-color: transparent;
-    padding: 0;
-    inset: auto;
-    display: block;
-    overflow: visible;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    inset: auto !important;
+    display: block !important;
+    overflow: visible !important;
+    z-index: 999999 !important;
   }
 `;
 
@@ -36,16 +44,19 @@ export const PrintContainer = styled.div`
   justify-content: space-between;
 
   @media print {
-    box-shadow: none;
-    border-radius: 0;
-    padding: 0;
-    max-width: 100%;
-    min-height: auto;
-
-    @page {
-      size: A4;
-      margin: 15mm;
-    }
+    position: relative !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: auto !important;
+    background: #ffffff !important;
+    color: #000000 !important;
   }
 `;
 
@@ -56,6 +67,11 @@ export const PrintHeader = styled.header`
   border-bottom: 2px solid #000000;
   padding-bottom: 16px;
   margin-bottom: 24px;
+
+  @media print {
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+  }
 `;
 
 export const HeaderTitle = styled.div`
@@ -90,6 +106,13 @@ export const SectionBox = styled.section`
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 20px;
+
+  @media print {
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
 `;
 
 export const SectionTitle = styled.h3`
@@ -162,6 +185,14 @@ export const SignatureGrid = styled.div`
   gap: 40px;
   margin-top: 40px;
   padding-top: 20px;
+
+  @media print {
+    margin-top: 20px;
+    padding-top: 10px;
+    gap: 30px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
 `;
 
 export const SignatureBox = styled.div`

@@ -150,8 +150,12 @@ const KanbanCard: React.FC<CardProps> = ({ issue, onPrint }) => {
         >
           {displayLabel} <LaunchIcon style={{ fontSize: '0.85rem' }} />
         </span>
-        {zone && <span>📍 {zone}</span>}
       </CardMetadataRow>
+      {zone && (
+        <CardMetadataRow style={{ marginTop: '2px' }}>
+          <span>📍 {zone}</span>
+        </CardMetadataRow>
+      )}
       <CardMetadataRow style={{ borderTop: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '8px' }}>
         <span>👤 {issue.assigned_to_name || t('dashboard.unassigned')}</span>
         {onPrint && (

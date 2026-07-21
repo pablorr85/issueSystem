@@ -10,7 +10,8 @@ import {
   BoardView,
   OperatorTaskView,
   OperatorHubView,
-  AccessDeniedView
+  AccessDeniedView,
+  WorkOrderPrintPageView
 } from './views';
 
 function AppContent() {
@@ -56,6 +57,9 @@ function AppContent() {
       />
       <Route path="/:tenant_id/report" element={<ReportIssueView />} />
       <Route path="/login" element={<LoginView />} />
+      <Route path="/work/task/:secure_token/print" element={<WorkOrderPrintPageView />} />
+      <Route path="/work/task/:id/print" element={<WorkOrderPrintPageView />} />
+      <Route path="/work-order/:id" element={<WorkOrderPrintPageView />} />
       <Route path="/work/task/:secure_token" element={<OperatorTaskView />} />
       <Route path="/work/task/:id" element={<OperatorTaskView />} />
       <Route path="/work/hub" element={<OperatorHubView />} />
