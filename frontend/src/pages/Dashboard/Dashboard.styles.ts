@@ -649,3 +649,69 @@ export const CheckboxCellContainer = styled.div`
   display: flex;
   align-items: center;
 `;
+
+export const OperatorSectionCard = styled(DashboardCard)`
+  margin-top: 30px;
+  padding: 24px !important;
+`;
+
+export const OperatorCardTitle = styled.h3`
+  margin: 0 0 20px 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  border-left: 4px solid var(--primary);
+  padding-left: 10px;
+`;
+
+export const OperatorGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+`;
+
+export const OperatorItemCard = styled.div`
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+export const OperatorInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+export const OperatorName = styled.span`
+  font-weight: 700;
+  color: var(--text-primary);
+`;
+
+export const OperatorPhone = styled.span`
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+`;
+
+export const OperatorToggleButton = styled.button<{ $isActive: boolean }>`
+  background: ${({ $isActive }) =>
+    $isActive ? "var(--primary)" : "rgba(239, 68, 68, 0.15)"};
+  color: ${({ $isActive }) => ($isActive ? "#ffffff" : "#ef4444")};
+  border: 1px solid
+    ${({ $isActive }) => ($isActive ? "var(--primary)" : "#ef4444")};
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+`;
+
