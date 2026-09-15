@@ -2,12 +2,6 @@
 
 ## 🚀 Upcoming Sprints & Architectural Enhancements
 
-
-### [Sprint 34] - Asynchronous Task Processing & Messaging Queue (Point B)
-- [ ] Integrate Celery task queue and Redis message broker into Django backend.
-- [ ] Offload WhatsApp/SMS notification dispatches (Twilio & Meta API) to asynchronous background workers.
-- [ ] Implement retry policies with exponential backoff, task idempotency, and Dead-Letter Queues (DLQ) for failed notification jobs.
-
 ### [Sprint 35] - Frontend Global State & API Caching with RTK Query (Point C)
 - [ ] Integrate Redux Toolkit (RTK Query) into React frontend.
 - [ ] Migrate API endpoints (`getIssues`, `getOperators`, `getTenantConfig`) from manual `useEffect` hooks to RTK Query api slices.

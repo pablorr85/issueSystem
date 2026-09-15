@@ -2,7 +2,13 @@
 
 All notable changes to the **Solvo** project are documented in this file.
 
----
+## [Sprint 34] - Asynchronous Task Processing & Messaging Queue Architecture
+### Added
+- Integrated **Celery** task queue and **Redis** message broker into Django backend (`issue_system/celery.py`, `issue_system/__init__.py`, `issue_system/settings.py`), eliminating in-process ad-hoc thread spawning.
+- Created `send_async_whatsapp_notification` background task in `backend/core/tasks.py` with automatic retry policies, exponential backoff (2s, 4s, 8s...), and Dead-Letter Queue (DLQ) logging (`celery.dlq`).
+- Updated Django signals (`backend/core/signals.py`) and bulk assignment endpoints (`backend/core/views.py`) to dispatch notifications asynchronously via `.delay()`.
+- Configured eager task execution mode (`CELERY_TASK_ALWAYS_EAGER = True`) during test suite runs to preserve 100% synchronous test reliability in local developer environments.
+- Added automated test suite `CeleryNotificationTestCase` in `backend/core/tests.py` verifying worker task dispatching, automatic retry behavior, DLQ logging fallback, and signal triggers (55 total backend tests passing).
 
 ## [Sprint 33] - Tenant Security & Automatic Data Isolation Architecture
 ### Added

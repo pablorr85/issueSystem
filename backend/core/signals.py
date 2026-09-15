@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.db.models import Sum
 from decimal import Decimal
 from .models import Issue, IssueComment, TaskLog
-from .services.whatsapp import send_whatsapp_message
+from .tasks import send_async_whatsapp_notification
 
 @receiver(pre_save, sender=Issue)
 def issue_pre_save(sender, instance, **kwargs):
@@ -79,15 +79,8 @@ def issue_post_save(sender, instance, created, **kwargs):
                 f"{hub_link}"
             )
 
-            # Asynchronous in dev/production, synchronous in test execution to avoid race conditions
-            is_testing = 'test' in sys.argv or getattr(settings, 'TESTING', False)
-
-            if is_testing:
-                send_whatsapp_message(phone_number, message_body)
-            else:
-                thread = threading.Thread(target=send_whatsapp_message, args=(phone_number, message_body))
-                thread.daemon = True
-                thread.start()
+            # Dispatch to Celery background worker queue
+            send_async_whatsapp_notification.delay(phone_number, message_body)
 
     # 2. System audit logs for comment timeline
     if not created:

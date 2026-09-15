@@ -722,17 +722,9 @@ class IssueBulkAssignView(APIView):
 
                 message_body = message_header + current_list_str.rstrip() + message_footer
 
-                # Send WhatsApp notification asynchronously
-                from .services.whatsapp import send_whatsapp_message
-                import sys
-                import threading
-                is_testing = 'test' in sys.argv or getattr(settings, 'TESTING', False)
-                if is_testing:
-                    send_whatsapp_message(phone_number, message_body)
-                else:
-                    thread = threading.Thread(target=send_whatsapp_message, args=(phone_number, message_body))
-                    thread.daemon = True
-                    thread.start()
+                # Dispatch WhatsApp notification asynchronously via Celery
+                from .tasks import send_async_whatsapp_notification
+                send_async_whatsapp_notification.delay(phone_number, message_body)
 
         return Response({"status": "success", "updated_count": len(changed_issues)}, status=status.HTTP_200_OK)
 

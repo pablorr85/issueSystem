@@ -6,3 +6,5 @@ Pillow
 django-storages[google]
 twilio
 django-cleanup
+celery>=5.3.0
+redis>=5.0.0

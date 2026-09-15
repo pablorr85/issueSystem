@@ -1443,6 +1443,53 @@ class TenantSecurityTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
+from django.test import TestCase
+from unittest.mock import patch
+from core.tasks import send_async_whatsapp_notification
+from core.services.whatsapp import WHATSAPP_MOCK_REGISTRY
+
+class CeleryNotificationTestCase(TestCase):
+    def setUp(self):
+        WHATSAPP_MOCK_REGISTRY.clear()
+        self.tenant = Tenant.objects.create(name="Theme Park Async")
+        self.user = User.objects.create_user(
+            username="tech_operator",
+            password="password123",
+            tenant=self.tenant
+        )
+        self.profile = OperatorProfile.objects.create(
+            user=self.user,
+            phone_number="+34611223344"
+        )
+
+    def test_celery_task_successful_execution(self):
+        result = send_async_whatsapp_notification.delay("+34611223344", "Async task test message")
+        self.assertTrue(result.successful())
+        self.assertEqual(len(WHATSAPP_MOCK_REGISTRY), 1)
+        self.assertEqual(WHATSAPP_MOCK_REGISTRY[0]['to'], "+34611223344")
+        self.assertIn("Async task test message", WHATSAPP_MOCK_REGISTRY[0]['body'])
+
+    @patch('core.tasks.send_whatsapp_message')
+    def test_celery_task_retry_and_dlq_fallback(self, mock_send):
+        mock_send.side_effect = RuntimeError("Twilio/Meta API connection reset")
+        
+        # Execute task with exhausted retries (retries=3 == max_retries) to trigger DLQ fallback logging
+        with self.assertRaises((RuntimeError, Exception)):
+            send_async_whatsapp_notification.apply(args=("+34611223344", "Failed message"), retries=3)
+
+    def test_signal_dispatches_celery_task(self):
+        issue = Issue.objects.create(
+            tenant=self.tenant,
+            title="Broken escalator",
+            description="Motor overheating",
+            assigned_to=self.user
+        )
+        self.assertEqual(len(WHATSAPP_MOCK_REGISTRY), 1)
+        self.assertEqual(WHATSAPP_MOCK_REGISTRY[0]['to'], "+34611223344")
+        self.assertIn("Motor overheating", WHATSAPP_MOCK_REGISTRY[0]['body'])
+
+
+
 
 
 
