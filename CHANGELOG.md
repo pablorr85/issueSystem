@@ -4,6 +4,17 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
+## [Sprint 32] - Backlog Contrast & Readability Enhancements, Python 3.14 Compatibility Patch
+### Added
+- Added Python 3.14 runtime compatibility patch for Django 4.2 in `CoreConfig.ready()` (`backend/core/apps.py`), resolving an `AttributeError` in `BaseContext.__copy__` when copying template contexts during Django admin page rendering (`/admin/core/user/`).
+- Updated development `ALLOWED_HOSTS = ['*']` configuration in `backend/issue_system/settings.py` for flexible local environment testing.
+
+### Changed
+- Refactored `CustomDatePicker` styling (`CustomDatePicker.styles.ts`) to use theme CSS variables (`var(--bg-surface)`, `var(--text-primary)`, `var(--text-secondary)`, `var(--border-card)`), eliminating hardcoded dark background rectangles (`#181528`) and unreadable white value text in Light theme.
+- Updated `DashboardTable` (`DashboardTable.tsx`) title and description cells to consume `var(--text-primary)` and `var(--text-secondary)`, replacing legacy hardcoded translucent white (`rgba(255, 255, 255, 0.5)`).
+- Upgraded `StatusBadge` in `Dashboard.styles.ts` to map status pill colors directly to theme tokens (`var(--status-pending-bg)`, `var(--status-pending-text)`, `var(--status-pending-border)`), fixing contrast for "Pending", "In Progress", "Resolved", and "Blocked" badges in both light and dark themes.
+- Updated `ColumnHeaderFilter` popover menus and filter toggle buttons (`ColumnHeaderFilter.tsx`) to utilize theme variables for background and text.
+
 ## [Sprint 31] - Clean Backlog Table, QR Relocation, Solvo Wild Zoo Demo Seeding & Work Order Printing
 ### Added
 - Relocated public reporting `ShareQRSection` component from the Backlog table page (`BacklogView`/`Dashboard`) to the main Dashboard landing view (`DashboardStatsView` at `/`), keeping the Backlog table interface clean while providing high-visibility QR code access on login.
