@@ -1,14 +1,23 @@
-import styled from 'styled-components';
+﻿import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 
 export const NavContainer = styled.nav`
   display: flex;
+  justify-content: space-between;
+  align-items: center;
   gap: 12px;
   margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.02);
-  padding: 10px;
+  background: var(--bg-card);
+  padding: 10px 16px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow);
+`;
+
+export const NavLinksGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
 `;
 
 export interface NavLinkProps {
@@ -26,12 +35,12 @@ export const NavLinkButton = styled(Link)<NavLinkProps>`
   border-radius: 8px;
   transition: all 0.2s ease;
   background: ${({ $active }) => ($active ? 'var(--primary)' : 'transparent')};
-  color: ${({ $active }) => ($active ? '#ffffff' : 'var(--text-secondary, #c5c2d9)')} !important;
-  border: 1px solid ${({ $active }) => ($active ? 'var(--primary)' : 'rgba(255, 255, 255, 0.05)')};
+  color: ${({ $active }) => ($active ? '#ffffff' : 'var(--text-secondary)')} !important;
+  border: 1px solid ${({ $active }) => ($active ? 'var(--primary)' : 'transparent')};
 
   &:hover {
-    background: ${({ $active }) => ($active ? 'var(--primary-hover)' : 'rgba(255, 255, 255, 0.06)')};
-    color: #ffffff !important;
+    background: ${({ $active }) => ($active ? 'var(--primary-hover)' : 'var(--bg-surface)')};
+    color: var(--text-primary) !important;
   }
 `;
 
@@ -49,8 +58,8 @@ export const BoardGrid = styled.div`
 `;
 
 export const ColumnContainer = styled.div`
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 16px;
   padding: 16px;
   display: flex;
@@ -70,7 +79,7 @@ export const ColumnHeader = styled.div`
 export const ColumnTitle = styled.h3`
   font-size: 1.1rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
   margin: 0;
   display: flex;
   align-items: center;
@@ -78,17 +87,18 @@ export const ColumnTitle = styled.h3`
 `;
 
 export const TaskCounter = styled.span`
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
   padding: 2px 8px;
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: bold;
-  color: var(--text-secondary, #c5c2d9);
+  color: var(--text-secondary);
 `;
 
 export const CardContainer = styled.div<{ $isDragging?: boolean }>`
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
   border-radius: 12px;
   padding: 16px;
   display: flex;
@@ -96,13 +106,13 @@ export const CardContainer = styled.div<{ $isDragging?: boolean }>`
   gap: 12px;
   cursor: grab;
   user-select: none;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow);
   transition: border-color 0.2s, box-shadow 0.2s;
   opacity: ${({ $isDragging }) => ($isDragging ? 0.4 : 1)};
   touch-action: none;
 
   &:hover {
-    border-color: rgba(255, 255, 255, 0.2);
+    border-color: var(--primary);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   }
 
@@ -120,7 +130,7 @@ export const CardImage = styled.img`
 
 export const CardDesc = styled.p`
   font-size: 0.9rem;
-  color: #ffffff;
+  color: var(--text-primary);
   margin: 0;
   font-weight: 500;
   line-height: 1.4;
@@ -131,5 +141,5 @@ export const CardMetadataRow = styled.div`
   justify-content: space-between;
   align-items: center;
   font-size: 0.8rem;
-  color: var(--text-secondary, #c5c2d9);
+  color: var(--text-secondary);
 `;

@@ -7,10 +7,12 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { getOperatorHub } from "../services/api";
 import { getUrgencyLevel, getUrgencyIcon } from "../utils/urgency";
 import type { OperatorTask } from "../services/types";
+import { ThemeToggle } from "../components/ThemeToggle";
 import {
   Container,
   MobileCard,
   BrandHeader,
+  HeaderContent,
   LogoImage,
   LogoPlaceholder,
   TenantName,
@@ -169,15 +171,18 @@ export const OperatorHubView: React.FC = () => {
     <Container>
       <MobileCard>
         <BrandHeader>
-          {tenantLogo ? (
-            <LogoImage src={tenantLogo} alt="Tenant Logo" />
-          ) : (
-            <LogoPlaceholder>{tenantName.charAt(0)}</LogoPlaceholder>
-          )}
-          <div>
-            <TenantName>{tenantName}</TenantName>
-            <Subtitle>{t("operatorHub.title")}</Subtitle>
-          </div>
+          <HeaderContent>
+            {tenantLogo ? (
+              <LogoImage src={tenantLogo} alt="Tenant Logo" />
+            ) : (
+              <LogoPlaceholder>{tenantName.charAt(0)}</LogoPlaceholder>
+            )}
+            <div>
+              <TenantName>{tenantName}</TenantName>
+              <Subtitle>{t("operatorHub.title")}</Subtitle>
+            </div>
+          </HeaderContent>
+          <ThemeToggle showLabel={false} />
         </BrandHeader>
 
         <div>

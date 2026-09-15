@@ -1,14 +1,23 @@
-import styled from 'styled-components';
+﻿import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 
 export const NavContainer = styled.nav`
   display: flex;
+  justify-content: space-between;
+  align-items: center;
   gap: 12px;
   margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.02);
-  padding: 10px;
+  background: var(--bg-card);
+  padding: 10px 16px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow);
+`;
+
+export const NavLinksGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
 `;
 
 export interface NavLinkProps {
@@ -26,11 +35,11 @@ export const NavLinkButton = styled(Link)<NavLinkProps>`
   border-radius: 8px;
   transition: all 0.2s ease;
   background: ${({ $active }) => ($active ? 'var(--primary)' : 'transparent')};
-  color: ${({ $active }) => ($active ? '#ffffff' : 'var(--text-secondary, #c5c2d9)')} !important;
-  border: 1px solid ${({ $active }) => ($active ? 'var(--primary)' : 'rgba(255, 255, 255, 0.05)')};
+  color: ${({ $active }) => ($active ? '#ffffff' : 'var(--text-secondary)')} !important;
+  border: 1px solid ${({ $active }) => ($active ? 'var(--primary)' : 'transparent')};
 
   &:hover {
-    background: ${({ $active }) => ($active ? 'var(--primary-hover)' : 'rgba(255, 255, 255, 0.06)')};
-    color: #ffffff !important;
+    background: ${({ $active }) => ($active ? 'var(--primary-hover)' : 'var(--bg-surface)')};
+    color: var(--text-primary) !important;
   }
 `;

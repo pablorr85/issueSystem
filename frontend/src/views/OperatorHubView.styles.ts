@@ -13,12 +13,12 @@ export const Container = styled.div`
 export const MobileCard = styled(Card)`
   width: 100%;
   max-width: 500px;
-  background: rgba(255, 255, 255, 0.03) !important;
+  background: var(--bg-card) !important;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid var(--border-card) !important;
   border-radius: 24px !important;
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4) !important;
+  box-shadow: var(--shadow) !important;
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -30,9 +30,15 @@ export const MobileCard = styled(Card)`
 export const BrandHeader = styled.div`
   display: flex;
   align-items: center;
-  gap: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-card);
   padding-bottom: 16px;
+`;
+
+export const HeaderContent = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
 `;
 
 export const LogoImage = styled.img`
@@ -40,14 +46,14 @@ export const LogoImage = styled.img`
   height: 48px;
   border-radius: 12px;
   object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-card);
 `;
 
 export const LogoPlaceholder = styled.div`
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: var(--primary, HSL(260, 85%, 60%));
+  background: var(--primary);
   color: white;
   display: flex;
   align-items: center;
@@ -59,12 +65,12 @@ export const LogoPlaceholder = styled.div`
 
 export const TenantName = styled(Typography)`
   font-weight: 700 !important;
-  color: white !important;
+  color: var(--text-primary) !important;
   font-size: 1.2rem !important;
 `;
 
 export const Subtitle = styled(Typography)`
-  color: #a09cb4 !important;
+  color: var(--text-secondary) !important;
   font-size: 0.85rem !important;
 `;
 
@@ -75,8 +81,8 @@ export const TaskList = styled.div`
 `;
 
 export const TaskCard = styled.div`
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
   border-radius: 16px;
   padding: 16px;
   display: flex;
@@ -87,8 +93,8 @@ export const TaskCard = styled.div`
   
   &:hover {
     transform: translateY(-2px);
-    background: rgba(255, 255, 255, 0.04);
-    border-color: var(--primary, HSL(260, 85%, 60%));
+    background: var(--bg-card);
+    border-color: var(--primary);
   }
 `;
 
@@ -110,12 +116,12 @@ export const TaskTitleRow = styled.div`
 
 export const TaskId = styled(Typography)`
   font-weight: 700 !important;
-  color: white !important;
+  color: var(--text-primary) !important;
   font-size: 0.95rem !important;
 `;
 
 export const TaskDescription = styled(Typography)`
-  color: #d1cfe0 !important;
+  color: var(--text-secondary) !important;
   font-size: 0.9rem !important;
   white-space: nowrap;
   overflow: hidden;
@@ -165,102 +171,54 @@ export const UrgencyPill = styled.span<PillProps>`
         `;
       default:
         return `
-          background: rgba(255, 255, 255, 0.08);
-          color: #e0e0e0;
-          border: 1px solid rgba(255, 255, 255, 0.15);
+          background: var(--bg-surface);
+          color: var(--text-secondary);
+          border: 1px solid var(--border-subtle);
         `;
     }
   }}
-
-  @keyframes pulse {
-    0% {
-      box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4);
-    }
-    70% {
-      box-shadow: 0 0 0 6px rgba(244, 67, 54, 0);
-    }
-    100% {
-      box-shadow: 0 0 0 0 rgba(244, 67, 54, 0);
-    }
-  }
 `;
 
-export const StatusPill = styled.span<{ $status: string }>`
-  font-size: 0.7rem;
+export const StatusPill = styled.span<{ $status?: string }>`
+  font-size: 0.75rem;
   font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  
-  ${({ $status }) => {
-    switch ($status) {
-      case 'in_progress':
-        return `
-          background: rgba(33, 150, 243, 0.12);
-          color: #2196f3;
-          border: 1px solid rgba(33, 150, 243, 0.2);
-        `;
-      case 'resolved':
-        return `
-          background: rgba(76, 175, 80, 0.12);
-          color: #4caf50;
-          border: 1px solid rgba(76, 175, 80, 0.2);
-        `;
-      case 'blocked':
-        return `
-          background: rgba(239, 108, 0, 0.12);
-          color: #ff9800;
-          border: 1px solid rgba(239, 108, 0, 0.2);
-        `;
-      case 'wont_fix':
-        return `
-          background: rgba(120, 144, 156, 0.12);
-          color: #b0bec5;
-          border: 1px solid rgba(120, 144, 156, 0.2);
-        `;
-      case 'pending':
-      default:
-        return `
-          background: rgba(255, 179, 0, 0.12);
-          color: #ffb300;
-          border: 1px solid rgba(255, 179, 0, 0.2);
-        `;
-    }
-  }}
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
 `;
 
 export const EmptyContainer = styled.div`
+  text-align: center;
+  padding: 32px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  text-align: center;
-  gap: 16px;
-  background: rgba(255, 255, 255, 0.01);
-  border: 1px dashed rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+  gap: 12px;
 `;
 
 export const HubSubtitle = styled(Typography)`
-  color: white !important;
-  font-weight: 600 !important;
-  margin-bottom: 8px !important;
   font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
 `;
 
 export const EmptyText = styled(Typography)`
-  color: #a09cb4 !important;
-  font-size: 0.95rem !important;
+  color: var(--text-muted) !important;
+  font-size: 0.9rem !important;
 `;
 
-export const LoadingContainer = styled(Container)`
-  align-items: center;
+export const LoadingContainer = styled.div`
+  display: flex;
   justify-content: center;
+  padding: 40px;
 `;
 
-export const CenterContainer = styled(Container)`
+export const CenterContainer = styled.div`
+  display: flex;
+  justify-content: center;
   align-items: center;
+  min-height: 80vh;
+  padding: 16px;
 `;
-

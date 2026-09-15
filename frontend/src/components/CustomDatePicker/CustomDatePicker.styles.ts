@@ -13,49 +13,49 @@ export const DatePickerInputBox = styled(Box)`
   min-width: 180px;
   height: 40px;
   padding: 0 12px;
-  background-color: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-card);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
 
   &:hover {
-    border-color: rgba(255, 255, 255, 0.25);
-    background-color: rgba(255, 255, 255, 0.07);
+    border-color: var(--primary);
+    background-color: var(--bg-card);
   }
 
   svg {
-    color: #a09cb4;
+    color: var(--text-secondary);
     font-size: 1.1rem;
   }
 `;
 
 export const DateInputLabel = styled.span`
   font-size: 0.75rem;
-  color: #a09cb4;
+  color: var(--text-secondary);
   position: absolute;
   top: -9px;
   left: 10px;
-  background: #181528;
+  background: var(--bg-surface);
   padding: 0 4px;
   border-radius: 4px;
 `;
 
 export const DateInputValueText = styled.span<{ $hasValue: boolean }>`
   font-size: 0.9rem;
-  color: ${(props) => (props.$hasValue ? "#ffffff" : "#716c89")};
+  color: ${(props) => (props.$hasValue ? "var(--text-primary)" : "var(--text-muted)")};
   font-weight: 500;
 `;
 
 export const CalendarPopoverBox = styled(Box)`
   width: 340px;
   padding: 16px;
-  background: #1e1b30;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
-  color: white;
+  box-shadow: var(--shadow);
+  color: var(--text-primary);
 `;
 
 export const CalendarHeader = styled(Box)`
@@ -67,12 +67,12 @@ export const CalendarHeader = styled(Box)`
 `;
 
 export const HeaderNavButton = styled(IconButton)`
-  color: #a09cb4 !important;
+  color: var(--text-secondary) !important;
   padding: 4px !important;
 
   &:hover {
-    color: white !important;
-    background: rgba(255, 255, 255, 0.08) !important;
+    color: var(--text-primary) !important;
+    background: var(--bg-card) !important;
   }
 `;
 
@@ -83,7 +83,7 @@ export const SelectsContainer = styled(Box)`
 `;
 
 export const HeaderSelect = styled(Select)<{ $minWidth?: string }>`
-  color: white !important;
+  color: var(--text-primary) !important;
   font-size: 0.85rem !important;
   font-weight: 600 !important;
   height: 32px !important;
@@ -97,21 +97,22 @@ export const HeaderSelect = styled(Select)<{ $minWidth?: string }>`
   }
 
   & .MuiOutlinedInput-notchedOutline {
-    border-color: rgba(255, 255, 255, 0.15) !important;
+    border-color: var(--border-subtle) !important;
   }
 
   &:hover .MuiOutlinedInput-notchedOutline {
-    border-color: rgba(255, 255, 255, 0.3) !important;
+    border-color: var(--primary) !important;
   }
 
   & .MuiSelect-icon {
-    color: #a09cb4 !important;
+    color: var(--text-secondary) !important;
     right: 6px !important;
   }
 `;
 
 export const HeaderMenuItem = styled(MenuItem)`
   font-size: 0.85rem !important;
+  color: var(--text-primary) !important;
 `;
 
 export const DaysOfWeekGrid = styled(Box)`
@@ -124,7 +125,7 @@ export const DaysOfWeekGrid = styled(Box)`
 export const DayOfWeekCell = styled.span`
   font-size: 0.75rem;
   font-weight: 600;
-  color: #a09cb4;
+  color: var(--text-secondary);
   padding: 4px 0;
 `;
 
@@ -147,8 +148,8 @@ export const DayCell = styled(Button)<{ $isCurrentMonth: boolean; $isSelected: b
       : props.$isCurrentMonth
       ? props.$isToday
         ? "var(--primary, #7c4dff) !important"
-        : "#ffffff !important"
-      : "#55506a !important"};
+        : "var(--text-primary) !important"
+      : "var(--text-muted) !important"};
   background-color: ${(props) =>
     props.$isSelected
       ? "var(--primary, #7c4dff) !important"
@@ -161,7 +162,7 @@ export const DayCell = styled(Button)<{ $isCurrentMonth: boolean; $isSelected: b
     background-color: ${(props) =>
       props.$isSelected
         ? "var(--primary-hover, #651fff) !important"
-        : "rgba(255, 255, 255, 0.1) !important"};
+        : "var(--bg-card) !important"};
   }
 `;
 
@@ -171,7 +172,7 @@ export const CalendarFooter = styled(Box)`
   align-items: center;
   margin-top: 12px;
   padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--border-subtle);
 `;
 
 export const popoverSlotProps = {
@@ -183,3 +184,4 @@ export const popoverSlotProps = {
     },
   },
 };
+

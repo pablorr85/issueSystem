@@ -9,11 +9,13 @@ import { useAuth } from '../../context/AuthContext';
 import { getTenantConfig, getIssues, getOperators, toggleOperatorActive } from '../../services/api';
 import type { TenantConfig, Issue, Operator } from '../../services/types';
 import { EditIssueModal } from '../../components/EditIssueModal/EditIssueModal';
+import { ThemeToggle } from '../../components/ThemeToggle';
 import {
   AppContainer,
   CenteredLoadingContainer,
   AppMain,
   AppHeader,
+  HeaderTopRow,
   AppTitle,
   AppSubtitle,
   AuthStatusContainer,
@@ -225,6 +227,9 @@ export const BacklogView: React.FC = () => {
   return (
     <AppContainer $wide>
       <AppHeader>
+        <HeaderTopRow>
+          <ThemeToggle />
+        </HeaderTopRow>
         <AppTitle>{t('app.appTitle')}</AppTitle>
         <AppSubtitle>{t('app.appSubtitle')}</AppSubtitle>
       </AppHeader>

@@ -12,11 +12,13 @@ import { useAuth } from '../../context/AuthContext';
 import { getTenantConfig, getIssues, updateIssueStatus } from '../../services/api';
 import type { TenantConfig, Issue } from '../../services/types';
 import { WorkOrderPrintView } from '../../components/WorkOrderPrintView';
+import { ThemeToggle } from '../../components/ThemeToggle';
 import {
   AppContainer,
   CenteredLoadingContainer,
   AppMain,
   AppHeader,
+  HeaderTopRow,
   AppTitle,
   AppSubtitle,
   AuthStatusContainer,
@@ -324,6 +326,9 @@ export const BoardView: React.FC = () => {
         />
       )}
       <AppHeader>
+        <HeaderTopRow>
+          <ThemeToggle />
+        </HeaderTopRow>
         <AppTitle>{t('app.appTitle')}</AppTitle>
         <AppSubtitle>{t('app.appSubtitle')}</AppSubtitle>
       </AppHeader>

@@ -1,4 +1,4 @@
-import styled from "styled-components";
+﻿import styled from "styled-components";
 import { Alert, Button } from "@mui/material";
 
 export const AppContainer = styled.div<{ $wide?: boolean }>`
@@ -13,6 +13,14 @@ export const AppContainer = styled.div<{ $wide?: boolean }>`
 export const AppHeader = styled.header`
   text-align: center;
   margin-bottom: 40px;
+  position: relative;
+`;
+
+export const HeaderTopRow = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 16px;
 `;
 
 export const AppTitle = styled.h1`
@@ -20,7 +28,7 @@ export const AppTitle = styled.h1`
   font-size: 3rem;
   font-weight: 800;
   letter-spacing: -0.05em;
-  background: linear-gradient(135deg, #ffffff 30%, var(--primary) 100%);
+  background: linear-gradient(135deg, var(--text-primary) 30%, var(--primary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 `;
@@ -42,17 +50,18 @@ export const BrandingCard = styled.div`
   display: flex;
   align-items: center;
   gap: 20px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-card);
   padding: 20px;
   border-radius: 12px;
   border: 1px solid var(--primary);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow);
 `;
 
 export const LogoPlaceholder = styled.div`
   height: 50px;
   width: 50px;
   background: var(--primary);
+  color: white;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -73,13 +82,14 @@ export const BrandingSubtitle = styled.p`
 `;
 
 export const PreContainer = styled.pre`
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--bg-surface);
   padding: 15px;
   border-radius: 8px;
+  border: 1px solid var(--border-subtle);
   overflow-x: auto;
   font-family: monospace;
   font-size: 0.9rem;
-  color: #c5c2d9;
+  color: var(--text-secondary);
   margin: 0;
 `;
 
@@ -99,6 +109,7 @@ export const AppMain = styled.main`
 export const BrandingHeader = styled.h2`
   font-size: 1.5rem;
   margin: 0 0 10px 0;
+  color: var(--text-primary);
 `;
 
 export const BrandingImage = styled.img`
@@ -125,11 +136,11 @@ export const TabContainer = styled.div`
 
 export const TabButton = styled.button<{ $active: boolean }>`
   background: ${({ $active }) =>
-    $active ? "var(--primary)" : "rgba(255, 255, 255, 0.03)"};
-  color: ${({ $active }) => ($active ? "white" : "#a09cb4")};
+    $active ? "var(--primary)" : "var(--bg-card)"};
+  color: ${({ $active }) => ($active ? "white" : "var(--text-secondary)")};
   border: 1px solid
     ${({ $active }) =>
-      $active ? "var(--primary)" : "rgba(255, 255, 255, 0.08)"};
+      $active ? "var(--primary)" : "var(--border-card)"};
   padding: 10px 24px;
   border-radius: 9999px;
   font-size: 0.95rem;
@@ -139,10 +150,10 @@ export const TabButton = styled.button<{ $active: boolean }>`
 
   &:hover {
     background: ${({ $active }) =>
-      $active ? "var(--primary-hover)" : "rgba(255, 255, 255, 0.06)"};
+      $active ? "var(--primary-hover)" : "var(--bg-surface)"};
     border-color: ${({ $active }) =>
-      $active ? "var(--primary-hover)" : "rgba(255, 255, 255, 0.15)"};
-    color: white;
+      $active ? "var(--primary-hover)" : "var(--primary)"};
+    color: ${({ $active }) => ($active ? "white" : "var(--text-primary)")};
   }
 `;
 
@@ -151,39 +162,39 @@ export const AuthStatusContainer = styled.div`
   align-items: center;
   gap: 10px;
   justify-content: center;
-  color: #a09cb4;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   margin-bottom: 15px;
 `;
 
 export const LogoutButton = styled.button`
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border-card);
   border-radius: 4px;
-  color: white;
+  color: var(--text-primary);
   padding: 2px 8px;
   cursor: pointer;
   font-weight: 600;
   transition: all 0.2s;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.4);
+    background: var(--bg-surface);
+    border-color: var(--primary);
   }
 `;
 
 export const RequiredAuthAlert = styled(Alert)`
   border-radius: 12px !important;
-  background-color: rgba(255, 179, 0, 0.05) !important;
-  color: #ffd54f !important;
-  border: 1px solid rgba(255, 179, 0, 0.2) !important;
+  background-color: rgba(255, 179, 0, 0.1) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid rgba(255, 179, 0, 0.3) !important;
   padding: 16px !important;
   display: flex;
   flex-direction: column;
   gap: 16px;
 
   & .MuiAlert-icon {
-    color: #ffd54f !important;
+    color: #eab308 !important;
   }
 `;
 

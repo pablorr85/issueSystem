@@ -67,11 +67,11 @@ export const ColumnHeaderFilter: React.FC<ColumnHeaderFilterProps> = ({
           data-testid={testId}
           sx={{
             padding: "2px",
-            color: isFiltered ? "var(--primary, #7c4dff)" : "#a09cb4",
+            color: isFiltered ? "var(--primary, #7c4dff)" : "var(--text-secondary)",
             backgroundColor: isFiltered ? "rgba(124, 77, 255, 0.12)" : "transparent",
             "&:hover": {
-              backgroundColor: "rgba(255, 255, 255, 0.08)",
-              color: "white",
+              backgroundColor: "var(--bg-card)",
+              color: "var(--text-primary)",
             },
           }}
         >
@@ -86,12 +86,12 @@ export const ColumnHeaderFilter: React.FC<ColumnHeaderFilterProps> = ({
         slotProps={{
           paper: {
             style: {
-              background: "#1e1b30",
-              border: "1px solid rgba(255, 255, 255, 0.12)",
-              color: "white",
+              background: "var(--bg-surface)",
+              border: "1px solid var(--border-card)",
+              color: "var(--text-primary)",
               borderRadius: "10px",
               minWidth: "160px",
-              boxShadow: "0 12px 32px rgba(0, 0, 0, 0.4)",
+              boxShadow: "var(--shadow)",
             },
           },
         }}
@@ -104,12 +104,12 @@ export const ColumnHeaderFilter: React.FC<ColumnHeaderFilterProps> = ({
             sx={{
               fontSize: "0.85rem",
               fontWeight: selectedValue === opt.value ? 600 : 400,
-              color: selectedValue === opt.value ? "var(--primary, #7c4dff)" : "white",
+              color: selectedValue === opt.value ? "var(--primary, #7c4dff)" : "var(--text-primary)",
               "&.Mui-selected": {
                 backgroundColor: "rgba(124, 77, 255, 0.15)",
               },
               "&:hover": {
-                backgroundColor: "rgba(255, 255, 255, 0.08)",
+                backgroundColor: "var(--bg-card)",
               },
             }}
           >

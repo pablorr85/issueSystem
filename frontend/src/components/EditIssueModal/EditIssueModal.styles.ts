@@ -11,16 +11,16 @@ import {
 
 export const StyledDialog = styled(Dialog)`
   .MuiPaper-root {
-    background: rgba(30, 30, 45, 0.85) !important;
+    background: var(--bg-surface) !important;
     backdrop-filter: blur(24px) saturate(180%);
     -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid var(--border-card) !important;
     border-radius: 20px !important;
-    color: white !important;
+    color: var(--text-primary) !important;
     width: 100%;
     max-width: 550px !important;
     padding: 10px;
-    box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.5) !important;
+    box-shadow: var(--shadow) !important;
   }
 `;
 
@@ -28,11 +28,11 @@ export const StyledDialogTitle = styled(DialogTitle)`
   font-weight: 700 !important;
   font-family: var(--font-sans) !important;
   font-size: 1.3rem !important;
-  color: white !important;
+  color: var(--text-primary) !important;
   display: flex;
   align-items: center;
   gap: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-subtle);
   padding-bottom: 16px !important;
 `;
 
@@ -45,49 +45,49 @@ export const FormContainer = styled.div`
 
 export const StyledTextField = styled(TextField)`
   & .MuiInputLabel-root {
-    color: #a09cb4 !important;
+    color: var(--text-secondary) !important;
   }
   & .MuiOutlinedInput-root {
-    color: white !important;
-    background: rgba(255, 255, 255, 0.02);
+    color: var(--text-primary) !important;
+    background: var(--bg-surface);
     border-radius: 12px;
     & fieldset {
-      border-color: rgba(255, 255, 255, 0.1);
+      border-color: var(--border-card);
     }
     &:hover fieldset {
-      border-color: var(--primary, HSL(260, 85%, 60%));
+      border-color: var(--primary);
     }
     &.Mui-focused fieldset {
-      border-color: var(--primary, HSL(260, 85%, 60%));
+      border-color: var(--primary);
     }
   }
 `;
 
 export const StyledFormControl = styled(FormControl)`
   & .MuiInputLabel-root {
-    color: #a09cb4 !important;
+    color: var(--text-secondary) !important;
   }
   & .MuiOutlinedInput-root {
-    color: white !important;
-    background: rgba(255, 255, 255, 0.02);
+    color: var(--text-primary) !important;
+    background: var(--bg-surface);
     border-radius: 12px;
     & fieldset {
-      border-color: rgba(255, 255, 255, 0.1);
+      border-color: var(--border-card);
     }
     &:hover fieldset {
-      border-color: var(--primary, HSL(260, 85%, 60%));
+      border-color: var(--primary);
     }
     &.Mui-focused fieldset {
-      border-color: var(--primary, HSL(260, 85%, 60%));
+      border-color: var(--primary);
     }
   }
   & .MuiSelect-icon {
-    color: #a09cb4 !important;
+    color: var(--text-secondary) !important;
   }
 `;
 
 export const StyledDialogActions = styled(DialogActions)`
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--border-subtle);
   padding-top: 16px !important;
   gap: 12px;
 `;
@@ -162,7 +162,7 @@ export const RemoveButton = styled.button`
 `;
 
 export const CustomFieldsHeader = styled(Typography)`
-  color: #a09cb4 !important;
+  color: var(--text-secondary) !important;
   margin-bottom: 16px !important;
   font-weight: 600 !important;
   text-transform: uppercase !important;
@@ -181,7 +181,7 @@ export const ExtraFieldsContainer = styled.div`
 `;
 
 export const CheckboxLabelSpan = styled.span`
-  color: white;
+  color: var(--text-primary);
   font-size: 0.95rem;
 `;
 
@@ -190,17 +190,17 @@ export const HiddenFileInput = styled.input`
 `;
 
 export const UploadTitle = styled(Typography)`
-  color: white !important;
+  color: var(--text-primary) !important;
   font-weight: 500 !important;
 `;
 
 export const UploadSubtitle = styled(Typography)`
-  color: #a09cb4 !important;
+  color: var(--text-secondary) !important;
   margin-top: 4px !important;
 `;
 
 export const CancelButton = styled(ActionButton)`
-  color: rgba(255, 255, 255, 0.6) !important;
+  color: var(--text-secondary) !important;
 `;
 
 export const SaveButton = styled(ActionButton)`

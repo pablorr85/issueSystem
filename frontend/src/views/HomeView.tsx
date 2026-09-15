@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { TenantForm } from '../components/TenantForm';
 import { getTenantConfig } from '../services/api';
-import { AppContainer, AppMain, AppHeader, AppTitle, AppSubtitle } from '../App.styles';
+import { ThemeToggle } from '../components/ThemeToggle';
+import { AppContainer, AppMain, AppHeader, AppTitle, AppSubtitle, HeaderTopRow } from '../App.styles';
 
 export const HomeView: React.FC = () => {
   const { t } = useTranslation();
@@ -48,6 +49,9 @@ export const HomeView: React.FC = () => {
   return (
     <AppContainer>
       <AppHeader>
+        <HeaderTopRow>
+          <ThemeToggle />
+        </HeaderTopRow>
         <AppTitle>{t('app.appTitle')}</AppTitle>
         <AppSubtitle>{t('app.appSubtitle')}</AppSubtitle>
       </AppHeader>
@@ -57,4 +61,3 @@ export const HomeView: React.FC = () => {
     </AppContainer>
   );
 };
-

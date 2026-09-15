@@ -12,11 +12,13 @@ import { useAuth } from '../context/AuthContext';
 import { getTenantConfig, getIssuesStats } from '../services/api';
 import type { TenantConfig, IssueStats } from '../services/types';
 import { ShareQRSection } from '../components/ShareQRSection/ShareQRSection';
+import { ThemeToggle } from '../components/ThemeToggle';
 import {
   AppContainer,
   CenteredLoadingContainer,
   AppMain,
   AppHeader,
+  HeaderTopRow,
   AppTitle,
   AppSubtitle,
   AuthStatusContainer,
@@ -27,10 +29,10 @@ const NavContainer = styled.nav`
   display: flex;
   gap: 12px;
   margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-card);
   padding: 10px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-card);
 `;
 
 interface NavLinkProps {
@@ -48,12 +50,12 @@ const NavLinkButton = styled(Link)<NavLinkProps>`
   border-radius: 8px;
   transition: all 0.2s ease;
   background: ${({ $active }) => ($active ? 'var(--primary)' : 'transparent')};
-  color: ${({ $active }) => ($active ? '#ffffff' : 'var(--text-secondary, #c5c2d9)')} !important;
-  border: 1px solid ${({ $active }) => ($active ? 'var(--primary)' : 'rgba(255, 255, 255, 0.05)')};
+  color: ${({ $active }) => ($active ? '#ffffff' : 'var(--text-secondary)')} !important;
+  border: 1px solid ${({ $active }) => ($active ? 'var(--primary)' : 'var(--border-subtle)')};
 
   &:hover {
-    background: ${({ $active }) => ($active ? 'var(--primary-hover)' : 'rgba(255, 255, 255, 0.06)')};
-    color: #ffffff !important;
+    background: ${({ $active }) => ($active ? 'var(--primary-hover)' : 'var(--bg-surface)')};
+    color: ${({ $active }) => ($active ? '#ffffff' : 'var(--text-primary)')} !important;
   }
 `;
 
@@ -67,19 +69,19 @@ const StatsGrid = styled.div`
 const StatCard = styled(Link)`
   text-decoration: none;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 16px;
   padding: 24px;
   display: flex;
   align-items: center;
   gap: 20px;
   transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow);
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    box-shadow: var(--shadow);
     border-color: var(--primary);
   }
 `;
@@ -105,14 +107,14 @@ const StatContent = styled.div`
 const StatNumber = styled.span`
   font-size: 2.2rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-primary);
   line-height: 1;
 `;
 
 const StatLabel = styled.span`
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--text-secondary, #c5c2d9);
+  color: var(--text-secondary);
   margin-top: 4px;
 `;
 
@@ -125,21 +127,21 @@ const ActionsGrid = styled.div`
 
 const ActionCard = styled(Link)`
   text-decoration: none;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 20px;
   padding: 30px;
   display: flex;
   flex-direction: column;
   gap: 15px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow);
 
   &:hover {
     border-color: var(--primary);
     transform: translateY(-6px);
-    box-shadow: 0 12px 40px rgba(var(--primary-hue), 0.25);
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
+    box-shadow: var(--shadow);
+    background: var(--bg-surface);
   }
 `;
 
@@ -153,12 +155,12 @@ const ActionTitle = styled.h3`
   font-size: 1.5rem;
   font-weight: 750;
   margin: 0;
-  color: #ffffff;
+  color: var(--text-primary);
 `;
 
 const ActionDescription = styled.p`
   font-size: 0.95rem;
-  color: var(--text-secondary, #c5c2d9);
+  color: var(--text-secondary);
   line-height: 1.5;
   margin: 0;
   flex: 1;
@@ -182,7 +184,7 @@ const ActionArrow = styled.span`
 const SectionHeader = styled.h2`
   font-size: 1.8rem;
   font-weight: 800;
-  color: white;
+  color: var(--text-primary);
   margin: 40px 0 20px 0;
   letter-spacing: -0.02em;
   border-left: 4px solid var(--primary);
@@ -197,11 +199,11 @@ const AnalyticsGrid = styled.div`
 `;
 
 const WidgetCard = styled.div`
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 20px;
   padding: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -210,12 +212,12 @@ const WidgetCard = styled.div`
 const WidgetTitle = styled.h3`
   font-size: 1.15rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
   margin: 0;
   display: flex;
   align-items: center;
   gap: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--border-subtle);
   padding-bottom: 12px;
 `;
 
@@ -237,11 +239,11 @@ const WidgetItemHeader = styled.div`
   align-items: center;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-primary);
 `;
 
 const WidgetLabel = styled.span`
-  color: var(--text-secondary, #c5c2d9);
+  color: var(--text-secondary);
 `;
 
 const WidgetValue = styled.span`
@@ -251,7 +253,7 @@ const WidgetValue = styled.span`
 const ProgressBarContainer = styled.div`
   width: 100%;
   height: 8px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--border-subtle);
   border-radius: 4px;
   overflow: hidden;
 `;
@@ -387,6 +389,9 @@ export const DashboardStatsView: React.FC = () => {
   return (
     <AppContainer $wide>
       <AppHeader>
+        <HeaderTopRow>
+          <ThemeToggle />
+        </HeaderTopRow>
         <AppTitle data-testid="dashboard-header">{t('app.appTitle')}</AppTitle>
         <AppSubtitle>{t('app.appSubtitle')}</AppSubtitle>
       </AppHeader>

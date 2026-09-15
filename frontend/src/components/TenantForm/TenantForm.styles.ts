@@ -5,18 +5,18 @@ import type { TextFieldProps } from '@mui/material';
 
 export const FormTitle = styled(Typography)`
   font-weight: 600 !important;
-  color: white !important;
+  color: var(--text-primary) !important;
 `;
 
 export const StyledCard = styled(Card)`
   padding: 24px;
-  background: rgba(255, 255, 255, 0.03) !important;
+  background: var(--bg-card) !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid var(--border-card) !important;
   border-radius: 16px !important;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
-  color: white !important;
+  box-shadow: var(--shadow) !important;
+  color: var(--text-primary) !important;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -39,15 +39,15 @@ const StyledTextFieldComponent = styled(TextField)`
   flex: 1;
 
   & .MuiOutlinedInput-root {
-    color: white;
-    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    background-color: var(--bg-surface);
     
     & fieldset {
-      border-color: rgba(255, 255, 255, 0.08);
+      border-color: var(--border-card);
     }
     
     &:hover fieldset {
-      border-color: rgba(255, 255, 255, 0.2);
+      border-color: var(--primary);
     }
     
     &.Mui-focused fieldset {
@@ -56,7 +56,7 @@ const StyledTextFieldComponent = styled(TextField)`
   }
 
   & .MuiInputLabel-root {
-    color: #a09cb4;
+    color: var(--text-secondary);
     
     &.Mui-focused {
       color: var(--primary);

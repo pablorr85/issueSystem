@@ -6,13 +6,13 @@ import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 
 export const StyledCard = styled(Card)`
   padding: 24px;
-  background: rgba(255, 255, 255, 0.03) !important;
+  background: var(--bg-card) !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid var(--border-card) !important;
   border-radius: 16px !important;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
-  color: white !important;
+  box-shadow: var(--shadow) !important;
+  color: var(--text-primary) !important;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -37,15 +37,15 @@ export const StyledFormControl = styled(FormControl)`
   }
 
   & .MuiOutlinedInput-root {
-    color: white !important;
-    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary) !important;
+    background-color: var(--bg-surface);
     
     & fieldset {
-      border-color: rgba(255, 255, 255, 0.08) !important;
+      border-color: var(--border-card) !important;
     }
     
     &:hover fieldset {
-      border-color: rgba(255, 255, 255, 0.2) !important;
+      border-color: var(--primary) !important;
     }
     
     &.Mui-focused fieldset {
@@ -54,7 +54,7 @@ export const StyledFormControl = styled(FormControl)`
   }
 
   & .MuiSelect-icon {
-    color: #a09cb4 !important;
+    color: var(--text-secondary) !important;
   }
 `;
 
@@ -62,15 +62,15 @@ const StyledTextFieldComponent = styled(TextField)`
   width: 100%;
 
   & .MuiOutlinedInput-root {
-    color: white;
-    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    background-color: var(--bg-surface);
     
     & fieldset {
-      border-color: rgba(255, 255, 255, 0.08);
+      border-color: var(--border-card);
     }
     
     &:hover fieldset {
-      border-color: rgba(255, 255, 255, 0.2);
+      border-color: var(--primary);
     }
     
     &.Mui-focused fieldset {
@@ -79,7 +79,7 @@ const StyledTextFieldComponent = styled(TextField)`
   }
 
   & .MuiInputLabel-root {
-    color: #a09cb4;
+    color: var(--text-secondary);
     
     &.Mui-focused {
       color: var(--primary);
@@ -116,7 +116,7 @@ export const SubmitButton = styled(Button)`
 
 export const FormTitle = styled(Typography)`
   font-weight: 600 !important;
-  color: white !important;
+  color: var(--text-primary) !important;
   display: flex !important;
   align-items: center !important;
   gap: 10px !important;
@@ -130,7 +130,7 @@ export const DynamicFieldsContainer = styled(Box)`
   display: flex !important;
   flex-direction: column !important;
   gap: 20px !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-top: 1px solid var(--border-subtle) !important;
   padding-top: 20px !important;
 `;
 
@@ -140,7 +140,7 @@ export const SectionSubtitle = styled(Typography)`
 `;
 
 export const StyledCheckbox = styled(Checkbox)`
-  color: rgba(255, 255, 255, 0.3) !important;
+  color: var(--border-card) !important;
   
   &.Mui-checked {
     color: var(--primary) !important;
@@ -148,7 +148,7 @@ export const StyledCheckbox = styled(Checkbox)`
 `;
 
 export const StyledFormControlLabel = styled(FormControlLabel)`
-  color: white !important;
+  color: var(--text-primary) !important;
 `;
 
 export const StyledErrorText = styled.p`
@@ -244,7 +244,7 @@ export const RemoveButton = styled(Button)`
 `;
 
 export const UploadText = styled(Typography)`
-  color: white !important;
+  color: var(--text-primary) !important;
   font-weight: 500 !important;
 `;
 

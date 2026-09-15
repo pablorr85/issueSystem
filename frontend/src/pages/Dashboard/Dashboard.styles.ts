@@ -33,7 +33,7 @@ export const DashboardHeader = styled.div`
 
 export const DashboardTitle = styled(Typography)`
   font-weight: 700 !important;
-  color: white !important;
+  color: var(--text-primary) !important;
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
@@ -84,7 +84,7 @@ export const ExportExcelButton = styled(Button)`
 `;
 
 export const ClearDatesButton = styled(Button)`
-  color: #a09cb4 !important;
+  color: var(--text-secondary) !important;
   text-transform: none !important;
   font-size: 0.8rem !important;
 `;
@@ -93,23 +93,23 @@ export const StyledFormControl = styled(FormControl)`
   min-width: 220px !important;
 
   & .MuiInputLabel-root {
-    color: #a09cb4 !important;
+    color: var(--text-secondary) !important;
     &.Mui-focused {
       color: var(--primary) !important;
     }
   }
 
   & .MuiOutlinedInput-root {
-    color: white !important;
-    background-color: rgba(255, 255, 255, 0.03);
+    color: var(--text-primary) !important;
+    background-color: var(--bg-surface);
     height: 40px !important;
 
     & fieldset {
-      border-color: rgba(255, 255, 255, 0.08) !important;
+      border-color: var(--border-card) !important;
     }
 
     &:hover fieldset {
-      border-color: rgba(255, 255, 255, 0.2) !important;
+      border-color: var(--primary) !important;
     }
 
     &.Mui-focused fieldset {
@@ -118,18 +118,18 @@ export const StyledFormControl = styled(FormControl)`
   }
 
   & .MuiSelect-icon {
-    color: #a09cb4 !important;
+    color: var(--text-secondary) !important;
   }
 `;
 
 export const DashboardCard = styled(Card)`
   padding: 0px;
-  background: rgba(255, 255, 255, 0.02) !important;
+  background: var(--bg-card) !important;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid var(--border-card) !important;
   border-radius: 16px !important;
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3) !important;
+  box-shadow: var(--shadow) !important;
   overflow: visible !important;
 `;
 
@@ -144,16 +144,16 @@ export const StyledTable = styled(Table)`
 `;
 
 export const StyledTableHead = styled(TableHead)`
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-surface);
 `;
 
 export const StyledTableBody = styled(TableBody)``;
 
 export const StyledTableHeadCell = styled(TableCell)`
-  color: #a09cb4 !important;
+  color: var(--text-secondary) !important;
   font-weight: 600 !important;
   font-size: 0.8rem !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
   text-transform: uppercase !important;
   letter-spacing: 0.04em !important;
   padding: 10px 12px !important;
@@ -174,19 +174,19 @@ export const StyledTableRow = styled(TableRow)<{ $isCritical?: boolean }>`
     background: ${({ $isCritical }) =>
       $isCritical
         ? "rgba(239, 83, 80, 0.14) !important"
-        : "rgba(255, 255, 255, 0.02) !important"};
+        : "var(--bg-surface) !important"};
     & td {
       background: ${({ $isCritical }) =>
         $isCritical
           ? "rgba(239, 83, 80, 0.14) !important"
-          : "rgba(255, 255, 255, 0.02) !important"};
+          : "var(--bg-surface) !important"};
     }
   }
 `;
 
 export const StyledTableCell = styled(TableCell)`
-  color: #e2e1e9 !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
   padding: 8px 12px !important;
   font-size: 0.85rem !important;
 `;
@@ -210,17 +210,17 @@ export const StatusBadge = styled.span<{ $status: string }>`
   ${({ $status }) => {
     switch ($status) {
       case "resolved":
-        return "background-color: rgba(46, 125, 50, 0.22); color: #81c784; border: 1px solid rgba(76, 175, 80, 0.45);";
+        return "background-color: var(--status-resolved-bg, rgba(34, 197, 94, 0.15)); color: var(--status-resolved-text, #4ade80); border: 1px solid var(--status-resolved-border, rgba(34, 197, 94, 0.3));";
       case "wont_fix":
-        return "background-color: rgba(120, 144, 156, 0.22); color: #b0bec5; border: 1px solid rgba(120, 144, 156, 0.45);";
+        return "background-color: rgba(120, 144, 156, 0.22); color: var(--text-secondary, #b0bec5); border: 1px solid rgba(120, 144, 156, 0.45);";
       case "in_progress":
-        return "background-color: rgba(33, 150, 243, 0.20); color: #2196f3; border: 1px solid rgba(33, 150, 243, 0.45);";
+        return "background-color: var(--status-in-progress-bg, rgba(59, 130, 246, 0.15)); color: var(--status-in-progress-text, #60a5fa); border: 1px solid var(--status-in-progress-border, rgba(59, 130, 246, 0.3));";
       case "blocked":
-        return "background-color: rgba(239, 108, 0, 0.22); color: #ff9800; border: 1px solid rgba(239, 108, 0, 0.45);";
+        return "background-color: var(--status-blocked-bg, rgba(239, 68, 68, 0.15)); color: var(--status-blocked-text, #f87171); border: 1px solid var(--status-blocked-border, rgba(239, 68, 68, 0.3));";
       case "pending":
       case "open":
       default:
-        return "background-color: rgba(255, 179, 0, 0.22); color: #ffd54f; border: 1px solid rgba(255, 179, 0, 0.45);";
+        return "background-color: var(--status-pending-bg, rgba(234, 179, 8, 0.15)); color: var(--status-pending-text, #facc15); border: 1px solid var(--status-pending-border, rgba(234, 179, 8, 0.3));";
     }
   }}
 `;
@@ -290,18 +290,18 @@ export const UrgencyPill = styled.span<{ $level: string }>`
   }
 `;
 export const TableSelect = styled(Select)`
-  color: white !important;
+  color: var(--text-primary) !important;
   font-size: 0.85rem !important;
-  background-color: rgba(255, 255, 255, 0.03) !important;
+  background-color: var(--bg-surface) !important;
   height: 32px !important;
   border-radius: 6px !important;
 
   & fieldset {
-    border-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: var(--border-subtle) !important;
   }
 
   &:hover fieldset {
-    border-color: rgba(255, 255, 255, 0.2) !important;
+    border-color: var(--primary) !important;
   }
 
   &.Mui-focused fieldset {
@@ -316,23 +316,23 @@ export const TableSelect = styled(Select)`
   }
 
   & .MuiSelect-icon {
-    color: #a09cb4 !important;
+    color: var(--text-secondary) !important;
   }
 
   &.Mui-disabled {
-    background-color: rgba(255, 255, 255, 0.02) !important;
+    background-color: var(--bg-surface) !important;
 
     & .MuiSelect-select {
-      color: rgba(255, 255, 255, 0.75) !important;
-      -webkit-text-fill-color: rgba(255, 255, 255, 0.75) !important;
+      color: var(--text-muted) !important;
+      -webkit-text-fill-color: var(--text-muted) !important;
     }
 
     & fieldset {
-      border-color: rgba(255, 255, 255, 0.08) !important;
+      border-color: var(--border-subtle) !important;
     }
 
     & .MuiSelect-icon {
-      color: rgba(255, 255, 255, 0.15) !important;
+      color: var(--text-muted) !important;
     }
   }
 `;
@@ -342,12 +342,12 @@ export const PaginationFooter = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.01);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
 `;
 
 export const PaginationInfo = styled(Typography)`
-  color: #a09cb4 !important;
+  color: var(--text-secondary) !important;
   font-size: 0.9rem !important;
 `;
 
@@ -357,19 +357,19 @@ export const PaginationButtons = styled.div`
 `;
 
 export const PaginationButton = styled(Button)`
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  color: white !important;
+  border-color: var(--border-card) !important;
+  color: var(--text-primary) !important;
   text-transform: none !important;
   font-weight: 600 !important;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border-color: rgba(255, 255, 255, 0.2) !important;
+    background: var(--bg-card) !important;
+    border-color: var(--primary) !important;
   }
 
   &:disabled {
-    color: rgba(255, 255, 255, 0.2) !important;
-    border-color: rgba(255, 255, 255, 0.04) !important;
+    color: var(--text-muted) !important;
+    border-color: var(--border-subtle) !important;
   }
 `;
 
@@ -379,7 +379,7 @@ export const EmptyState = styled.div`
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  color: #a09cb4;
+  color: var(--text-secondary);
   gap: 12px;
 `;
 
@@ -395,12 +395,12 @@ export const ExtraDataItem = styled.div`
   gap: 6px;
 
   span.label {
-    color: #a09cb4;
+    color: var(--text-secondary);
     font-weight: 500;
   }
 
   span.value {
-    color: #fff;
+    color: var(--text-primary);
   }
 `;
 
@@ -422,7 +422,7 @@ export const ReportButton = styled(Button)`
 `;
 
 export const FilterSelect = styled(Select)`
-  color: white !important;
+  color: var(--text-primary) !important;
 
   & .MuiSelect-select {
     padding-top: 0 !important;

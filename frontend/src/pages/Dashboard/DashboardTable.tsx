@@ -290,7 +290,7 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
               <span
                 style={{
                   fontWeight: "bold",
-                  color: "var(--text-primary, #ffffff)",
+                  color: "var(--text-primary)",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -305,7 +305,7 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
                 <DescriptionCellSpan
                   style={{
                     fontSize: "0.85rem",
-                    color: "rgba(255, 255, 255, 0.5)",
+                    color: "var(--text-secondary)",
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",

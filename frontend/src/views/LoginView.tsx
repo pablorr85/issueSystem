@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { Login } from '../pages/Login';
 import { getTenantConfig } from '../services/api';
 import type { TenantConfig } from '../services/types';
-import { AppContainer, AppMain, AppHeader, AppTitle, AppSubtitle } from '../App.styles';
+import { ThemeToggle } from '../components/ThemeToggle';
+import { AppContainer, AppMain, AppHeader, AppTitle, AppSubtitle, HeaderTopRow } from '../App.styles';
 
 export const LoginView: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -65,6 +66,9 @@ export const LoginView: React.FC = () => {
   return (
     <AppContainer>
       <AppHeader>
+        <HeaderTopRow>
+          <ThemeToggle />
+        </HeaderTopRow>
         <AppTitle>{t('app.appTitle')}</AppTitle>
         <AppSubtitle>{t('app.appSubtitle')}</AppSubtitle>
       </AppHeader>
