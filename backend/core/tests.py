@@ -581,7 +581,7 @@ class IssueCommentsAndBlockedAPITests(APITestCase):
         # Denied other manager (different tenant)
         self.client.force_authenticate(user=self.other_manager)
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn(response.status_code, [status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND])
 
     def test_get_comments_token_authenticated(self):
         # Create mock comments
@@ -1340,6 +1340,109 @@ class ZoneAndWorkOrderTests(APITestCase):
         self.assertEqual(res.data['zone_name'], "Sector 7G")
         self.assertEqual(res.data['qa_checklist'], "Clean area\nTest pressure")
         self.assertIn("WO-", res.data['order_number'])
+
+
+from core.middleware import set_current_tenant, clear_current_tenant, get_current_tenant
+
+class TenantSecurityTestCase(APITestCase):
+    def setUp(self):
+        clear_current_tenant()
+        self.tenant_a = Tenant.objects.create(name="Theme Park A")
+        self.tenant_b = Tenant.objects.create(name="Zoo B")
+
+        self.user_a = User.objects.create_user(
+            username="manager_a",
+            password="password123",
+            tenant=self.tenant_a
+        )
+        self.user_b = User.objects.create_user(
+            username="manager_b",
+            password="password123",
+            tenant=self.tenant_b
+        )
+
+        # Create issues for both tenants
+        self.issue_a1 = Issue.objects.create(tenant=self.tenant_a, title="Rollercoaster malfunction", description="Broken belt")
+        self.issue_a2 = Issue.objects.create(tenant=self.tenant_a, title="Gift shop light", description="Light bulb burnt")
+
+        self.issue_b1 = Issue.objects.create(tenant=self.tenant_b, title="Lion enclosure gate", description="Latch stuck")
+        self.issue_b2 = Issue.objects.create(tenant=self.tenant_b, title="Feeding trough", description="Leaky pipe")
+
+    def tearDown(self):
+        clear_current_tenant()
+
+    def test_thread_local_tenant_context_management(self):
+        self.assertIsNone(get_current_tenant())
+        set_current_tenant(self.tenant_a)
+        self.assertEqual(get_current_tenant(), self.tenant_a)
+        clear_current_tenant()
+        self.assertIsNone(get_current_tenant())
+
+    def test_automatic_orm_tenant_filtering(self):
+        # Without tenant context (unscoped default when no request is active)
+        self.assertEqual(Issue.objects.unscoped().count(), 4)
+
+        # Bind Tenant A
+        set_current_tenant(self.tenant_a)
+        issues_a = list(Issue.objects.all())
+        self.assertEqual(len(issues_a), 2)
+        self.assertIn(self.issue_a1, issues_a)
+        self.assertIn(self.issue_a2, issues_a)
+        self.assertNotIn(self.issue_b1, issues_a)
+
+        # Bind Tenant B
+        set_current_tenant(self.tenant_b)
+        issues_b = list(Issue.objects.all())
+        self.assertEqual(len(issues_b), 2)
+        self.assertIn(self.issue_b1, issues_b)
+        self.assertIn(self.issue_b2, issues_b)
+        self.assertNotIn(self.issue_a1, issues_b)
+
+    def test_unscoped_superuser_override(self):
+        set_current_tenant(self.tenant_a)
+        # Normal scoped query returns 2
+        self.assertEqual(Issue.objects.count(), 2)
+        # Unscoped query bypasses thread-local tenant filter
+        self.assertEqual(Issue.objects.unscoped().count(), 4)
+        # Explicit for_tenant query returns Tenant B items even in Tenant A context
+        self.assertEqual(Issue.objects.for_tenant(self.tenant_b).count(), 2)
+
+    def test_middleware_tenant_isolation_via_api(self):
+        # Authenticate as User A
+        self.client.force_authenticate(user=self.user_a)
+        url = reverse('issue-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Verify returned data contains ONLY Tenant A issues
+        results = response.data.get('results', response.data)
+        issue_ids = [item['id'] for item in results]
+        self.assertIn(self.issue_a1.id, issue_ids)
+        self.assertIn(self.issue_a2.id, issue_ids)
+        self.assertNotIn(self.issue_b1.id, issue_ids)
+        self.assertNotIn(self.issue_b2.id, issue_ids)
+
+    def test_direct_cross_tenant_attack_returns_404(self):
+        # User A logs in (belongs to Tenant A)
+        self.client.force_authenticate(user=self.user_a)
+
+        # 1. Direct GET detail request for Tenant B's issue ID
+        detail_url = reverse('issue-detail-update', kwargs={'pk': self.issue_b1.id})
+        response = self.client.get(detail_url)
+        # Must return 404 NOT FOUND because issue_b1 does not exist in User A's tenant scope
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        # 2. Direct PATCH status update for Tenant B's issue ID
+        status_url = reverse('issue-status-update', kwargs={'pk': self.issue_b1.id})
+        response = self.client.patch(status_url, {'status': 'resolved'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        # 3. Direct GET comments timeline for Tenant B's issue ID
+        comments_url = reverse('issue-comments', kwargs={'issue_id': self.issue_b1.id})
+        response = self.client.get(comments_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
 
 
 

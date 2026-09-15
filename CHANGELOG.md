@@ -4,6 +4,14 @@ All notable changes to the **Solvo** project are documented in this file.
 
 ---
 
+## [Sprint 33] - Tenant Security & Automatic Data Isolation Architecture
+### Added
+- Created `TenantContextMiddleware` in `backend/core/middleware.py` and registered it in `settings.py` (`MIDDLEWARE`), binding active tenant context to thread-local storage (`set_current_tenant` / `get_current_tenant` / `clear_current_tenant`) from authenticated JWT users, `X-Tenant-ID` HTTP headers, or `tenant_id` query parameters.
+- Implemented `TenantScopedQuerySet` and `TenantScopedManager` in `backend/core/models.py`, automatically filtering ORM queries by active thread-local tenant context to prevent cross-tenant data leakage by design.
+- Bound `TenantScopedManager` as default `.objects` manager across core models (`Issue`, `Zone`, `CustomField`, `OperatorProfile`) and `TenantScopedUserManager` on `User`.
+- Added helper methods `.for_tenant(tenant)` and `.unscoped()` to allow superusers and background processes to explicitly bypass thread-local filters when needed.
+- Added comprehensive unit test suite `TenantSecurityTestCase` in `backend/core/tests.py` testing thread-local binding, automatic ORM scoping, superuser overrides, and API middleware isolation (51 backend tests passing).
+
 ## [Sprint 32] - Backlog Contrast & Readability Enhancements, Python 3.14 Compatibility Patch
 ### Added
 - Added Python 3.14 runtime compatibility patch for Django 4.2 in `CoreConfig.ready()` (`backend/core/apps.py`), resolving an `AttributeError` in `BaseContext.__copy__` when copying template contexts during Django admin page rendering (`/admin/core/user/`).

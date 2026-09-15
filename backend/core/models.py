@@ -1,7 +1,89 @@
 import uuid
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from typing import Any, Dict
+
+
+class TenantScopedQuerySet(models.QuerySet):
+    """
+    Custom QuerySet supporting tenant filtering and explicit unscoped queries.
+    """
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self._is_unscoped = False
+
+    def _chain(self) -> "TenantScopedQuerySet":
+        clone = super()._chain()
+        clone._is_unscoped = getattr(self, '_is_unscoped', False)
+        return clone
+
+    def for_tenant(self, tenant_or_id: Any) -> "TenantScopedQuerySet":
+        tenant_id = getattr(tenant_or_id, 'id', tenant_or_id)
+        if hasattr(self.model, 'tenant'):
+            return self.filter(tenant_id=tenant_id)
+        elif hasattr(self.model, 'user'):
+            return self.filter(user__tenant_id=tenant_id)
+        return self
+
+    def unscoped(self) -> "TenantScopedQuerySet":
+        qs = self._chain()
+        qs._is_unscoped = True
+        return qs
+
+
+class TenantScopedManager(models.Manager):
+    """
+    Manager that automatically filters queries by the thread-local active Tenant,
+    unless explicitly unscoped or filtered by tenant.
+    """
+    use_for_related_fields = True
+
+    def get_queryset(self) -> TenantScopedQuerySet:
+        from core.middleware import get_current_tenant
+        qs = TenantScopedQuerySet(self.model, using=self._db)
+
+        current_tenant = get_current_tenant()
+        if current_tenant:
+            if hasattr(self.model, 'tenant'):
+                return qs.filter(tenant=current_tenant)
+            elif self.model.__name__ == 'OperatorProfile':
+                return qs.filter(user__tenant=current_tenant)
+        return qs
+
+    def for_tenant(self, tenant_or_id: Any) -> TenantScopedQuerySet:
+        return self.unscoped().for_tenant(tenant_or_id)
+
+    def unscoped(self) -> TenantScopedQuerySet:
+        qs = TenantScopedQuerySet(self.model, using=self._db)
+        qs._is_unscoped = True
+        return qs
+
+
+class TenantScopedUserManager(UserManager):
+    """
+    Custom UserManager extending Django AbstractUser's manager to support
+    automatic thread-local tenant scoping.
+    """
+    use_for_related_fields = True
+
+    def get_queryset(self) -> TenantScopedQuerySet:
+        from core.middleware import get_current_tenant
+        qs = TenantScopedQuerySet(self.model, using=self._db)
+
+        current_tenant = get_current_tenant()
+        if current_tenant:
+            return qs.filter(tenant=current_tenant)
+        return qs
+
+    def for_tenant(self, tenant_or_id: Any) -> TenantScopedQuerySet:
+        return self.unscoped().for_tenant(tenant_or_id)
+
+    def unscoped(self) -> TenantScopedQuerySet:
+        qs = TenantScopedQuerySet(self.model, using=self._db)
+        qs._is_unscoped = True
+        return qs
+
+
 
 class Tenant(models.Model):
     """
@@ -73,6 +155,8 @@ class CustomField(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
+    objects = TenantScopedManager()
+
     class Meta:
         unique_together = ('tenant', 'name')
 
@@ -93,6 +177,9 @@ class Zone(models.Model):
     )
     name: str = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = TenantScopedManager()
+
 
     class Meta:
         unique_together = ('tenant', 'name')
@@ -226,6 +313,8 @@ class Issue(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    objects = TenantScopedManager()
+
     def save(self, *args: Any, **kwargs: Any) -> None:
         if not self.secure_token:
             self.secure_token = uuid.uuid4()
@@ -253,6 +342,8 @@ class User(AbstractUser):
         db_index=True,
         help_text="Tenant that this employee belongs to."
     )
+
+    objects = TenantScopedUserManager()
 
     def __str__(self) -> str:
         if self.tenant:
@@ -282,6 +373,8 @@ class OperatorProfile(models.Model):
         editable=False,
         help_text="Unique UUID token for passwordless operator dashboard access."
     )
+
+    objects = TenantScopedManager()
 
     def __str__(self) -> str:
         return f"Operator Profile for {self.user.username}"
