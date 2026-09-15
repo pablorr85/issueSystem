@@ -2,6 +2,16 @@
 
 All notable changes to the **Solvo** project are documented in this file.
 
+## [Sprint 35] - Frontend Global State & API Caching with RTK Query
+### Added
+- Integrated **Redux Toolkit (`@reduxjs/toolkit`)** and **`react-redux`** into the React frontend, centralizing global state management and replacing manual `useEffect` + `useState` API call patterns.
+- Created centralized RTK Query API slice in `frontend/src/store/apiSlice.ts` defining endpoints for `getTenantConfig`, `getIssues`, `getOperators`, `getZones`, `getIssueStats`, `getTaskLogs`, `updateIssueStatus`, `assignIssue`, `bulkAssignIssues`, and `toggleOperatorActive`.
+- Configured automatic tag-based cache invalidation (`'Issue'`, `'Operator'`, `'Tenant'`, `'Zone'`, `'TaskLog'`, `'IssueStats'`) ensuring instant data synchronization across components without manual refetching logic.
+- Created Redux store instance in `frontend/src/store/index.ts` with custom typed hooks `useAppDispatch` and `useAppSelector`, and wrapped `<Provider store={store}>` in `main.tsx`.
+- Refactored `DashboardView` (`frontend/src/views/DashboardView.tsx`) and `DashboardStatsView` (`frontend/src/views/DashboardStatsView.tsx`) to consume RTK Query auto-generated hooks (`useGetTenantConfigQuery`, `useGetOperatorsQuery`, `useGetIssuesQuery`, `useGetIssueStatsQuery`, `useToggleOperatorActiveMutation`, `useAssignIssueMutation`).
+- Created Redux test provider utility `renderWithProviders` in `frontend/src/testUtils.tsx` supporting seamless component testing with isolated Redux stores.
+- Updated Vitest test suite `Dashboard.test.tsx` to handle RTK Query `fetch` request objects and tag invalidation behavior (34 total frontend Vitest tests passing with 0 failures).
+
 ## [Sprint 34] - Asynchronous Task Processing & Messaging Queue Architecture
 ### Added
 - Integrated **Celery** task queue and **Redis** message broker into Django backend (`issue_system/celery.py`, `issue_system/__init__.py`, `issue_system/settings.py`), eliminating in-process ad-hoc thread spawning.

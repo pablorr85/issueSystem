@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -9,8 +9,8 @@ import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import styled from 'styled-components';
 import { useAuth } from '../context/AuthContext';
-import { getTenantConfig, getIssuesStats } from '../services/api';
-import type { TenantConfig, IssueStats } from '../services/types';
+import { useGetTenantConfigQuery, useGetIssueStatsQuery } from '../store/apiSlice';
+import type { OperatorWorkload, OperatorPerformance, ZoneHotspot } from '../services/types';
 import { ShareQRSection } from '../components/ShareQRSection/ShareQRSection';
 import { ThemeToggle } from '../components/ThemeToggle';
 import {
@@ -86,17 +86,23 @@ const StatCard = styled(Link)`
   }
 `;
 
-const StatIconWrapper = styled.div<{ $color: string }>`
-  background: ${({ $color }) => $color};
+const StatIconWrapper = styled.div<{ $bgColor: string; $textColor: string }>`
+  background: ${({ $bgColor }) => $bgColor};
+  color: ${({ $textColor }) => $textColor};
   width: 56px;
   height: 56px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
   font-size: 1.8rem;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+`;
+
+const PrimaryIconWrapper = styled.span`
+  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
 `;
 
 const StatContent = styled.div`
@@ -278,42 +284,18 @@ export const DashboardStatsView: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { tenantId, user, logout } = useAuth();
   const navigate = useNavigate();
-  const [prevTenantId, setPrevTenantId] = useState<string | null>(tenantId);
-  const [config, setConfig] = useState<TenantConfig | null>(null);
-  const [loading, setLoading] = useState<boolean>(!!tenantId);
-  const [stats, setStats] = useState<IssueStats | null>(null);
-  const [statsLoading, setStatsLoading] = useState<boolean>(true);
 
-  if (tenantId !== prevTenantId) {
-    setPrevTenantId(tenantId);
-    setConfig(null);
-    setLoading(!!tenantId);
-    setStatsLoading(true);
-  }
+  // RTK Query hooks
+  const { data: config, isLoading: configLoading } = useGetTenantConfigQuery(tenantId || '', { skip: !tenantId });
+  const { data: stats, isLoading: statsLoading } = useGetIssueStatsQuery(undefined, { skip: !tenantId });
+
+  const loading = configLoading || !config;
 
   useEffect(() => {
-    if (!tenantId) {
-      return;
+    if (config?.default_language) {
+      i18n.changeLanguage(config.default_language);
     }
-    let active = true;
-    getTenantConfig(tenantId)
-      .then(data => {
-        if (!active) return;
-        setConfig(data);
-        if (data.default_language) {
-          i18n.changeLanguage(data.default_language);
-        }
-        setLoading(false);
-      })
-      .catch(err => {
-        if (!active) return;
-        console.error('Failed to load tenant config for dashboard:', err);
-        setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [tenantId, i18n]);
+  }, [config, i18n]);
 
   useEffect(() => {
     if (config?.visual_config?.primary_color) {
@@ -349,27 +331,6 @@ export const DashboardStatsView: React.FC = () => {
       document.documentElement.style.setProperty('--primary-hover', 'hsl(260, 85%, 50%)');
     }
   }, [config]);
-
-  // Fetch Stats
-  useEffect(() => {
-    if (!tenantId) return;
-    let active = true;
-    getIssuesStats()
-      .then(res => {
-        if (!active) return;
-        setStats(res);
-        setStatsLoading(false);
-      })
-      .catch(err => {
-        console.error("Failed to load statistics:", err);
-        if (!active) return;
-        setStats(null);
-        setStatsLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [tenantId]);
 
   const handleLogout = () => {
     logout();
@@ -424,7 +385,7 @@ export const DashboardStatsView: React.FC = () => {
         <SectionHeader>{t('dashboard.kpisTitle')}</SectionHeader>
         <StatsGrid>
           <StatCard to="/backlog?assigned=false" data-testid="kpi-card-unassigned">
-            <StatIconWrapper $color="rgba(239, 68, 68, 0.15)" style={{ color: '#ef4444' }}>
+            <StatIconWrapper $bgColor="rgba(239, 68, 68, 0.15)" $textColor="#ef4444">
               <AssignmentAlertIcon />
             </StatIconWrapper>
             <StatContent>
@@ -434,7 +395,7 @@ export const DashboardStatsView: React.FC = () => {
           </StatCard>
 
           <StatCard to="/board" data-testid="kpi-card-in-progress">
-            <StatIconWrapper $color="rgba(59, 130, 246, 0.15)" style={{ color: '#3b82f6' }}>
+            <StatIconWrapper $bgColor="rgba(59, 130, 246, 0.15)" $textColor="#3b82f6">
               <PlayCircleIcon />
             </StatIconWrapper>
             <StatContent>
@@ -444,7 +405,7 @@ export const DashboardStatsView: React.FC = () => {
           </StatCard>
 
           <StatCard to="/backlog?status=blocked" data-testid="kpi-card-blocked">
-            <StatIconWrapper $color="rgba(245, 158, 11, 0.15)" style={{ color: '#f59e0b' }}>
+            <StatIconWrapper $bgColor="rgba(245, 158, 11, 0.15)" $textColor="#f59e0b">
               <ReportProblemIcon />
             </StatIconWrapper>
             <StatContent>
@@ -459,7 +420,9 @@ export const DashboardStatsView: React.FC = () => {
           {/* Workload Widget */}
           <WidgetCard data-testid="widget-workload">
             <WidgetTitle>
-              <DashboardIcon fontSize="small" style={{ color: 'var(--primary)' }} />
+              <PrimaryIconWrapper>
+                <DashboardIcon fontSize="small" />
+              </PrimaryIconWrapper>
               {t('dashboard.widgetWorkloadTitle')}
             </WidgetTitle>
             <WidgetList>
@@ -468,7 +431,7 @@ export const DashboardStatsView: React.FC = () => {
               ) : !stats?.operator_workload || stats.operator_workload.length === 0 ? (
                 <EmptyStateText>{t('dashboard.noOperators')}</EmptyStateText>
               ) : (
-                stats.operator_workload.map(op => {
+                stats.operator_workload.map((op: OperatorWorkload) => {
                   const maxTasksLimit = 5;
                   const percent = Math.min(100, (op.task_count / maxTasksLimit) * 100);
                   let barColor = '#10b981';
@@ -497,7 +460,9 @@ export const DashboardStatsView: React.FC = () => {
           {/* Resolution Leaderboard */}
           <WidgetCard data-testid="widget-leaderboard">
             <WidgetTitle>
-              <ListAltIcon fontSize="small" style={{ color: 'var(--primary)' }} />
+              <PrimaryIconWrapper>
+                <ListAltIcon fontSize="small" />
+              </PrimaryIconWrapper>
               {t('dashboard.widgetLeaderboardTitle')}
             </WidgetTitle>
             <WidgetList>
@@ -506,8 +471,8 @@ export const DashboardStatsView: React.FC = () => {
               ) : !stats?.operator_performance || stats.operator_performance.length === 0 ? (
                 <EmptyStateText>{t('dashboard.noResolutions')}</EmptyStateText>
               ) : (
-                stats.operator_performance.map((op, idx) => {
-                  const maxResolved = Math.max(1, ...stats.operator_performance.map(o => o.resolved_count));
+                stats.operator_performance.map((op: OperatorPerformance, idx: number) => {
+                  const maxResolved = Math.max(1, ...stats.operator_performance.map((o: OperatorPerformance) => o.resolved_count));
                   const percent = (op.resolved_count / maxResolved) * 100;
                   
                   return (
@@ -531,7 +496,9 @@ export const DashboardStatsView: React.FC = () => {
           {/* Hotspots Widget */}
           <WidgetCard data-testid="widget-hotspots">
             <WidgetTitle>
-              <ReportProblemIcon fontSize="small" style={{ color: 'var(--primary)' }} />
+              <PrimaryIconWrapper>
+                <ReportProblemIcon fontSize="small" />
+              </PrimaryIconWrapper>
               {t('dashboard.widgetHotspotsTitle')}
             </WidgetTitle>
             <WidgetList>
@@ -540,8 +507,8 @@ export const DashboardStatsView: React.FC = () => {
               ) : !stats?.zone_hotspots || stats.zone_hotspots.length === 0 ? (
                 <EmptyStateText>{t('dashboard.noHotspots')}</EmptyStateText>
               ) : (
-                stats.zone_hotspots.map(spot => {
-                  const maxIncidents = Math.max(1, ...stats.zone_hotspots.map(s => s.count));
+                stats.zone_hotspots.map((spot: ZoneHotspot) => {
+                  const maxIncidents = Math.max(1, ...stats.zone_hotspots.map((s: ZoneHotspot) => s.count));
                   const percent = (spot.count / maxIncidents) * 100;
 
                   return (
@@ -565,7 +532,9 @@ export const DashboardStatsView: React.FC = () => {
         <ActionsGrid>
           <ActionCard to="/backlog" data-testid="action-card-backlog">
             <ActionHeader>
-              <ListAltIcon style={{ color: 'var(--primary)', fontSize: '2rem' }} />
+              <PrimaryIconWrapper style={{ fontSize: '2rem' }}>
+                <ListAltIcon fontSize="inherit" />
+              </PrimaryIconWrapper>
               <ActionTitle>{t('dashboard.backlogTab')}</ActionTitle>
             </ActionHeader>
             <ActionDescription>
@@ -578,7 +547,9 @@ export const DashboardStatsView: React.FC = () => {
 
           <ActionCard to="/board" data-testid="action-card-board">
             <ActionHeader>
-              <ViewKanbanIcon style={{ color: 'var(--primary)', fontSize: '2rem' }} />
+              <PrimaryIconWrapper style={{ fontSize: '2rem' }}>
+                <ViewKanbanIcon fontSize="inherit" />
+              </PrimaryIconWrapper>
               <ActionTitle>{t('dashboard.boardTab')}</ActionTitle>
             </ActionHeader>
             <ActionDescription>

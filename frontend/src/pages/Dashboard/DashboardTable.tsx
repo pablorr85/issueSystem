@@ -448,7 +448,7 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({
                   { label: t("dashboard.filterAllOperators"), value: "" },
                   { label: t("dashboard.unassigned"), value: "false" },
                   { label: t("dashboard.filterAssigned", "Asignado"), value: "true" },
-                  ...operators.map((op) => ({ label: op.username, value: String(op.id) })),
+                  ...(Array.isArray(operators) ? operators.map((op) => ({ label: op.username, value: String(op.id) })) : []),
                 ]}
                 testId="header-filter-operator"
               />

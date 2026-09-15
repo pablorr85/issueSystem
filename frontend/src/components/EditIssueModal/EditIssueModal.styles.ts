@@ -262,13 +262,67 @@ export const LightboxCloseButton = styled.button`
 
 export const ResolutionInfo = styled.div`
   font-size: 0.85rem;
-  color: #a09cb4;
+  color: var(--text-secondary);
   margin-top: -8px;
   margin-bottom: 8px;
   padding-left: 4px;
   font-family: var(--font-sans);
   
   strong {
-    color: var(--primary, HSL(260, 85%, 60%));
+    color: var(--primary);
   }
+`;
+
+export const DialogHeaderLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+export const DialogHeaderBadges = styled.div`
+  display: flex;
+  gap: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-right: 16px;
+`;
+
+export const CostBadge = styled.span`
+  color: var(--status-resolved-text, #81c784);
+  background: rgba(129, 199, 132, 0.15);
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(129, 199, 132, 0.3);
+`;
+
+export const TimeBadge = styled.span`
+  color: var(--status-in-progress-text, #64b5f6);
+  background: rgba(100, 181, 246, 0.15);
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(100, 181, 246, 0.3);
+`;
+
+export const ChecklistContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+export const ChecklistHeaderRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+export const ChecklistLabel = styled.span`
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+`;
+
+export const ChecklistLoadButton = styled(Button)`
+  font-size: 0.75rem !important;
+  text-transform: none !important;
+  color: var(--primary) !important;
 `;

@@ -44,6 +44,7 @@ export interface DashboardProps {
   onAssignedFilterChange: (assigned: string) => void;
   onEditIssue: (issue: Issue) => void;
   onToggleOperatorActive: (id: number, currentStatus: boolean) => void;
+  onAssignOperator?: (issueId: number, operatorIdVal: number | string) => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -61,6 +62,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onAssignedFilterChange,
   onEditIssue,
   onToggleOperatorActive,
+  onAssignOperator,
 }) => {
   const { t } = useTranslation();
 
@@ -230,6 +232,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const handleAssignOperator = useCallback(
     (issueId: number, operatorIdVal: number | string) => {
+      if (onAssignOperator) {
+        onAssignOperator(issueId, operatorIdVal);
+        return;
+      }
       const operatorId = operatorIdVal === "" ? null : Number(operatorIdVal);
       const originalIssues = [...issues];
 
@@ -262,7 +268,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           alert(t("dashboard.errorAssign", "Failed to assign operator"));
         });
     },
-    [issues, operators, t, setIssues]
+    [issues, operators, t, setIssues, onAssignOperator]
   );
 
   const handleOperatorFilterChange = (val: string) => {
@@ -349,7 +355,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {t("dashboard.operatorManagementTitle", "Operator Management")}
         </OperatorCardTitle>
         <OperatorGrid>
-          {operators.map((op) => (
+          {Array.isArray(operators) && operators.map((op) => (
             <OperatorItemCard key={op.id} data-testid={`operator-card-${op.id}`}>
               <OperatorInfo>
                 <OperatorName>{op.username}</OperatorName>

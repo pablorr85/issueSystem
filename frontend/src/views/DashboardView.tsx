@@ -3,8 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Dashboard } from '../pages/Dashboard';
 import { useAuth } from '../context/AuthContext';
-import { getTenantConfig, getIssues, getOperators, toggleOperatorActive } from '../services/api';
-import type { TenantConfig, Issue, Operator } from '../services/types';
+import {
+  useGetTenantConfigQuery,
+  useGetOperatorsQuery,
+  useGetIssuesQuery,
+  useToggleOperatorActiveMutation,
+  useAssignIssueMutation,
+  apiSlice,
+} from '../store/apiSlice';
+import { useAppDispatch } from '../store';
+import type { Issue } from '../services/types';
 import { EditIssueModal } from '../components/EditIssueModal/EditIssueModal';
 import {
   AppContainer,
@@ -21,49 +29,46 @@ export const DashboardView: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { tenantId, user, logout } = useAuth();
   const navigate = useNavigate();
-  const [prevTenantId, setPrevTenantId] = useState<string | null>(tenantId);
-  const [config, setConfig] = useState<TenantConfig | null>(null);
-  const [loading, setLoading] = useState<boolean>(!!tenantId);
+  const dispatch = useAppDispatch();
 
-  const [issues, setIssues] = useState<Issue[]>([]);
-  const [operators, setOperators] = useState<Operator[]>([]);
-  const [totalCount, setTotalCount] = useState<number>(0);
-  const [issuesLoading, setIssuesLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [assignedFilter, setAssignedFilter] = useState<string>('');
   const [editingIssue, setEditingIssue] = useState<Issue | null>(null);
 
-  if (tenantId !== prevTenantId) {
-    setPrevTenantId(tenantId);
-    setConfig(null);
-    setLoading(!!tenantId);
-    setIssuesLoading(true);
-  }
+  // RTK Query hooks
+  const { data: config, isLoading: configLoading } = useGetTenantConfigQuery(tenantId || '', { skip: !tenantId });
+  const { data: operators = [] } = useGetOperatorsQuery(undefined, { skip: !config });
+  const { data: issuesData, isLoading: issuesLoading } = useGetIssuesQuery(
+    {
+      tenantId: config?.id || '',
+      status: statusFilter || undefined,
+      page: currentPage,
+      assigned: assignedFilter || undefined,
+    },
+    { skip: !config }
+  );
+
+  const [toggleOperatorActiveMutation] = useToggleOperatorActiveMutation();
+  const [assignIssueMutation] = useAssignIssueMutation();
+
+  const handleAssignOperator = async (issueId: number, operatorIdVal: number | string) => {
+    const operatorId = operatorIdVal === '' ? null : Number(operatorIdVal);
+    try {
+      await assignIssueMutation({ issueId, operatorId }).unwrap();
+    } catch (err) {
+      console.error("Failed to assign operator:", err);
+    }
+  };
+
+  const issues = issuesData?.results || [];
+  const totalCount = issuesData?.count || 0;
 
   useEffect(() => {
-    if (!tenantId) {
-      return;
+    if (config?.default_language) {
+      i18n.changeLanguage(config.default_language);
     }
-    let active = true;
-    getTenantConfig(tenantId)
-      .then(data => {
-        if (!active) return;
-        setConfig(data);
-        if (data.default_language) {
-          i18n.changeLanguage(data.default_language);
-        }
-        setLoading(false);
-      })
-      .catch(err => {
-        if (!active) return;
-        console.error('Failed to load tenant config for dashboard:', err);
-        setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [tenantId, i18n]);
+  }, [config, i18n]);
 
   useEffect(() => {
     if (config?.visual_config?.primary_color) {
@@ -100,54 +105,18 @@ export const DashboardView: React.FC = () => {
     }
   }, [config]);
 
-  // Fetch operators when config is loaded
-  useEffect(() => {
-    if (!config) return;
-    getOperators()
-      .then((res) => setOperators(res))
-      .catch((err) => console.error("Failed to fetch operators:", err));
-  }, [config]);
-
-  // Fetch issues whenever tenant config, page, status filter, or assigned filter changes
-  useEffect(() => {
-    if (!config) return;
-    let active = true;
-
-    getIssues(config.id, statusFilter || undefined, currentPage, undefined, assignedFilter || undefined)
-      .then((res) => {
-        if (!active) return;
-        setIssues(res.results || []);
-        setTotalCount(res.count || 0);
-        setIssuesLoading(false);
-      })
-      .catch((err) => {
-        if (!active) return;
-        console.error("Failed to fetch issues:", err);
-        setIssues([]);
-        setTotalCount(0);
-        setIssuesLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [config, currentPage, statusFilter, assignedFilter]);
-
   const handlePageChange = (page: React.SetStateAction<number>) => {
     setCurrentPage(page);
-    setIssuesLoading(true);
   };
 
   const handleStatusFilterChange = (status: string) => {
     setStatusFilter(status);
     setCurrentPage(1);
-    setIssuesLoading(true);
   };
 
   const handleAssignedFilterChange = (assigned: string) => {
     setAssignedFilter(assigned);
     setCurrentPage(1);
-    setIssuesLoading(true);
   };
 
   const handleLogout = () => {
@@ -157,19 +126,14 @@ export const DashboardView: React.FC = () => {
 
   const handleToggleOperatorActive = async (operatorId: number, currentStatus: boolean) => {
     try {
-      const res = await toggleOperatorActive(operatorId, !currentStatus);
-      setOperators((prev) =>
-        prev.map((op) =>
-          op.id === operatorId ? { ...op, is_active: res.is_active } : op
-        )
-      );
+      await toggleOperatorActiveMutation({ id: operatorId, is_active: !currentStatus }).unwrap();
     } catch (err) {
       console.error("Failed to toggle operator status:", err);
       alert(t("dashboard.errorToggleOperator", "Failed to update operator status."));
     }
   };
 
-  if (loading) {
+  if (configLoading || !config) {
     return (
       <CenteredLoadingContainer>
         <h2>{t('tenantForm.loading')}</h2>
@@ -194,7 +158,7 @@ export const DashboardView: React.FC = () => {
           <Dashboard
             tenant={config}
             issues={issues}
-            setIssues={setIssues}
+            setIssues={() => {}}
             operators={operators}
             loading={issuesLoading}
             totalCount={totalCount}
@@ -206,6 +170,7 @@ export const DashboardView: React.FC = () => {
             onAssignedFilterChange={handleAssignedFilterChange}
             onEditIssue={setEditingIssue}
             onToggleOperatorActive={handleToggleOperatorActive}
+            onAssignOperator={handleAssignOperator}
           />
         )}
 
@@ -215,23 +180,10 @@ export const DashboardView: React.FC = () => {
             issue={editingIssue}
             tenant={config}
             operators={operators}
-            onClose={(updatedIssue) => {
-              if (updatedIssue && updatedIssue.id) {
-                setIssues((prev) =>
-                  prev.map((item) =>
-                    item.id === updatedIssue.id ? updatedIssue : item
-                  )
-                );
-              }
+            onClose={() => setEditingIssue(null)}
+            onSuccess={() => {
               setEditingIssue(null);
-            }}
-            onSuccess={(updatedIssue) => {
-              setIssues((prev) =>
-                prev.map((item) =>
-                  item.id === updatedIssue.id ? updatedIssue : item
-                )
-              );
-              setEditingIssue(null);
+              dispatch(apiSlice.util.invalidateTags(['Issue', 'IssueStats']));
             }}
           />
         )}

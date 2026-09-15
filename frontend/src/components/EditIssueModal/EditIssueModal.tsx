@@ -42,7 +42,15 @@ import {
   LightboxOverlay,
   LightboxImage,
   LightboxCloseButton,
-  ResolutionInfo
+  ResolutionInfo,
+  DialogHeaderLeft,
+  DialogHeaderBadges,
+  CostBadge,
+  TimeBadge,
+  ChecklistContainer,
+  ChecklistHeaderRow,
+  ChecklistLabel,
+  ChecklistLoadButton
 } from './EditIssueModal.styles';
 
 export interface EditIssueModalProps {
@@ -104,8 +112,11 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
     try {
       const updated = await getIssue(issue.id);
       setCurrentIssue(updated);
+      setExtraData(updated.extra_data || {});
+      setQaChecklist(updated.qa_checklist || '');
+      setStatusVal(updated.status);
     } catch (err) {
-      console.error("Failed to refetch issue details:", err);
+      console.error("Failed to refetch issue:", err);
     }
   };
 
@@ -119,10 +130,9 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
     setAssignedTo(issue.assigned_to !== null && issue.assigned_to !== undefined ? String(issue.assigned_to) : '');
     setZoneVal(issue.zone !== null && issue.zone !== undefined ? String(issue.zone) : '');
     setExtraData(issue.extra_data || {});
-    setImageFile(null);
     setImagePreview(issue.image || null);
+    setImageFile(null);
     setImageChanged(false);
-    setError(null);
   }
 
   useEffect(() => {
@@ -133,28 +143,19 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
     };
   }, [imagePreview]);
 
-  const handleDynamicFieldChange = (name: string, value: unknown) => {
-    setExtraData(prev => ({
+  const handleDynamicFieldChange = (fieldName: string, value: unknown) => {
+    setExtraData((prev) => ({
       ...prev,
-      [name]: value
+      [fieldName]: value
     }));
-  };
-
-  const handleFileChange = (file: File | null) => {
-    if (file) {
-      setImageFile(file);
-      const previewUrl = URL.createObjectURL(file);
-      setImagePreview(previewUrl);
-    } else {
-      setImageFile(null);
-      setImagePreview(null);
-    }
-    setImageChanged(true);
   };
 
   const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      handleFileChange(e.target.files[0]);
+      const file = e.target.files[0];
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+      setImageChanged(true);
     }
   };
 
@@ -169,22 +170,22 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
   };
 
   const handleLoadDefaultChecklist = () => {
-    const defaults = [
-      t('workOrder.defaultChecklist1', 'Cleanliness: Work area cleaned, sanitized, and clear of debris or tools.'),
-      t('workOrder.defaultChecklist2', 'Functionality: Operation and functional checks successfully completed.'),
-      t('workOrder.defaultChecklist3', 'Safety: Covers, guards, and safety components reinstalled and verified.'),
-      t('workOrder.defaultChecklist4', 'Visual Inspection: Aesthetic finish and structural condition approved.')
+    const defaultDoD = [
+      '[ ] Inspección visual completada',
+      '[ ] Área de trabajo limpia y ordenada',
+      '[ ] Verificación de seguridad realizada',
+      '[ ] Prueba de funcionamiento OK'
     ].join('\n');
-    setQaChecklist(defaults);
+    setQaChecklist(defaultDoD);
   };
 
   const handleSave = async () => {
     if (!title.trim()) {
-      setError(t('dynamicIssueForm.titleRequired', 'Title is required.'));
+      setError(t('dynamicIssueForm.titleRequired', 'Please enter a summary title.'));
       return;
     }
     if (!description.trim()) {
-      setError(t('dynamicIssueForm.descriptionRequired', 'Description is required.'));
+      setError(t('dynamicIssueForm.descriptionRequired', 'Please enter a description.'));
       return;
     }
 
@@ -246,23 +247,23 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
           onClose={() => setShowPrintView(false)}
         />
       )}
-      <StyledDialogTitle id="edit-issue-dialog-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <StyledDialogTitle id="edit-issue-dialog-title">
+        <DialogHeaderLeft>
           <EditIcon sx={{ color: 'var(--primary)' }} />
           <span>{t('dashboard.editIssue', 'Edit Issue')} {currentIssue.order_number ? `(${currentIssue.order_number})` : `#${currentIssue.id}`}</span>
-        </div>
-        <div style={{ display: 'flex', gap: '12px', fontSize: '0.85rem', fontWeight: 600, marginRight: '16px' }}>
+        </DialogHeaderLeft>
+        <DialogHeaderBadges>
           {currentIssue.total_cost !== null && currentIssue.total_cost !== undefined && (
-            <span style={{ color: '#81c784', background: 'rgba(129, 199, 132, 0.15)', padding: '4px 10px', borderRadius: '8px', border: '1px solid rgba(129, 199, 132, 0.3)' }}>
+            <CostBadge>
               Cost: {parseFloat(String(currentIssue.total_cost)).toFixed(2)} €
-            </span>
+            </CostBadge>
           )}
           {currentIssue.total_time_spent_hours !== null && currentIssue.total_time_spent_hours !== undefined && (
-            <span style={{ color: '#64b5f6', background: 'rgba(100, 181, 246, 0.15)', padding: '4px 10px', borderRadius: '8px', border: '1px solid rgba(100, 181, 246, 0.3)' }}>
+            <TimeBadge>
               Time: {parseFloat(String(currentIssue.total_time_spent_hours)).toFixed(1)} h
-            </span>
+            </TimeBadge>
           )}
-        </div>
+        </DialogHeaderBadges>
       </StyledDialogTitle>
 
       <DialogContent>
@@ -325,20 +326,19 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
           />
 
           {/* QA Verification Checklist */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary, #c5c2d9)' }}>
+          <ChecklistContainer>
+            <ChecklistHeaderRow>
+              <ChecklistLabel>
                 {t('workOrder.qaChecklistLabel', 'QA Verification Checklist (one step per line)')}
-              </span>
-              <Button
+              </ChecklistLabel>
+              <ChecklistLoadButton
                 size="small"
                 onClick={handleLoadDefaultChecklist}
-                style={{ fontSize: '0.75rem', textTransform: 'none', color: 'var(--primary)' }}
                 data-testid="load-default-checklist-btn"
               >
                 + {t('workOrder.loadDefaultChecklist', 'Load Default Checklist (DoD)')}
-              </Button>
-            </div>
+              </ChecklistLoadButton>
+            </ChecklistHeaderRow>
             <StyledTextField
               multiline
               rows={3}
@@ -352,7 +352,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
                 htmlInput: { 'data-testid': 'edit-qa-checklist-input' }
               }}
             />
-          </div>
+          </ChecklistContainer>
           
           {/* Photo/Evidence Upload */}
           <div>

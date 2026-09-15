@@ -238,7 +238,7 @@ export const TaskLogbook: React.FC<TaskLogbookProps> = ({
                 data-testid="log-cost-input"
               />
             </MetricFieldWrapper>
-            <MetricFieldWrapper style={{ marginLeft: "12px" }}>
+            <MetricFieldWrapper>
               <AccessTimeIcon sx={{ fontSize: "1rem" }} />
               <span>{t("logbook.timeLabel", "Time (Hours)")}:</span>
               <StyledMetricInput
