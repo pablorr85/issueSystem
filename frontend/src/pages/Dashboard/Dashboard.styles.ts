@@ -591,9 +591,9 @@ export const StyledCheckbox = styled.input`
   -webkit-appearance: none;
   width: 18px;
   height: 18px;
-  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border: 1.5px solid var(--border-card);
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-surface);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -604,7 +604,7 @@ export const StyledCheckbox = styled.input`
 
   &:hover {
     border-color: var(--primary);
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-card);
   }
 
   &:checked {

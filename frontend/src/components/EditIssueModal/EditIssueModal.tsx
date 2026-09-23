@@ -171,10 +171,10 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
 
   const handleLoadDefaultChecklist = () => {
     const defaultDoD = [
-      '[ ] Inspección visual completada',
-      '[ ] Área de trabajo limpia y ordenada',
-      '[ ] Verificación de seguridad realizada',
-      '[ ] Prueba de funcionamiento OK'
+      'Inspección visual completada',
+      'Área de trabajo limpia y ordenada',
+      'Verificación de seguridad realizada',
+      'Prueba de funcionamiento OK'
     ].join('\n');
     setQaChecklist(defaultDoD);
   };
@@ -289,7 +289,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
 
           {/* Zone Selection */}
           <StyledFormControl fullWidth variant="outlined">
-            <InputLabel id="edit-zone-label">{t('workOrder.zoneLabel', 'Zone / Facility Area')}</InputLabel>
+            <InputLabel id="edit-zone-label" shrink>{t('workOrder.zoneLabel', 'Zone / Facility Area')}</InputLabel>
             <Select
               labelId="edit-zone-label"
               value={zoneVal}
@@ -297,6 +297,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
               onChange={(e) => setZoneVal(e.target.value as string)}
               disabled={saving}
               displayEmpty
+              notched
               inputProps={{ 'data-testid': 'edit-zone-select' }}
             >
               <MenuItem value="">
@@ -401,13 +402,14 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
 
           {/* Status field */}
           <StyledFormControl fullWidth variant="outlined">
-            <InputLabel id="edit-status-label">{t('dashboard.tableStatus', 'Status')}</InputLabel>
+            <InputLabel id="edit-status-label" shrink>{t('dashboard.tableStatus', 'Status')}</InputLabel>
             <Select
               labelId="edit-status-label"
               value={statusVal}
               label={t('dashboard.tableStatus', 'Status')}
               onChange={(e) => setStatusVal(e.target.value as string)}
               disabled={saving}
+              notched
               inputProps={{ 'data-testid': 'edit-status-select' }}
             >
               <MenuItem value="pending">{t('dashboard.filterPending', 'Pending')}</MenuItem>
@@ -429,7 +431,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
 
           {/* Operator field */}
           <StyledFormControl fullWidth variant="outlined">
-            <InputLabel id="edit-operator-label">{t('dashboard.tableAssignOperator', 'Assign Operator')}</InputLabel>
+            <InputLabel id="edit-operator-label" shrink>{t('dashboard.tableAssignOperator', 'Assign Operator')}</InputLabel>
             <Select
               labelId="edit-operator-label"
               value={assignedTo}
@@ -437,6 +439,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
               onChange={(e) => setAssignedTo(e.target.value as string)}
               disabled={saving}
               displayEmpty
+              notched
               inputProps={{ 'data-testid': 'edit-operator-select' }}
             >
               <MenuItem value="">
@@ -482,13 +485,15 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
                   if (field.field_type === 'select') {
                     return (
                       <StyledFormControl key={field.name} fullWidth variant="outlined">
-                        <InputLabel id={`field-${field.name}-label`}>{label}</InputLabel>
+                        <InputLabel id={`field-${field.name}-label`} shrink>{label}</InputLabel>
                         <Select
                           labelId={`field-${field.name}-label`}
                           value={currentVal !== undefined ? String(currentVal) : ''}
                           label={label}
                           onChange={(e) => handleDynamicFieldChange(field.name, e.target.value)}
                           disabled={saving}
+                          displayEmpty
+                          notched
                         >
                           <MenuItem value="">
                             <em>{t('dynamicIssueForm.none', 'None')}</em>

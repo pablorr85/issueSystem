@@ -2,6 +2,23 @@
 
 All notable changes to the **Solvo** project are documented in this file.
 
+## [Sprint 36] - Theme CSS Variables Optimization & User Settings Menu
+### Added
+- Created `SettingsMenu` component (`src/components/SettingsMenu`) with a gear icon button ⚙️, opening a floating preference menu that includes:
+  - Language Selector with instant switching between **Español 🇪🇸** (`es`) and **English 🇬🇧** (`en`) persisted in `localStorage`.
+  - Display Theme Toggle between **Light Mode ☀️** and **Night Mode 🌙**.
+  - Logout option for authenticated users.
+- Integrated `SettingsMenu` into `DashboardStatsView`, `BacklogView`, `BoardView`, `OperatorHubView`, `OperatorTaskView`, `LoginView`, and `HomeView`.
+- Added `tenant_name` to backend `IssueSerializer` and `IssueListSerializer` (`backend/core/serializers.py`), ensuring Work Orders always display the active tenant's name in print views.
+
+### Changed / Cleaned Up
+- Removed redundant standalone "Day View / Night View" button (`ThemeToggle`) and "Logged in as..." user banner + bottom logout button (`AuthStatusContainer`), consolidating all preference, theme, language, user info, and session logout controls exclusively inside the `SettingsMenu` gear button.
+
+### Fixed
+- Refactored `ShareQRSection` and `OperatorTaskView` styling to replace hardcoded dark mode colors with theme CSS variables (`var(--bg-card)`, `var(--text-primary)`, `var(--text-secondary)`, `var(--bg-surface)`), ensuring full legibility in Light View.
+- Fixed `InputLabel` overlap in `<Select>` components inside `EditIssueModal` by enforcing `shrink` on `InputLabel` and `notched` on `<Select>`, preventing labels from colliding with empty placeholders or selected values.
+- Removed redundant `[ ]` prefix from default Definition of Done (DoD) checklist generator in `EditIssueModal`.
+
 ## [Sprint 35] - Frontend Global State & API Caching with RTK Query
 ### Added
 - Integrated **Redux Toolkit (`@reduxjs/toolkit`)** and **`react-redux`** into the React frontend, centralizing global state management and replacing manual `useEffect` + `useState` API call patterns.

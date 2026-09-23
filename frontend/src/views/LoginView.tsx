@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Login } from '../pages/Login';
 import { getTenantConfig } from '../services/api';
 import type { TenantConfig } from '../services/types';
-import { ThemeToggle } from '../components/ThemeToggle';
+import { SettingsMenu } from '../components/SettingsMenu';
 import { AppContainer, AppMain, AppHeader, AppTitle, AppSubtitle, HeaderTopRow } from '../App.styles';
 
 export const LoginView: React.FC = () => {
@@ -19,7 +19,7 @@ export const LoginView: React.FC = () => {
     getTenantConfig(tenantId)
       .then(data => {
         setConfig(data);
-        if (data.default_language) {
+        if (data.default_language && !localStorage.getItem('app_language')) {
           i18n.changeLanguage(data.default_language);
         }
       })
@@ -67,7 +67,7 @@ export const LoginView: React.FC = () => {
     <AppContainer>
       <AppHeader>
         <HeaderTopRow>
-          <ThemeToggle />
+          <SettingsMenu />
         </HeaderTopRow>
         <AppTitle>{t('app.appTitle')}</AppTitle>
         <AppSubtitle>{t('app.appSubtitle')}</AppSubtitle>

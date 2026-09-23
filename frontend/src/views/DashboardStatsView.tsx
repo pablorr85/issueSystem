@@ -12,7 +12,7 @@ import { useAuth } from '../context/AuthContext';
 import { useGetTenantConfigQuery, useGetIssueStatsQuery } from '../store/apiSlice';
 import type { OperatorWorkload, OperatorPerformance, ZoneHotspot } from '../services/types';
 import { ShareQRSection } from '../components/ShareQRSection/ShareQRSection';
-import { ThemeToggle } from '../components/ThemeToggle';
+import { SettingsMenu } from '../components/SettingsMenu';
 import {
   AppContainer,
   CenteredLoadingContainer,
@@ -21,8 +21,6 @@ import {
   HeaderTopRow,
   AppTitle,
   AppSubtitle,
-  AuthStatusContainer,
-  LogoutButton
 } from '../App.styles';
 
 const NavContainer = styled.nav`
@@ -292,7 +290,7 @@ export const DashboardStatsView: React.FC = () => {
   const loading = configLoading || !config;
 
   useEffect(() => {
-    if (config?.default_language) {
+    if (config?.default_language && !localStorage.getItem('app_language')) {
       i18n.changeLanguage(config.default_language);
     }
   }, [config, i18n]);
@@ -351,17 +349,13 @@ export const DashboardStatsView: React.FC = () => {
     <AppContainer $wide>
       <AppHeader>
         <HeaderTopRow>
-          <ThemeToggle />
+          <SettingsMenu user={user} onLogout={handleLogout} />
         </HeaderTopRow>
         <AppTitle data-testid="dashboard-header">{t('app.appTitle')}</AppTitle>
         <AppSubtitle>{t('app.appSubtitle')}</AppSubtitle>
       </AppHeader>
 
       <AppMain>
-        <AuthStatusContainer>
-          <span>{t('app.loggedInAsPrefix')}<strong>{user}</strong></span>
-          <LogoutButton onClick={handleLogout} data-testid="logout-button">{t('app.logout')}</LogoutButton>
-        </AuthStatusContainer>
 
         <NavContainer>
           <NavLinkButton to="/" $active>

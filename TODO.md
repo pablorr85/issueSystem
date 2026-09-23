@@ -1,3 +1,3 @@
 # TODO
 
-All tasks for Sprint 35 are completed. No pending tasks.
+All tasks for Sprint 36 are completed. No pending tasks.

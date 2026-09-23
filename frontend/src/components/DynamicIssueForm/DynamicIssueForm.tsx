@@ -334,13 +334,15 @@ export const DynamicIssueForm: React.FC<DynamicIssueFormProps> = ({ tenant, onSu
               if (field.field_type === 'select') {
                 return (
                   <StyledFormControl key={field.name} error={hasError} required={field.required}>
-                    <InputLabel id={`label-${field.name}`}>{field.name}</InputLabel>
+                    <InputLabel id={`label-${field.name}`} shrink>{field.name}</InputLabel>
                     <Select
                       labelId={`label-${field.name}`}
                       value={extraData[field.name] || ''}
                       label={field.name}
                       onChange={(e) => handleExtraChange(field.name, e.target.value)}
                       disabled={submitting}
+                      displayEmpty
+                      notched
                       inputProps={{ 'data-testid': `select-${field.name}` }}
                     >
                       <MenuItem value="">

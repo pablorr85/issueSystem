@@ -14,15 +14,15 @@ import {
 import { useAppDispatch } from '../store';
 import type { Issue } from '../services/types';
 import { EditIssueModal } from '../components/EditIssueModal/EditIssueModal';
+import { SettingsMenu } from '../components/SettingsMenu';
 import {
   AppContainer,
   CenteredLoadingContainer,
   AppMain,
   AppHeader,
+  HeaderTopRow,
   AppTitle,
   AppSubtitle,
-  AuthStatusContainer,
-  LogoutButton
 } from '../App.styles';
 
 export const DashboardView: React.FC = () => {
@@ -65,7 +65,7 @@ export const DashboardView: React.FC = () => {
   const totalCount = issuesData?.count || 0;
 
   useEffect(() => {
-    if (config?.default_language) {
+    if (config?.default_language && !localStorage.getItem('app_language')) {
       i18n.changeLanguage(config.default_language);
     }
   }, [config, i18n]);
@@ -144,15 +144,14 @@ export const DashboardView: React.FC = () => {
   return (
     <AppContainer $wide>
       <AppHeader>
+        <HeaderTopRow>
+          <SettingsMenu user={user} onLogout={handleLogout} />
+        </HeaderTopRow>
         <AppTitle>{t('app.appTitle')}</AppTitle>
         <AppSubtitle>{t('app.appSubtitle')}</AppSubtitle>
       </AppHeader>
 
       <AppMain>
-        <AuthStatusContainer>
-          <span>{t('app.loggedInAsPrefix')}<strong>{user}</strong></span>
-          <LogoutButton onClick={handleLogout} data-testid="logout-button">{t('app.logout')}</LogoutButton>
-        </AuthStatusContainer>
 
         {config && (
           <Dashboard

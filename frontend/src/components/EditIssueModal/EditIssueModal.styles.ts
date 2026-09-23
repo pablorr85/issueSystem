@@ -47,6 +47,11 @@ export const StyledTextField = styled(TextField)`
   & .MuiInputLabel-root {
     color: var(--text-secondary) !important;
   }
+  & .MuiInputLabel-root.MuiInputLabel-shrink {
+    background: var(--bg-surface);
+    padding: 0 4px;
+    border-radius: 4px;
+  }
   & .MuiOutlinedInput-root {
     color: var(--text-primary) !important;
     background: var(--bg-surface);
@@ -66,6 +71,11 @@ export const StyledTextField = styled(TextField)`
 export const StyledFormControl = styled(FormControl)`
   & .MuiInputLabel-root {
     color: var(--text-secondary) !important;
+  }
+  & .MuiInputLabel-root.MuiInputLabel-shrink {
+    background: var(--bg-surface);
+    padding: 0 4px;
+    border-radius: 4px;
   }
   & .MuiOutlinedInput-root {
     color: var(--text-primary) !important;

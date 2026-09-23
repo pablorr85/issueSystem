@@ -112,10 +112,6 @@
     "boardCardDescription": "Realice el seguimiento y gestione las asignaciones activas. Arrastre y suelte incidencias entre columnas para actualizar el estado de las tareas al instante.",
     "goToBacklog": "Ir al Backlog →",
     "goToBoard": "Ir al Tablero de Operaciones →",
-    "kanbanPending": "Pendientes",
-    "kanbanInProgress": "En Progreso",
-    "kanbanBlocked": "Bloqueadas",
-    "kanbanDone": "Finalizadas",
     "cargandoTablero": "Cargando tablero...",
     "assignmentFilterLabel": "Filtrar por Asignación",
     "filterAssigned": "Asignadas",
@@ -243,5 +239,12 @@
   "common": {
     "clear": "Limpiar",
     "today": "Hoy"
+  },
+  "settings": {
+    "title": "Ajustes de Preferencias",
+    "language": "Idioma / Language",
+    "theme": "Tema / Display Theme",
+    "lightMode": "Claro",
+    "darkMode": "Noche"
   }
 }

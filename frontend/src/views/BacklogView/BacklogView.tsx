@@ -9,7 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getTenantConfig, getIssues, getOperators, toggleOperatorActive } from '../../services/api';
 import type { TenantConfig, Issue, Operator } from '../../services/types';
 import { EditIssueModal } from '../../components/EditIssueModal/EditIssueModal';
-import { ThemeToggle } from '../../components/ThemeToggle';
+import { SettingsMenu } from '../../components/SettingsMenu';
 import {
   AppContainer,
   CenteredLoadingContainer,
@@ -18,8 +18,6 @@ import {
   HeaderTopRow,
   AppTitle,
   AppSubtitle,
-  AuthStatusContainer,
-  LogoutButton
 } from '../../App.styles';
 import { NavContainer, NavLinkButton } from './BacklogView.styles';
 
@@ -80,7 +78,7 @@ export const BacklogView: React.FC = () => {
       .then(data => {
         if (!active) return;
         setConfig(data);
-        if (data.default_language) {
+        if (data.default_language && !localStorage.getItem('app_language')) {
           i18n.changeLanguage(data.default_language);
         }
         setLoading(false);
@@ -228,18 +226,13 @@ export const BacklogView: React.FC = () => {
     <AppContainer $wide>
       <AppHeader>
         <HeaderTopRow>
-          <ThemeToggle />
+          <SettingsMenu user={user} onLogout={handleLogout} />
         </HeaderTopRow>
         <AppTitle>{t('app.appTitle')}</AppTitle>
         <AppSubtitle>{t('app.appSubtitle')}</AppSubtitle>
       </AppHeader>
 
       <AppMain>
-        <AuthStatusContainer>
-          <span>{t('app.loggedInAsPrefix')}<strong>{user}</strong></span>
-          <LogoutButton onClick={handleLogout} data-testid="logout-button">{t('app.logout')}</LogoutButton>
-        </AuthStatusContainer>
-
         <NavContainer>
           <NavLinkButton to="/">
             <DashboardIcon fontSize="small" />

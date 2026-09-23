@@ -7,7 +7,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { getOperatorHub } from "../services/api";
 import { getUrgencyLevel, getUrgencyIcon } from "../utils/urgency";
 import type { OperatorTask } from "../services/types";
-import { ThemeToggle } from "../components/ThemeToggle";
+import { SettingsMenu } from "../components/SettingsMenu";
 import {
   Container,
   MobileCard,
@@ -182,7 +182,7 @@ export const OperatorHubView: React.FC = () => {
               <Subtitle>{t("operatorHub.title")}</Subtitle>
             </div>
           </HeaderContent>
-          <ThemeToggle showLabel={false} />
+          <SettingsMenu />
         </BrandHeader>
 
         <div>

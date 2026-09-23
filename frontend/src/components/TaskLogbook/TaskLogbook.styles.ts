@@ -3,7 +3,7 @@ import { Button } from '@mui/material';
 
 export const LogbookSection = styled.div`
   margin-top: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--border-subtle);
   padding-top: 20px;
   display: flex;
   flex-direction: column;
@@ -20,7 +20,7 @@ export const LogbookHeaderRow = styled.div`
 export const LogbookTitle = styled.h3`
   font-size: 0.95rem;
   font-weight: 600;
-  color: #a09cb4;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0;
@@ -40,21 +40,22 @@ export const LogbookList = styled.div`
     width: 6px;
   }
   &::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--bg-surface);
     border-radius: 3px;
   }
   &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--border-card);
     border-radius: 3px;
   }
   &::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--primary);
+    border-radius: 3px;
   }
 `;
 
 export const LogBubble = styled.div<{ $isSystem?: boolean; $hasMetrics?: boolean }>`
-  background: ${({ $isSystem }) => $isSystem ? 'rgba(255, 255, 255, 0.01)' : 'rgba(255, 255, 255, 0.03)'};
-  border: 1px solid ${({ $hasMetrics }) => $hasMetrics ? 'rgba(129, 199, 132, 0.25)' : 'rgba(255, 255, 255, 0.06)'};
+  background: ${({ $isSystem }) => $isSystem ? 'var(--bg-surface)' : 'var(--bg-card)'};
+  border: 1px solid ${({ $hasMetrics }) => $hasMetrics ? 'rgba(129, 199, 132, 0.4)' : 'var(--border-card)'};
   border-radius: 12px;
   padding: 12px 14px;
   font-size: 0.9rem;
@@ -89,7 +90,7 @@ export const LogAuthor = styled.span<{ $role?: string }>`
 `;
 
 export const LogTime = styled.span`
-  color: #6b6780;
+  color: var(--text-muted);
 `;
 
 export const LogBody = styled.div`
@@ -99,7 +100,7 @@ export const LogBody = styled.div`
 `;
 
 export const LogText = styled.div`
-  color: #e2e1e9;
+  color: var(--text-primary);
   line-height: 1.4;
   white-space: pre-wrap;
   word-break: break-word;
@@ -110,7 +111,7 @@ export const LogAttachment = styled.img`
   max-height: 120px;
   border-radius: 8px;
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--border-card);
   transition: opacity 0.2s, transform 0.2s;
 
   &:hover {
@@ -167,10 +168,10 @@ export const MetricsInputRow = styled.div`
   gap: 12px;
   flex-wrap: wrap;
   align-items: center;
-  background: rgba(255, 255, 255, 0.01);
+  background: var(--bg-surface);
   padding: 8px 12px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-card);
 `;
 
 export const MetricFieldWrapper = styled.div`
@@ -178,16 +179,16 @@ export const MetricFieldWrapper = styled.div`
   align-items: center;
   gap: 6px;
   font-size: 0.85rem;
-  color: #a09cb4;
+  color: var(--text-secondary);
 `;
 
 export const StyledMetricInput = styled.input`
   width: 90px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 6px;
   padding: 4px 8px;
-  color: white;
+  color: var(--text-primary);
   font-family: inherit;
   font-size: 0.85rem;
   box-sizing: border-box;
@@ -206,11 +207,11 @@ export const StyledMetricInput = styled.input`
 
 export const StyledTextArea = styled.textarea`
   flex: 1;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
   border-radius: 10px;
   padding: 10px 12px;
-  color: white;
+  color: var(--text-primary);
   font-family: inherit;
   font-size: 0.9rem;
   resize: none;
@@ -221,7 +222,7 @@ export const StyledTextArea = styled.textarea`
   &:focus {
     outline: none;
     border-color: var(--primary);
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--bg-card);
   }
 
   &:disabled {
@@ -246,15 +247,15 @@ export const LogSubmitButton = styled(Button)`
   }
   
   &:disabled {
-    background: rgba(255, 255, 255, 0.04) !important;
-    color: rgba(255, 255, 255, 0.2) !important;
+    background: var(--bg-surface) !important;
+    color: var(--text-muted) !important;
   }
 `;
 
 export const EmptyLogbookState = styled.div`
   padding: 24px 0;
   text-align: center;
-  color: #6b6780;
+  color: var(--text-muted);
   font-size: 0.85rem;
   font-style: italic;
 `;

@@ -112,7 +112,7 @@ export const WorkOrderPrintView: React.FC<WorkOrderPrintViewProps> = ({
           <PrintHeader>
             <HeaderTitle>
               <h1>{t('workOrder.title', 'WORK ORDER')}</h1>
-              <span>{tenantName || t('app.appTitle', 'Solvo')}</span>
+              <span>{tenantName || issue.tenant_name || t('app.appTitle', 'Solvo')}</span>
             </HeaderTitle>
             <HeaderMeta>
               <div>

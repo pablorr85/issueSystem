@@ -49,6 +49,7 @@ class IssueSerializer(serializers.ModelSerializer):
         required=False
     )
     assigned_to_name = serializers.CharField(source='assigned_to.username', read_only=True, default='')
+    tenant_name = serializers.CharField(source='tenant.name', read_only=True, default='')
     secure_token = serializers.UUIDField(read_only=True)
     extra_data = serializers.JSONField(required=False, default=dict)
     resolved_at = serializers.SerializerMethodField()
@@ -56,12 +57,12 @@ class IssueSerializer(serializers.ModelSerializer):
     class Meta:
         model = Issue
         fields = (
-            'id', 'tenant_id', 'order_number', 'zone', 'zone_name', 'title', 'status', 'description',
+            'id', 'tenant_id', 'tenant_name', 'order_number', 'zone', 'zone_name', 'title', 'status', 'description',
             'qa_checklist', 'photo_url', 'image', 'extra_data', 'assigned_to', 'assigned_to_name',
             'secure_token', 'started_at', 'completed_at', 'created_at', 'updated_at', 'resolved_at',
             'total_cost', 'total_time_spent_hours'
         )
-        read_only_fields = ('id', 'order_number', 'secure_token', 'created_at', 'updated_at', 'started_at', 'completed_at', 'resolved_at', 'total_cost', 'total_time_spent_hours')
+        read_only_fields = ('id', 'tenant_name', 'order_number', 'secure_token', 'created_at', 'updated_at', 'started_at', 'completed_at', 'resolved_at', 'total_cost', 'total_time_spent_hours')
 
     def get_resolved_at(self, obj):
         return get_issue_resolved_at(obj)
@@ -182,9 +183,10 @@ class IssueSerializer(serializers.ModelSerializer):
 
 class IssueListSerializer(serializers.ModelSerializer):
     """
-    Serializer for paginated read-only list of issues, exposing the tenant UUID.
+    Serializer for paginated read-only list of issues, exposing the tenant UUID and name.
     """
     tenant_id = serializers.UUIDField(source='tenant.id', read_only=True)
+    tenant_name = serializers.CharField(source='tenant.name', read_only=True, default='')
     zone_name = serializers.CharField(source='zone.name', read_only=True, default='')
     assigned_to = serializers.PrimaryKeyRelatedField(read_only=True)
     assigned_to_name = serializers.CharField(source='assigned_to.username', read_only=True, default='')
@@ -194,7 +196,7 @@ class IssueListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Issue
         fields = (
-            'id', 'tenant_id', 'order_number', 'zone', 'zone_name', 'title', 'status', 'description',
+            'id', 'tenant_id', 'tenant_name', 'order_number', 'zone', 'zone_name', 'title', 'status', 'description',
             'qa_checklist', 'photo_url', 'image', 'extra_data', 'assigned_to', 'assigned_to_name',
             'secure_token', 'started_at', 'completed_at', 'created_at', 'updated_at', 'resolved_at',
             'total_cost', 'total_time_spent_hours'

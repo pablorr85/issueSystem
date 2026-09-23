@@ -13,12 +13,12 @@ export const Container = styled.div`
 export const MobileCard = styled(Card)`
   width: 100%;
   max-width: 500px;
-  background: rgba(255, 255, 255, 0.03) !important;
+  background: var(--bg-card) !important;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid var(--border-card) !important;
   border-radius: 24px !important;
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4) !important;
+  box-shadow: var(--shadow) !important;
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -31,7 +31,7 @@ export const BrandHeader = styled.div`
   display: flex;
   align-items: center;
   gap: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-subtle);
   padding-bottom: 16px;
 `;
 
@@ -40,7 +40,7 @@ export const LogoImage = styled.img`
   height: 48px;
   border-radius: 12px;
   object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-subtle);
 `;
 
 export const LogoPlaceholder = styled.div`
@@ -59,12 +59,12 @@ export const LogoPlaceholder = styled.div`
 
 export const TenantName = styled(Typography)`
   font-weight: 700 !important;
-  color: white !important;
+  color: var(--text-primary) !important;
   font-size: 1.2rem !important;
 `;
 
 export const Subtitle = styled(Typography)`
-  color: #a09cb4 !important;
+  color: var(--text-secondary) !important;
   font-size: 0.85rem !important;
 `;
 
@@ -76,7 +76,7 @@ export const TaskTitleRow = styled.div`
 
 export const TaskId = styled(Typography)`
   font-weight: 700 !important;
-  color: white !important;
+  color: var(--text-primary) !important;
   font-size: 1.4rem !important;
 `;
 
@@ -129,9 +129,9 @@ export const StatusPill = styled.div<StatusPillProps>`
         `;
       default:
         return `
-          background: rgba(255, 255, 255, 0.15);
-          color: white;
-          border: 1px solid rgba(255, 255, 255, 0.3);
+          background: var(--bg-surface);
+          color: var(--text-primary);
+          border: 1px solid var(--border-card);
         `;
     }
   }}
@@ -180,9 +180,9 @@ export const UrgencyPill = styled.span<UrgencyPillProps>`
         `;
       default:
         return `
-          background: rgba(255, 255, 255, 0.12);
-          color: #e0e0e0;
-          border: 1px solid rgba(255, 255, 255, 0.25);
+          background: var(--bg-surface);
+          color: var(--text-secondary);
+          border: 1px solid var(--border-card);
         `;
     }
   }}
@@ -202,7 +202,7 @@ export const UrgencyPill = styled.span<UrgencyPillProps>`
 
 export const SectionTitle = styled(Typography)`
   font-weight: 600 !important;
-  color: #a09cb4 !important;
+  color: var(--text-secondary) !important;
   font-size: 0.9rem !important;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -210,11 +210,11 @@ export const SectionTitle = styled(Typography)`
 `;
 
 export const DescriptionBox = styled.div`
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 16px;
-  color: white;
+  color: var(--text-primary);
   font-size: 1rem;
   line-height: 1.5;
   white-space: pre-wrap;
@@ -225,7 +225,7 @@ export const TaskPhoto = styled.img`
   max-height: 240px;
   border-radius: 14px;
   object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-card);
   margin-top: 0;
   cursor: zoom-in;
   transition: transform 0.3s ease;
@@ -243,21 +243,21 @@ export const MetadataGrid = styled.div`
 `;
 
 export const MetadataItem = styled.div`
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
   border-radius: 12px;
   padding: 10px 12px;
 `;
 
 export const MetadataLabel = styled(Typography)`
-  color: #6b6780 !important;
+  color: var(--text-muted) !important;
   font-size: 0.75rem !important;
   text-transform: uppercase;
   font-weight: 600 !important;
 `;
 
 export const MetadataValue = styled(Typography)`
-  color: white !important;
+  color: var(--text-primary) !important;
   font-size: 0.9rem !important;
   font-weight: 500 !important;
   margin-top: 2px !important;
@@ -268,7 +268,7 @@ export const ActionArea = styled.div`
   flex-direction: column;
   gap: 12px;
   margin-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--border-subtle);
   padding-top: 20px;
 `;
 
@@ -325,20 +325,20 @@ export const DateRow = styled.div`
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #6b6780;
+  color: var(--text-muted);
   font-size: 0.8rem;
   margin-top: 4px;
 `;
 
 export const HomeButton = styled(Button)`
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  color: white !important;
+  border-color: var(--border-card) !important;
+  color: var(--text-primary) !important;
   text-transform: none !important;
   border-radius: 12px !important;
 `;
 
 export const BackToHubButton = styled(Button)`
-  color: #a09cb4 !important;
+  color: var(--text-secondary) !important;
   text-transform: none !important;
   margin-top: 12px !important;
   font-weight: 600 !important;
@@ -346,25 +346,26 @@ export const BackToHubButton = styled(Button)`
   border-radius: 8px !important;
   
   &:hover {
-    color: white !important;
-    background: rgba(255, 255, 255, 0.05) !important;
+    color: var(--text-primary) !important;
+    background: var(--bg-surface) !important;
   }
 `;
 
 export const NoPhotoPlaceholder = styled.div`
   width: 100%;
   height: 180px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px dashed rgba(255, 255, 255, 0.15);
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-card);
   border-radius: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #6b6780;
+  color: var(--text-muted);
   margin-top: 8px;
 `;
+
 
 export const LightboxOverlay = styled.div`
   position: fixed;

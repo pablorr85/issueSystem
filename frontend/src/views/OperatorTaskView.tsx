@@ -13,6 +13,7 @@ import type { OperatorTask } from "../services/types";
 import { TaskLogbook } from "../components/TaskLogbook/TaskLogbook";
 import { CompletionReportModal } from "../components/CompletionReportModal/CompletionReportModal";
 import { WorkOrderPrintView } from "../components/WorkOrderPrintView";
+import { SettingsMenu } from "../components/SettingsMenu";
 import {
   Container,
   MobileCard,
@@ -197,16 +198,19 @@ export const OperatorTaskView: React.FC = () => {
   return (
     <Container>
       <MobileCard>
-        <BrandHeader>
-          {task.tenant_logo_url ? (
-            <LogoImage src={task.tenant_logo_url} alt="Tenant Logo" />
-          ) : (
-            <LogoPlaceholder>{task.tenant_name.charAt(0)}</LogoPlaceholder>
-          )}
-          <div>
-            <TenantName>{task.tenant_name}</TenantName>
-            <Subtitle>{t("app.appTitle", "Issue Tracker")}</Subtitle>
+        <BrandHeader style={{ justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {task.tenant_logo_url ? (
+              <LogoImage src={task.tenant_logo_url} alt="Tenant Logo" />
+            ) : (
+              <LogoPlaceholder>{task.tenant_name.charAt(0)}</LogoPlaceholder>
+            )}
+            <div>
+              <TenantName>{task.tenant_name}</TenantName>
+              <Subtitle>{t("app.appTitle", "Issue Tracker")}</Subtitle>
+            </div>
           </div>
+          <SettingsMenu />
         </BrandHeader>
 
         <TaskTitleRow>
@@ -231,7 +235,7 @@ export const OperatorTaskView: React.FC = () => {
         </TaskTitleRow>
 
         {task.title && (
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', margin: '16px 0 12px 0', color: '#ffffff' }} data-testid="task-title">
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', margin: '16px 0 12px 0', color: 'var(--text-primary)' }} data-testid="task-title">
             {task.title}
           </h2>
         )}
@@ -358,14 +362,15 @@ export const OperatorTaskView: React.FC = () => {
                       display: 'flex',
                       gap: '12px',
                       padding: '12px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                      backgroundColor: 'var(--bg-surface)',
                       borderRadius: '12px',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      border: '1px solid var(--border-card)',
                       fontSize: '0.9rem',
                       fontWeight: 500,
                       justifyContent: 'space-around',
                       width: '100%',
-                      boxSizing: 'border-box'
+                      boxSizing: 'border-box',
+                      color: 'var(--text-primary)'
                     }}>
                       {task.total_cost !== null && task.total_cost !== undefined && parseFloat(String(task.total_cost)) > 0 && (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -394,11 +399,11 @@ export const OperatorTaskView: React.FC = () => {
                 sx={{
                   marginTop: '12px',
                   width: '100%',
-                  borderColor: 'rgba(255, 255, 255, 0.2)',
-                  color: 'white',
+                  borderColor: 'var(--border-card)',
+                  color: 'var(--text-primary)',
                   '&:hover': {
                     borderColor: 'var(--primary)',
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                    backgroundColor: 'var(--bg-surface)'
                   }
                 }}
                 data-testid="operator-task-print-btn"

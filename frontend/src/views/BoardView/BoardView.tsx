@@ -12,7 +12,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getTenantConfig, getIssues, updateIssueStatus } from '../../services/api';
 import type { TenantConfig, Issue } from '../../services/types';
 import { WorkOrderPrintView } from '../../components/WorkOrderPrintView';
-import { ThemeToggle } from '../../components/ThemeToggle';
+import { SettingsMenu } from '../../components/SettingsMenu';
 import {
   AppContainer,
   CenteredLoadingContainer,
@@ -21,8 +21,6 @@ import {
   HeaderTopRow,
   AppTitle,
   AppSubtitle,
-  AuthStatusContainer,
-  LogoutButton
 } from '../../App.styles';
 import {
   NavContainer,
@@ -224,7 +222,7 @@ export const BoardView: React.FC = () => {
       .then(data => {
         if (!active) return;
         setConfig(data);
-        if (data.default_language) {
+        if (data.default_language && !localStorage.getItem('app_language')) {
           i18n.changeLanguage(data.default_language);
         }
         setLoading(false);
@@ -327,18 +325,13 @@ export const BoardView: React.FC = () => {
       )}
       <AppHeader>
         <HeaderTopRow>
-          <ThemeToggle />
+          <SettingsMenu user={user} onLogout={handleLogout} />
         </HeaderTopRow>
         <AppTitle>{t('app.appTitle')}</AppTitle>
         <AppSubtitle>{t('app.appSubtitle')}</AppSubtitle>
       </AppHeader>
 
       <AppMain>
-        <AuthStatusContainer>
-          <span>{t('app.loggedInAsPrefix')}<strong>{user}</strong></span>
-          <LogoutButton onClick={handleLogout} data-testid="logout-button">{t('app.logout')}</LogoutButton>
-        </AuthStatusContainer>
-
         <NavContainer>
           <NavLinkButton to="/">
             <DashboardIcon fontSize="small" />

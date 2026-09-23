@@ -14,13 +14,15 @@ const resources = {
   },
 };
 
+const savedLang = localStorage.getItem('app_language');
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources,
     fallbackLng: 'es',
-    lng: 'es', // default to Spanish on load
+    lng: savedLang || 'es',
     debug: false,
     interpolation: {
       escapeValue: false, // react already protects from xss

@@ -48,6 +48,7 @@ export type IssueStatus = "pending" | "in_progress" | "qa" | "resolved" | "block
 export interface Issue {
   id: number;
   tenant_id: string;
+  tenant_name?: string;
   order_number?: string | null;
   zone?: number | null;
   zone_name?: string;

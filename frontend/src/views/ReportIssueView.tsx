@@ -101,7 +101,7 @@ export const ReportIssueView: React.FC = () => {
   }, [config]);
 
   useEffect(() => {
-    if (config?.default_language) {
+    if (config?.default_language && !localStorage.getItem('app_language')) {
       i18n.changeLanguage(config.default_language);
     }
   }, [config?.default_language, i18n]);

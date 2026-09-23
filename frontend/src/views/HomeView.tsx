@@ -1,10 +1,10 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { TenantForm } from '../components/TenantForm';
 import { getTenantConfig } from '../services/api';
-import { ThemeToggle } from '../components/ThemeToggle';
+import { SettingsMenu } from '../components/SettingsMenu';
 import { AppContainer, AppMain, AppHeader, AppTitle, AppSubtitle, HeaderTopRow } from '../App.styles';
 
 export const HomeView: React.FC = () => {
@@ -50,7 +50,7 @@ export const HomeView: React.FC = () => {
     <AppContainer>
       <AppHeader>
         <HeaderTopRow>
-          <ThemeToggle />
+          <SettingsMenu />
         </HeaderTopRow>
         <AppTitle>{t('app.appTitle')}</AppTitle>
         <AppSubtitle>{t('app.appSubtitle')}</AppSubtitle>

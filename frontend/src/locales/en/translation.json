@@ -239,5 +239,12 @@
   "common": {
     "clear": "Clear",
     "today": "Today"
+  },
+  "settings": {
+    "title": "Preference Settings",
+    "language": "Language / Idioma",
+    "theme": "Theme / Display Theme",
+    "lightMode": "Light",
+    "darkMode": "Night"
   }
 }

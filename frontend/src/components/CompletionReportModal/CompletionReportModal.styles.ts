@@ -3,12 +3,12 @@ import { Dialog, DialogTitle, DialogActions, Button, TextField } from '@mui/mate
 
 export const StyledDialog = styled(Dialog)`
   .MuiPaper-root {
-    background: #181528 !important;
-    color: white !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background: var(--bg-surface) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-card) !important;
     border-radius: 16px !important;
     padding: 12px !important;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: var(--shadow) !important;
     max-width: 480px !important;
     width: 100% !important;
   }
@@ -18,7 +18,7 @@ export const StyledDialogTitle = styled(DialogTitle)`
   font-family: inherit !important;
   font-weight: 700 !important;
   font-size: 1.25rem !important;
-  color: white !important;
+  color: var(--text-primary) !important;
   display: flex !important;
   align-items: center !important;
   gap: 10px !important;
@@ -34,23 +34,23 @@ export const FormContainer = styled.div`
 
 export const StyledTextField = styled(TextField)`
   .MuiInputLabel-root {
-    color: #a09cb4 !important;
+    color: var(--text-secondary) !important;
     font-family: inherit !important;
   }
   .MuiInputLabel-root.Mui-focused {
     color: var(--primary) !important;
   }
   .MuiOutlinedInput-root {
-    color: white !important;
-    background: rgba(255, 255, 255, 0.02) !important;
+    color: var(--text-primary) !important;
+    background: var(--bg-card) !important;
     border-radius: 10px !important;
     font-family: inherit !important;
     
     fieldset {
-      border-color: rgba(255, 255, 255, 0.08) !important;
+      border-color: var(--border-card) !important;
     }
     &:hover fieldset {
-      border-color: rgba(255, 255, 255, 0.15) !important;
+      border-color: var(--primary) !important;
     }
     &.Mui-focused fieldset {
       border-color: var(--primary) !important;
@@ -67,7 +67,7 @@ export const StyledTextField = styled(TextField)`
 export const PhotoSectionHeader = styled.div`
   font-size: 0.85rem;
   font-weight: 600;
-  color: #a09cb4;
+  color: var(--text-secondary);
   margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -78,23 +78,23 @@ export const HiddenFileInput = styled.input`
 `;
 
 export const UploadZone = styled.div`
-  border: 2px dashed rgba(255, 255, 255, 0.08);
+  border: 2px dashed var(--border-card);
   border-radius: 12px;
   padding: 30px 20px;
   text-align: center;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.01);
+  background: var(--bg-card);
   transition: border-color 0.2s, background-color 0.2s;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  color: #a09cb4;
+  color: var(--text-secondary);
   font-size: 0.85rem;
 
   &:hover {
     border-color: var(--primary);
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-surface);
   }
 `;
 
@@ -104,7 +104,7 @@ export const PreviewContainer = styled.div`
   max-height: 180px;
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-card);
 `;
 
 export const ImagePreview = styled.img`
@@ -147,14 +147,14 @@ export const StyledDialogActions = styled(DialogActions)`
 `;
 
 export const CancelButton = styled(Button)`
-  color: #a09cb4 !important;
+  color: var(--text-secondary) !important;
   font-family: inherit !important;
   text-transform: none !important;
   font-weight: 600 !important;
   border-radius: 10px !important;
   
   &:hover {
-    background: rgba(255, 255, 255, 0.04) !important;
+    background: var(--bg-surface) !important;
   }
 `;
 
@@ -172,7 +172,7 @@ export const SubmitButton = styled(Button)`
   }
 
   &:disabled {
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: rgba(255, 255, 255, 0.2) !important;
+    background: var(--bg-surface) !important;
+    color: var(--text-muted) !important;
   }
 `;
