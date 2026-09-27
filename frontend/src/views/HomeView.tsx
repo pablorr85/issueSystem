@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { TenantForm } from '../components/TenantForm';
 import { getTenantConfig } from '../services/api';
-import { SettingsMenu } from '../components/SettingsMenu';
-import { AppContainer, AppMain, AppHeader, AppTitle, AppSubtitle, HeaderTopRow } from '../App.styles';
+import { PageHeader } from '../components/PageHeader';
+import { AppContainer, AppMain } from '../App.styles';
 
 export const HomeView: React.FC = () => {
   const { t } = useTranslation();
@@ -48,13 +48,7 @@ export const HomeView: React.FC = () => {
 
   return (
     <AppContainer>
-      <AppHeader>
-        <HeaderTopRow>
-          <SettingsMenu />
-        </HeaderTopRow>
-        <AppTitle>{t('app.appTitle')}</AppTitle>
-        <AppSubtitle>{t('app.appSubtitle')}</AppSubtitle>
-      </AppHeader>
+      <PageHeader />
       <AppMain>
         <TenantForm onSubmit={handleFetchConfig} loading={loading} error={error} />
       </AppMain>

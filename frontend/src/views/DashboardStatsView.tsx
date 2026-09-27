@@ -12,50 +12,14 @@ import { useAuth } from '../context/AuthContext';
 import { useGetTenantConfigQuery, useGetIssueStatsQuery } from '../store/apiSlice';
 import type { OperatorWorkload, OperatorPerformance, ZoneHotspot } from '../services/types';
 import { ShareQRSection } from '../components/ShareQRSection/ShareQRSection';
-import { SettingsMenu } from '../components/SettingsMenu';
+import { NavigationTabs } from '../components/NavigationTabs';
+import { PageHeader } from '../components/PageHeader';
+import { applyTenantTheme } from '../utils/theme';
 import {
   AppContainer,
   CenteredLoadingContainer,
   AppMain,
-  AppHeader,
-  HeaderTopRow,
-  AppTitle,
-  AppSubtitle,
 } from '../App.styles';
-
-const NavContainer = styled.nav`
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-  background: var(--bg-card);
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid var(--border-card);
-`;
-
-interface NavLinkProps {
-  $active?: boolean;
-}
-
-const NavLinkButton = styled(Link)<NavLinkProps>`
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 600;
-  padding: 10px 18px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  background: ${({ $active }) => ($active ? 'var(--primary)' : 'transparent')};
-  color: ${({ $active }) => ($active ? '#ffffff' : 'var(--text-secondary)')} !important;
-  border: 1px solid ${({ $active }) => ($active ? 'var(--primary)' : 'var(--border-subtle)')};
-
-  &:hover {
-    background: ${({ $active }) => ($active ? 'var(--primary-hover)' : 'var(--bg-surface)')};
-    color: ${({ $active }) => ($active ? '#ffffff' : 'var(--text-primary)')} !important;
-  }
-`;
 
 const StatsGrid = styled.div`
   display: grid;
@@ -296,38 +260,7 @@ export const DashboardStatsView: React.FC = () => {
   }, [config, i18n]);
 
   useEffect(() => {
-    if (config?.visual_config?.primary_color) {
-      const hex = config.visual_config.primary_color;
-      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-      if (result) {
-        const r = parseInt(result[1], 16) / 255;
-        const g = parseInt(result[2], 16) / 255;
-        const b = parseInt(result[3], 16) / 255;
-        const max = Math.max(r, g, b), min = Math.min(r, g, b);
-        let h = 0, s = 0, l = (max + min) / 2;
-        if (max !== min) {
-          const d = max - min;
-          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-          switch (max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-          }
-          h /= 6;
-        }
-        h = Math.round(h * 360);
-        s = Math.round(s * 100);
-        l = Math.round(l * 100);
-
-        document.documentElement.style.setProperty('--primary-hue', `${h}`);
-        document.documentElement.style.setProperty('--primary', `hsl(${h}, ${s}%, ${l}%)`);
-        document.documentElement.style.setProperty('--primary-hover', `hsl(${h}, ${s}%, ${l - 10}%)`);
-      }
-    } else {
-      document.documentElement.style.setProperty('--primary-hue', '260');
-      document.documentElement.style.setProperty('--primary', 'hsl(260, 85%, 60%)');
-      document.documentElement.style.setProperty('--primary-hover', 'hsl(260, 85%, 50%)');
-    }
+    applyTenantTheme(config?.visual_config?.primary_color);
   }, [config]);
 
   const handleLogout = () => {
@@ -347,30 +280,11 @@ export const DashboardStatsView: React.FC = () => {
 
   return (
     <AppContainer $wide>
-      <AppHeader>
-        <HeaderTopRow>
-          <SettingsMenu user={user} onLogout={handleLogout} />
-        </HeaderTopRow>
-        <AppTitle data-testid="dashboard-header">{t('app.appTitle')}</AppTitle>
-        <AppSubtitle>{t('app.appSubtitle')}</AppSubtitle>
-      </AppHeader>
+      <PageHeader user={user} onLogout={handleLogout} />
 
       <AppMain>
 
-        <NavContainer>
-          <NavLinkButton to="/" $active>
-            <DashboardIcon fontSize="small" />
-            {t('dashboard.dashboardTab')}
-          </NavLinkButton>
-          <NavLinkButton to="/backlog">
-            <ListAltIcon fontSize="small" />
-            {t('dashboard.backlogTab')}
-          </NavLinkButton>
-          <NavLinkButton to="/board">
-            <ViewKanbanIcon fontSize="small" />
-            {t('dashboard.boardTab')}
-          </NavLinkButton>
-        </NavContainer>
+        <NavigationTabs activeTab="dashboard" />
 
         {config && (
           <ShareQRSection tenant={config} reportingUrl={reportingUrl} />

@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import ListAltIcon from '@mui/icons-material/ListAlt';
-import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
 import LaunchIcon from '@mui/icons-material/Launch';
 import PrintIcon from '@mui/icons-material/Print';
 import { DndContext, useDraggable, useDroppable, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
@@ -12,19 +9,17 @@ import { useAuth } from '../../context/AuthContext';
 import { getTenantConfig, getIssues, updateIssueStatus } from '../../services/api';
 import type { TenantConfig, Issue } from '../../services/types';
 import { WorkOrderPrintView } from '../../components/WorkOrderPrintView';
-import { SettingsMenu } from '../../components/SettingsMenu';
+import { NavigationTabs } from '../../components/NavigationTabs';
+import { PageHeader } from '../../components/PageHeader';
+import { applyTenantTheme } from '../../utils/theme';
+import { getImageUrl } from '../../utils/url';
+import { getZoneValue } from '../../utils/formatters';
 import {
   AppContainer,
   CenteredLoadingContainer,
   AppMain,
-  AppHeader,
-  HeaderTopRow,
-  AppTitle,
-  AppSubtitle,
 } from '../../App.styles';
 import {
-  NavContainer,
-  NavLinkButton,
   BoardGrid,
   ColumnContainer,
   ColumnHeader,
@@ -35,28 +30,6 @@ import {
   CardDesc,
   CardMetadataRow
 } from './BoardView.styles';
-
-const getZoneValue = (extraData?: Record<string, unknown>) => {
-  if (!extraData) return '';
-  const zoneKey = Object.keys(extraData).find(
-    k => k.toLowerCase().includes('zona') || k.toLowerCase().includes('location') || k.toLowerCase().includes('zone')
-  );
-  if (zoneKey) {
-    return String(extraData[zoneKey]);
-  }
-  const firstKey = Object.keys(extraData)[0];
-  return firstKey ? `${firstKey}: ${extraData[firstKey]}` : '';
-};
-
-const getImageUrl = (url: string | null | undefined) => {
-  if (!url) return '';
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    return url;
-  }
-  const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api';
-  const origin = apiBase.replace(/\/api$/, '');
-  return `${origin}${url}`;
-};
 
 interface ColumnProps {
   id: string;
@@ -240,8 +213,7 @@ export const BoardView: React.FC = () => {
   useEffect(() => {
     if (!config) return;
     let active = true;
-    document.documentElement.style.setProperty('--primary-color', config.visual_config.primary_color || '#2563eb');
-    document.documentElement.style.setProperty('--secondary-color', config.visual_config.secondary_color || '#3b82f6');
+    applyTenantTheme(config.visual_config?.primary_color);
     getIssues(config.id, undefined, undefined, true)
       .then(res => {
         if (!active) return;
@@ -323,29 +295,10 @@ export const BoardView: React.FC = () => {
           onClose={() => setPrintIssue(null)}
         />
       )}
-      <AppHeader>
-        <HeaderTopRow>
-          <SettingsMenu user={user} onLogout={handleLogout} />
-        </HeaderTopRow>
-        <AppTitle>{t('app.appTitle')}</AppTitle>
-        <AppSubtitle>{t('app.appSubtitle')}</AppSubtitle>
-      </AppHeader>
+      <PageHeader user={user} onLogout={handleLogout} />
 
       <AppMain>
-        <NavContainer>
-          <NavLinkButton to="/">
-            <DashboardIcon fontSize="small" />
-            {t('dashboard.dashboardTab')}
-          </NavLinkButton>
-          <NavLinkButton to="/backlog">
-            <ListAltIcon fontSize="small" />
-            {t('dashboard.backlogTab')}
-          </NavLinkButton>
-          <NavLinkButton to="/board" $active>
-            <ViewKanbanIcon fontSize="small" />
-            {t('dashboard.boardTab')}
-          </NavLinkButton>
-        </NavContainer>
+        <NavigationTabs activeTab="board" />
 
         {issuesLoading ? (
           <CenteredLoadingContainer>
