@@ -2,6 +2,21 @@
 
 All notable changes to the **Solvo** project are documented in this file.
 
+## [Sprint 38] - PostgreSQL & Django ORM Database Indexing Optimization
+### Added
+- Added single-column database indexes (`db_index=True`) on frequently queried and filtered fields across Django models (`backend/core/models.py`):
+  - `Issue.status`: Accelerated filter queries on Kanban board and Backlog views (`status__in`, `status=...`).
+  - `Issue.order_number`: Accelerated work order lookups (`WO-XXXXX`).
+  - `Issue.created_at`: Accelerated timeline sorting and 30-day performance aggregation queries.
+  - `OperatorProfile.phone_number`: Accelerated WhatsApp webhook operator lookups.
+- Added composite database indexes in model `Meta.indexes` for high-frequency multi-column tenant triage queries:
+  - `issue_tenant_status_idx`: `['tenant', 'status']` composite index.
+  - `issue_tenant_assign_idx`: `['tenant', 'assigned_to']` composite index.
+  - `issue_tenant_created_idx`: `['tenant', '-created_at']` composite index.
+  - `comment_issue_created_idx`: `['issue', 'created_at']` composite index on `IssueComment`.
+  - `tasklog_task_created_idx`: `['task', 'created_at']` composite index on `TaskLog`.
+- Generated and executed database migration `0014_alter_user_managers_alter_issue_created_at_and_more.py`.
+
 ## [Sprint 37] - Interactive OpenAPI / Swagger Documentation
 ### Added
 - Integrated `drf-spectacular` into Django REST Framework (`backend/requirements.txt` & `backend/issue_system/settings.py`).

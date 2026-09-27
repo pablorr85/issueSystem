@@ -212,6 +212,7 @@ class Issue(models.Model):
         max_length=50,
         blank=True,
         null=True,
+        db_index=True,
         help_text="Auto-generated sequential order identifier (e.g. WO-00042)."
     )
     zone = models.ForeignKey(
@@ -227,6 +228,7 @@ class Issue(models.Model):
         max_length=50,
         default='pending',
         choices=STATUS_CHOICES,
+        db_index=True,
         help_text="Status of the issue (e.g. pending, in_progress, qa, resolved, wont_fix)."
     )
     title: str = models.CharField(
@@ -310,10 +312,17 @@ class Issue(models.Model):
         blank=True,
         help_text="Cached total effective time logged in hours for this task."
     )
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     objects = TenantScopedManager()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['tenant', 'status'], name='issue_tenant_status_idx'),
+            models.Index(fields=['tenant', 'assigned_to'], name='issue_tenant_assign_idx'),
+            models.Index(fields=['tenant', '-created_at'], name='issue_tenant_created_idx'),
+        ]
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         if not self.secure_token:
@@ -365,6 +374,7 @@ class OperatorProfile(models.Model):
         max_length=20,
         blank=True,
         null=True,
+        db_index=True,
         help_text="Phone number for notification/integration (e.g. WhatsApp)."
     )
     hub_token = models.UUIDField(
@@ -417,6 +427,9 @@ class IssueComment(models.Model):
 
     class Meta:
         ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['issue', 'created_at'], name='comment_issue_created_idx'),
+        ]
 
     def __str__(self) -> str:
         author = "System"
@@ -490,6 +503,9 @@ class TaskLog(models.Model):
 
     class Meta:
         ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['task', 'created_at'], name='tasklog_task_created_idx'),
+        ]
 
     def __str__(self) -> str:
         author = "System"
