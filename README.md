@@ -46,7 +46,7 @@ With the Django backend server running, you can access the interactive API docum
 
 - 📖 **Swagger UI (Interactive Playground):** [http://localhost:8000/api/docs/](http://localhost:8000/api/docs/)
 - 📑 **ReDoc (Specification Viewer):** [http://localhost:8000/api/redoc/](http://localhost:8000/api/redoc/)
-- 📄 **OpenAPI 3.0 Schema (JSON):** [http://localhost:8000/api/schema/](http://localhost:8000/api/schema/)
+- 📄 **OpenAPI 3.0 Raw Schema (YAML / JSON):** [http://localhost:8000/api/schema/](http://localhost:8000/api/schema/) *(Raw specification file for Postman/Insomnia imports; append `?format=json` to view in browser)*
 
 ---
 
