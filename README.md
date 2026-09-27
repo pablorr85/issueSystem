@@ -6,6 +6,103 @@ The platform decouples reporting from management: end-users can report incidents
 
 ---
 
+## 🚀 Quick Start / How to Run
+
+### Prerequisites
+- **Python** 3.9+
+- **Node.js** 18+ & **npm**
+
+---
+
+### 1️⃣ Backend API (Django REST Framework)
+
+1. Navigate to the `backend` directory:
+   ```bash
+   cd backend
+   ```
+2. Activate the Python virtual environment:
+   ```bash
+   source venv/bin/activate
+   ```
+3. Install dependencies (if not already installed):
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Run database migrations:
+   ```bash
+   python manage.py migrate
+   ```
+5. Start the development server:
+   ```bash
+   python manage.py runserver
+   ```
+   *The backend API will be running at [http://localhost:8000/](http://localhost:8000/)*
+
+---
+
+### 2️⃣ Interactive API Documentation (OpenAPI 3.0)
+
+With the Django backend server running, you can access the interactive API documentation at:
+
+- 📖 **Swagger UI (Interactive Playground):** [http://localhost:8000/api/docs/](http://localhost:8000/api/docs/)
+- 📑 **ReDoc (Specification Viewer):** [http://localhost:8000/api/redoc/](http://localhost:8000/api/redoc/)
+- 📄 **OpenAPI 3.0 Schema (JSON):** [http://localhost:8000/api/schema/](http://localhost:8000/api/schema/)
+
+---
+
+### 3️⃣ Frontend Web App (SaaS Management & Operator Hub)
+
+1. Open a new terminal and navigate to the `frontend` directory:
+   ```bash
+   cd frontend
+   ```
+2. Install npm packages:
+   ```bash
+   npm install
+   ```
+3. Start the Vite development server:
+   ```bash
+   npm run dev
+   ```
+   *The frontend application will be running at [http://localhost:5173/](http://localhost:5173/)*
+
+---
+
+### 4️⃣ Corporate Web (Marketing Portal)
+
+1. Open a new terminal and navigate to the `marketing` directory:
+   ```bash
+   cd marketing
+   ```
+2. Install npm packages:
+   ```bash
+   npm install
+   ```
+3. Start the Vite development server:
+   ```bash
+   npm run dev
+   ```
+   *The corporate marketing page will be running at [http://localhost:5174/](http://localhost:5174/)*
+
+---
+
+### 🧪 Running Tests
+
+- **Backend Integration & Unit Tests:**
+  ```bash
+  cd backend
+  source venv/bin/activate
+  python manage.py test
+  ```
+
+- **Frontend Unit Tests (Vitest):**
+  ```bash
+  cd frontend
+  npm run test
+  ```
+
+---
+
 ## 🚀 Core Architectural Philosophy
 
 1. **Single Source of Truth:** A unified codebase and single database instance serving all tenants. Zero forks or tenant-specific branches.
@@ -43,9 +140,10 @@ The platform decouples reporting from management: end-users can report incidents
 
 ## 🛠 Tech Stack
 
-* **Backend:** Python 3.9+ / Django 4.x / Django REST Framework
-* **Database:** PostgreSQL (with SQLite support for local dev environment)
-* **Frontend:** React / TypeScript / Vite / styled-components / Material-UI
+* **Backend:** Python 3.9+ / Django 4.x / Django REST Framework / `drf-spectacular` (OpenAPI 3.0)
+* **Database:** PostgreSQL (with SQLite support for local dev environment) & DB Indexing
+* **Frontend:** React / TypeScript / Vite / Redux Toolkit (RTK Query) / styled-components / Material-UI
+* **Corporate Web:** React / TypeScript / Vite (`marketing`)
 * **Testing:** Vitest (Frontend unit), Cypress (End-to-End), Django APITestCase (Backend integration)
 * **External Services:** Google Cloud Storage (Media files), WhatsApp Business API / Twilio
 
