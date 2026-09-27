@@ -6,8 +6,12 @@ import PrintIcon from '@mui/icons-material/Print';
 import { DndContext, useDraggable, useDroppable, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import type { DragEndEvent } from '@dnd-kit/core';
 import { useAuth } from '../../context/AuthContext';
-import { getTenantConfig, getIssues, updateIssueStatus } from '../../services/api';
-import type { TenantConfig, Issue } from '../../services/types';
+import {
+  useGetTenantConfigQuery,
+  useGetIssuesQuery,
+  useUpdateIssueStatusMutation,
+} from '../../store/apiSlice';
+import type { Issue } from '../../services/types';
 import { WorkOrderPrintView } from '../../components/WorkOrderPrintView';
 import { NavigationTabs } from '../../components/NavigationTabs';
 import { PageHeader } from '../../components/PageHeader';
@@ -171,64 +175,26 @@ export const BoardView: React.FC = () => {
     })
   );
 
-  const [prevTenantId, setPrevTenantId] = useState<string | null>(tenantId);
-  const [config, setConfig] = useState<TenantConfig | null>(null);
-  const [loading, setLoading] = useState<boolean>(!!tenantId);
-
-  const [issues, setIssues] = useState<Issue[]>([]);
-  const [issuesLoading, setIssuesLoading] = useState<boolean>(true);
   const [printIssue, setPrintIssue] = useState<Issue | null>(null);
 
-  if (tenantId !== prevTenantId) {
-    setPrevTenantId(tenantId);
-    setConfig(null);
-    setLoading(!!tenantId);
-    setIssuesLoading(true);
-  }
+  // RTK Query hooks
+  const { data: config, isLoading: configLoading } = useGetTenantConfigQuery(tenantId || '', { skip: !tenantId });
+  const { data: issuesData, isLoading: issuesLoading } = useGetIssuesQuery(
+    { tenantId: config?.id || '', board: true },
+    { skip: !config }
+  );
+  const [updateIssueStatusMutation] = useUpdateIssueStatusMutation();
+
+  const issues = issuesData?.results || [];
 
   useEffect(() => {
-    if (!tenantId) {
-      return;
+    if (config?.default_language && !localStorage.getItem('app_language')) {
+      i18n.changeLanguage(config.default_language);
     }
-    let active = true;
-    getTenantConfig(tenantId)
-      .then(data => {
-        if (!active) return;
-        setConfig(data);
-        if (data.default_language && !localStorage.getItem('app_language')) {
-          i18n.changeLanguage(data.default_language);
-        }
-        setLoading(false);
-      })
-      .catch(err => {
-        if (!active) return;
-        console.error("Failed to load tenant config:", err);
-        setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [tenantId, i18n]);
+  }, [config, i18n]);
 
   useEffect(() => {
-    if (!config) return;
-    let active = true;
-    applyTenantTheme(config.visual_config?.primary_color);
-    getIssues(config.id, undefined, undefined, true)
-      .then(res => {
-        if (!active) return;
-        setIssues(res.results || []);
-        setIssuesLoading(false);
-      })
-      .catch(err => {
-        console.error("Failed to fetch board issues:", err);
-        if (!active) return;
-        setIssues([]);
-        setIssuesLoading(false);
-      });
-    return () => {
-      active = false;
-    };
+    applyTenantTheme(config?.visual_config?.primary_color);
   }, [config]);
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -247,21 +213,10 @@ export const BoardView: React.FC = () => {
 
     if (issue.status === targetStatus) return;
 
-    const previousStatus = issue.status;
-
-    // Optimistic UI Update
-    setIssues(prev =>
-      prev.map(i => (i.id === issueId ? { ...i, status: targetStatus } : i))
-    );
-
     try {
-      await updateIssueStatus(issueId, targetStatus);
+      await updateIssueStatusMutation({ id: issueId, status: targetStatus }).unwrap();
     } catch (err) {
       console.error("Failed to update status on drag end:", err);
-      // Rollback
-      setIssues(prev =>
-        prev.map(i => (i.id === issueId ? { ...i, status: previousStatus } : i))
-      );
       alert(t('dashboard.errorUpdate', 'Failed to update issue status. Please try again.'));
     }
   };
@@ -278,7 +233,7 @@ export const BoardView: React.FC = () => {
   const blockedIssues = useMemo(() => issues.filter(i => i.status === 'blocked'), [issues]);
   const doneIssues = useMemo(() => issues.filter(i => ['resolved', 'wont_fix'].includes(i.status)), [issues]);
 
-  if (loading) {
+  if (configLoading || !config) {
     return (
       <CenteredLoadingContainer>
         <h2>{t('tenantForm.loading')}</h2>

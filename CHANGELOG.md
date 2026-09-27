@@ -2,7 +2,21 @@
 
 All notable changes to the **Solvo** project are documented in this file.
 
-## [Sprint 36] - Theme CSS Variables Optimization & User Settings Menu
+## [Sprint 36] - Frontend RTK Query Full Migration & UI Component Unification
+### Added
+- Created `NavigationTabs` component (`src/components/NavigationTabs`) with space-between flex layout for unified, centered tab navigation across `DashboardStatsView`, `BacklogView`, and `BoardView`.
+- Created `PageHeader` component (`src/components/PageHeader`) encapsulating title, subtitle, and `SettingsMenu`, eliminating ~80 lines of duplicate JSX header boilerplate across 6 view pages.
+- Created centralized utility helpers in `src/utils/`:
+  - `applyTenantTheme` (`src/utils/theme.ts`) to calculate and inject HSL CSS variables from HEX tenant colors.
+  - `getImageUrl` (`src/utils/url.ts`) for normalizing API media paths.
+  - `getZoneValue` (`src/utils/formatters.ts`) for dynamic extra_data location parsing.
+
+### Changed / Refactored
+- Fully migrated `BacklogView` (`src/views/BacklogView/BacklogView.tsx`) and `BoardView` (`src/views/BoardView/BoardView.tsx`) to consume RTK Query auto-generated hooks (`useGetIssuesQuery`, `useGetTenantConfigQuery`, `useGetOperatorsQuery`, `useUpdateIssueStatusMutation`, `useToggleOperatorActiveMutation`).
+- Updated `apiSlice.ts` to support `board: true` query parameter for full Kanban board queries.
+- Removed over 200 lines of manual `useState`, `useEffect`, `active` cancellation flags, and state synchronization boilerplate.
+
+## [Sprint 35.1] - Theme CSS Variables Optimization & User Settings Menu
 ### Added
 - Created `SettingsMenu` component (`src/components/SettingsMenu`) with a gear icon button ⚙️, opening a floating preference menu that includes:
   - Language Selector with instant switching between **Español 🇪🇸** (`es`) and **English 🇬🇧** (`en`) persisted in `localStorage`.

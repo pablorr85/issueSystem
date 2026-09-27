@@ -3,8 +3,15 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Dashboard } from '../../pages/Dashboard';
 import { useAuth } from '../../context/AuthContext';
-import { getTenantConfig, getIssues, getOperators, toggleOperatorActive } from '../../services/api';
-import type { TenantConfig, Issue, Operator } from '../../services/types';
+import {
+  useGetTenantConfigQuery,
+  useGetOperatorsQuery,
+  useGetIssuesQuery,
+  useToggleOperatorActiveMutation,
+  apiSlice,
+} from '../../store/apiSlice';
+import { useAppDispatch } from '../../store';
+import type { Issue } from '../../services/types';
 import { EditIssueModal } from '../../components/EditIssueModal/EditIssueModal';
 import { NavigationTabs } from '../../components/NavigationTabs';
 import { PageHeader } from '../../components/PageHeader';
@@ -19,115 +26,42 @@ export const BacklogView: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { tenantId, user, logout } = useAuth();
   const navigate = useNavigate();
-  const [prevTenantId, setPrevTenantId] = useState<string | null>(tenantId);
-  const [config, setConfig] = useState<TenantConfig | null>(null);
-  const [loading, setLoading] = useState<boolean>(!!tenantId);
+  const dispatch = useAppDispatch();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const statusFilter = searchParams.get('status') || '';
   const assignedFilter = searchParams.get('assigned') || '';
   const currentPage = Number(searchParams.get('page')) || 1;
 
-  const [issues, setIssues] = useState<Issue[]>([]);
-  const [operators, setOperators] = useState<Operator[]>([]);
-  const [totalCount, setTotalCount] = useState<number>(0);
-  const [issuesLoading, setIssuesLoading] = useState<boolean>(true);
   const [editingIssue, setEditingIssue] = useState<Issue | null>(null);
 
-  const [prevConfigId, setPrevConfigId] = useState<string | null>(null);
-  const [prevStatusFilter, setPrevStatusFilter] = useState<string>("");
-  const [prevCurrentPage, setPrevCurrentPage] = useState<number>(1);
-  const [prevAssignedFilter, setPrevAssignedFilter] = useState<string>("");
+  // RTK Query hooks
+  const { data: config, isLoading: configLoading } = useGetTenantConfigQuery(tenantId || '', { skip: !tenantId });
+  const { data: operators = [] } = useGetOperatorsQuery(undefined, { skip: !config });
+  const { data: issuesData, isLoading: issuesLoading } = useGetIssuesQuery(
+    {
+      tenantId: config?.id || '',
+      status: statusFilter || undefined,
+      page: currentPage,
+      assigned: assignedFilter || undefined,
+    },
+    { skip: !config }
+  );
 
-  const configId = config?.id || null;
+  const [toggleOperatorActiveMutation] = useToggleOperatorActiveMutation();
 
-  if (
-    configId !== prevConfigId ||
-    statusFilter !== prevStatusFilter ||
-    currentPage !== prevCurrentPage ||
-    assignedFilter !== prevAssignedFilter
-  ) {
-    setPrevConfigId(configId);
-    setPrevStatusFilter(statusFilter);
-    setPrevCurrentPage(currentPage);
-    setPrevAssignedFilter(assignedFilter);
-    if (configId) {
-      setIssuesLoading(true);
-    }
-  }
-
-  if (tenantId !== prevTenantId) {
-    setPrevTenantId(tenantId);
-    setConfig(null);
-    setLoading(!!tenantId);
-    setIssuesLoading(true);
-  }
+  const issues = issuesData?.results || [];
+  const totalCount = issuesData?.count || 0;
 
   useEffect(() => {
-    if (!tenantId) {
-      return;
+    if (config?.default_language && !localStorage.getItem('app_language')) {
+      i18n.changeLanguage(config.default_language);
     }
-    let active = true;
-    getTenantConfig(tenantId)
-      .then(data => {
-        if (!active) return;
-        setConfig(data);
-        if (data.default_language && !localStorage.getItem('app_language')) {
-          i18n.changeLanguage(data.default_language);
-        }
-        setLoading(false);
-      })
-      .catch(err => {
-        if (!active) return;
-        console.error('Failed to load tenant config for backlog:', err);
-        setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [tenantId, i18n]);
+  }, [config, i18n]);
 
   useEffect(() => {
     applyTenantTheme(config?.visual_config?.primary_color);
   }, [config]);
-
-  // Fetch operators when config is loaded
-  useEffect(() => {
-    if (!config) return;
-    getOperators()
-      .then((res) => setOperators(res))
-      .catch((err) => console.error("Failed to fetch operators:", err));
-  }, [config]);
-
-  useEffect(() => {
-    if (!config) return;
-    let active = true;
-
-    getIssues(
-      config.id,
-      statusFilter || undefined,
-      currentPage,
-      undefined,
-      assignedFilter || undefined
-    )
-      .then((res) => {
-        if (!active) return;
-        setIssues(res.results || []);
-        setTotalCount(res.count || 0);
-        setIssuesLoading(false);
-      })
-      .catch((err) => {
-        if (!active) return;
-        console.error("Failed to fetch issues:", err);
-        setIssues([]);
-        setTotalCount(0);
-        setIssuesLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [config, currentPage, statusFilter, assignedFilter]);
 
   const handlePageChange = (page: React.SetStateAction<number>) => {
     const newPage = typeof page === 'function' ? (page as (prev: number) => number)(currentPage) : page;
@@ -160,12 +94,7 @@ export const BacklogView: React.FC = () => {
 
   const handleToggleOperatorActive = async (operatorId: number, currentStatus: boolean) => {
     try {
-      const res = await toggleOperatorActive(operatorId, !currentStatus);
-      setOperators((prev) =>
-        prev.map((op) =>
-          op.id === operatorId ? { ...op, is_active: res.is_active } : op
-        )
-      );
+      await toggleOperatorActiveMutation({ id: operatorId, is_active: !currentStatus }).unwrap();
     } catch (err) {
       console.error("Failed to toggle operator status:", err);
       alert(t("dashboard.errorToggleOperator", "Failed to update operator status."));
@@ -177,7 +106,7 @@ export const BacklogView: React.FC = () => {
     navigate('/login');
   };
 
-  if (loading) {
+  if (configLoading || !config) {
     return (
       <CenteredLoadingContainer>
         <h2>{t('tenantForm.loading')}</h2>
@@ -196,7 +125,7 @@ export const BacklogView: React.FC = () => {
           <Dashboard
             tenant={config}
             issues={issues}
-            setIssues={setIssues}
+            setIssues={() => {}}
             operators={operators}
             loading={issuesLoading}
             totalCount={totalCount}
@@ -217,23 +146,10 @@ export const BacklogView: React.FC = () => {
             issue={editingIssue}
             tenant={config}
             operators={operators}
-            onClose={(updatedIssue) => {
-              if (updatedIssue && updatedIssue.id) {
-                setIssues((prev) =>
-                  prev.map((item) =>
-                    item.id === updatedIssue.id ? updatedIssue : item
-                  )
-                );
-              }
+            onClose={() => setEditingIssue(null)}
+            onSuccess={() => {
               setEditingIssue(null);
-            }}
-            onSuccess={(updatedIssue) => {
-              setIssues((prev) =>
-                prev.map((item) =>
-                  item.id === updatedIssue.id ? updatedIssue : item
-                )
-              );
-              setEditingIssue(null);
+              dispatch(apiSlice.util.invalidateTags(['Issue', 'IssueStats']));
             }}
           />
         )}

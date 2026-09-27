@@ -22,6 +22,7 @@ export interface GetIssuesQueryParams {
   search?: string;
   startDate?: string;
   endDate?: string;
+  board?: boolean;
 }
 
 export const apiSlice = createApi({
@@ -55,6 +56,7 @@ export const apiSlice = createApi({
         if (params.search) query.append("search", params.search);
         if (params.startDate) query.append("startDate", params.startDate);
         if (params.endDate) query.append("endDate", params.endDate);
+        if (params.board) query.append("board", "true");
         return `/issues/?${query.toString()}`;
       },
       providesTags: (result) =>
