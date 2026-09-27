@@ -12,6 +12,7 @@ from django.core import signing
 from django.db.models import Count, Q
 from django.utils import timezone
 from datetime import timedelta
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, inline_serializer
 
 from .models import Tenant, Zone, Issue, User, OperatorProfile, IssueComment, TaskLog
 from .serializers import (
@@ -120,6 +121,11 @@ class IssueStatsView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Get dashboard statistics",
+        description="Returns metrics such as unassigned, in-progress, QA, blocked counts, operator workload, 30-day operator performance, and zone incident hotspots.",
+        responses={200: OpenApiTypes.OBJECT}
+    )
     def get(self, request):
         user = request.user
         tenant = user.tenant
@@ -239,6 +245,14 @@ class IssueStatsView(APIView):
         })
 
 
+@extend_schema(
+    summary="List tenant issues",
+    parameters=[
+        OpenApiParameter(name='board', type=OpenApiTypes.BOOL, location=OpenApiParameter.QUERY, description='Set true to fetch active assigned issues in unpaginated board format'),
+        OpenApiParameter(name='status', type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, description='Filter issues by status'),
+        OpenApiParameter(name='assigned', type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, description='Filter by assignment: "true" or "false"'),
+    ]
+)
 class IssueListView(generics.ListAPIView):
     """
     API endpoint that returns a paginated list of issues.
@@ -345,6 +359,14 @@ class OperatorToggleActiveView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Toggle operator active status",
+        request=inline_serializer(
+            name='OperatorToggleActiveRequest',
+            fields={'is_active': serializers.BooleanField(required=False)}
+        ),
+        responses={200: OpenApiTypes.OBJECT}
+    )
     def post(self, request, pk, *args, **kwargs):
         tenant = request.user.tenant
         if not tenant:
@@ -516,6 +538,14 @@ class IssueReorderView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Reorder issues by priority",
+        request=inline_serializer(
+            name='IssueReorderRequest',
+            fields={'ordered_ids': serializers.ListField(child=serializers.IntegerField())}
+        ),
+        responses={200: OpenApiTypes.OBJECT}
+    )
     def post(self, request, *args, **kwargs):
         ordered_ids = request.data.get('ordered_ids')
         if not isinstance(ordered_ids, list):
@@ -641,6 +671,17 @@ class IssueBulkAssignView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Bulk assign tasks to an operator",
+        request=inline_serializer(
+            name='IssueBulkAssignRequest',
+            fields={
+                'task_ids': serializers.ListField(child=serializers.IntegerField()),
+                'assignee_id': serializers.IntegerField(allow_null=True, required=False)
+            }
+        ),
+        responses={200: OpenApiTypes.OBJECT}
+    )
     def post(self, request, *args, **kwargs):
         task_ids = request.data.get('task_ids')
         assignee_id = request.data.get('assignee_id')

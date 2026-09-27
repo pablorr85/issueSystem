@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     # Third party apps
     'corsheaders',
     'rest_framework',
+    'drf_spectacular',
 
     # Local apps
     'core',
@@ -155,7 +156,16 @@ AUTH_USER_MODEL = 'core.User'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Solvo SaaS API',
+    'DESCRIPTION': 'Multi-Tenant Issue Tracking & Upkeep SaaS API',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
 }
 
 import os

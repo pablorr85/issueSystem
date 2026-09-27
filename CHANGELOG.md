@@ -2,6 +2,15 @@
 
 All notable changes to the **Solvo** project are documented in this file.
 
+## [Sprint 37] - Interactive OpenAPI / Swagger Documentation
+### Added
+- Integrated `drf-spectacular` into Django REST Framework (`backend/requirements.txt` & `backend/issue_system/settings.py`).
+- Exposed interactive OpenAPI 3.0 endpoints in `backend/issue_system/urls.py`:
+  - `/api/schema/`: Raw JSON/YAML OpenAPI specification.
+  - `/api/docs/`: Interactive Swagger UI interface.
+  - `/api/redoc/`: Responsive ReDoc API documentation browser.
+- Annotated DRF views (`backend/core/views.py`) with `@extend_schema` decorators to document dynamic parameter schemas (`board`, `status`, `assigned`) and custom payload structures for non-model endpoints (`IssueStatsView`, `OperatorToggleActiveView`, `IssueReorderView`, `IssueBulkAssignView`).
+
 ## [Sprint 36] - Frontend RTK Query Full Migration & UI Component Unification
 ### Added
 - Created `NavigationTabs` component (`src/components/NavigationTabs`) with space-between flex layout for unified, centered tab navigation across `DashboardStatsView`, `BacklogView`, and `BoardView`.
