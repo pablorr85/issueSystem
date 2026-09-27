@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import PrintIcon from '@mui/icons-material/Print';
 import CloseIcon from '@mui/icons-material/Close';
 import type { Issue, OperatorTask } from '../../services/types';
+import { getZoneValue } from '../../utils/formatters';
 import {
   PrintOverlay,
   PrintContainer,
@@ -23,18 +24,6 @@ import {
   SignatureGrid,
   SignatureBox,
 } from './WorkOrderPrintView.styles';
-
-const getZoneValue = (extraData?: Record<string, unknown>) => {
-  if (!extraData) return '';
-  const zoneKey = Object.keys(extraData).find(
-    k => k.toLowerCase().includes('zona') || k.toLowerCase().includes('location') || k.toLowerCase().includes('zone')
-  );
-  if (zoneKey) {
-    return String(extraData[zoneKey]);
-  }
-  const firstKey = Object.keys(extraData)[0];
-  return firstKey ? `${firstKey}: ${extraData[firstKey]}` : '';
-};
 
 const formatDate = (dateStr?: string | null) => {
   if (!dateStr) return '—';

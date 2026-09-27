@@ -9,6 +9,7 @@ import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import PrintIcon from "@mui/icons-material/Print";
 import { getOperatorTask, updateOperatorTaskStatus } from "../services/api";
 import { getUrgencyLevel, getUrgencyIcon } from "../utils/urgency";
+import { getImageUrl } from "../utils/url";
 import type { OperatorTask } from "../services/types";
 import { TaskLogbook } from "../components/TaskLogbook/TaskLogbook";
 import { CompletionReportModal } from "../components/CompletionReportModal/CompletionReportModal";
