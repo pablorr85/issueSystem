@@ -30,6 +30,10 @@ django-pip-packages-checksums.txt
 backend/db.sqlite3
 backend/db.sqlite3-journal
 
+# Media uploads
+backend/media/
+media/
+
 # Virtual Environment
 backend/.venv/
 .venv/
