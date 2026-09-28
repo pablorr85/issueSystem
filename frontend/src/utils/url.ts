@@ -2,11 +2,24 @@
  * Normalizes relative photo/image paths to full URLs using VITE_API_BASE_URL.
  */
 export const getImageUrl = (url: string | null | undefined): string => {
-  if (!url) return '';
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    return url;
+  if (!url || typeof url !== 'string') return '';
+  const trimmed = url.trim();
+  if (
+    !trimmed ||
+    trimmed === 'null' ||
+    trimmed === 'undefined' ||
+    trimmed === '/media/' ||
+    trimmed === '/media' ||
+    trimmed.endsWith('/media/') ||
+    trimmed.endsWith('/media')
+  ) {
+    return '';
+  }
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
   }
   const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api';
   const origin = apiBase.replace(/\/api$/, '');
-  return `${origin}${url}`;
+  const path = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  return `${origin}${path}`;
 };

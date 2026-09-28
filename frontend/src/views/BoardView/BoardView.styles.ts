@@ -86,11 +86,20 @@ export const CardImage = styled.img`
   border-radius: 8px;
 `;
 
-export const CardDesc = styled.p`
-  font-size: 0.9rem;
-  color: var(--text-primary);
+export const CardTitle = styled.h4`
   margin: 0;
-  font-weight: 500;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-primary);
+  line-height: 1.3;
+  word-break: break-word;
+`;
+
+export const CardDesc = styled.p`
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: 400;
   line-height: 1.4;
 `;
 

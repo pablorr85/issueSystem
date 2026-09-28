@@ -31,6 +31,7 @@ import {
   TaskCounter,
   CardContainer,
   CardImage,
+  CardTitle,
   CardDesc,
   CardMetadataRow
 } from './BoardView.styles';
@@ -75,6 +76,7 @@ interface CardProps {
 const KanbanCard: React.FC<CardProps> = ({ issue, onPrint }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [imgError, setImgError] = useState(false);
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: String(issue.id),
   });
@@ -85,6 +87,7 @@ const KanbanCard: React.FC<CardProps> = ({ issue, onPrint }) => {
 
   const zone = issue.zone_name || getZoneValue(issue.extra_data);
   const displayLabel = issue.order_number || `ID #${issue.id}`;
+  const imageUrl = getImageUrl(issue.image || issue.photo_url);
 
   return (
     <CardContainer
@@ -95,15 +98,19 @@ const KanbanCard: React.FC<CardProps> = ({ issue, onPrint }) => {
       {...attributes}
       data-testid={`kanban-card-${issue.id}`}
     >
-      {getImageUrl(issue.image || issue.photo_url) && (
-        <CardImage src={getImageUrl(issue.image || issue.photo_url)} alt="Issue visual proof" />
+      {imageUrl && !imgError && (
+        <CardImage
+          src={imageUrl}
+          alt="Issue visual proof"
+          onError={() => setImgError(true)}
+        />
       )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <h4 style={{ margin: 0, fontWeight: 'bold', fontSize: '1rem', color: '#ffffff' }} data-testid={`kanban-card-title-${issue.id}`}>
-          {issue.title}
-        </h4>
-        {issue.description && (
-          <CardDesc style={{ opacity: 0.7, fontSize: '0.85rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+        <CardTitle data-testid={`kanban-card-title-${issue.id}`}>
+          {issue.title || issue.description || displayLabel}
+        </CardTitle>
+        {issue.description && issue.title && (
+          <CardDesc style={{ opacity: 0.8, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
             {issue.description}
           </CardDesc>
         )}
@@ -133,7 +140,7 @@ const KanbanCard: React.FC<CardProps> = ({ issue, onPrint }) => {
           <span>📍 {zone}</span>
         </CardMetadataRow>
       )}
-      <CardMetadataRow style={{ borderTop: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '8px' }}>
+      <CardMetadataRow style={{ borderTop: '1px solid var(--border-card, rgba(150, 150, 150, 0.15))', paddingTop: '8px' }}>
         <span>👤 {issue.assigned_to_name || t('dashboard.unassigned')}</span>
         {onPrint && (
           <button
