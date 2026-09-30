@@ -161,7 +161,7 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Solvo SaaS API',
+    'TITLE': 'DoWork SaaS API',
     'DESCRIPTION': 'Multi-Tenant Issue Tracking & Upkeep SaaS API',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,

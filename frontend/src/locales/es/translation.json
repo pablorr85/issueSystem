@@ -149,7 +149,7 @@
     }
   },
   "app": {
-    "appTitle": "Solvo",
+    "appTitle": "DoWork",
     "appSubtitle": "Gestión de Instalaciones y Mantenimiento Dinámico",
     "loggedInAsPrefix": "Sesión iniciada como ",
     "logout": "Cerrar Sesión",

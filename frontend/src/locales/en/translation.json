@@ -149,7 +149,7 @@
     }
   },
   "app": {
-    "appTitle": "Solvo",
+    "appTitle": "DoWork",
     "appSubtitle": "Facility Management & Dynamic Upkeep Panel",
     "loggedInAsPrefix": "Logged in as ",
     "logout": "Logout",

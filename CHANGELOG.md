@@ -1,6 +1,15 @@
 # Changelog
 
-All notable changes to the **Solvo** project are documented in this file.
+All notable changes to the **DoWork** project are documented in this file.
+
+## [Sprint 39] - Rebranding to "DoWork" & Corporate Logo Refresh
+### Added & Changed
+- **Corporate Rebranding**: Renamed product from "Solvo" to **"DoWork"** across all platform modules, including:
+  - Backend OpenAPI / Swagger documentation (`SPECTACULAR_SETTINGS` in Django settings).
+  - Frontend locale catalog files (`translation.json` in English and Spanish) and index HTML metadata.
+  - Marketing landing portal text, meta tags, and sector showcase components.
+  - Cypress E2E integration test assertions and demo seed dataset scripts (`DoWork Wild Zoo`).
+- **New Corporate Identity Assets**: Generated new modern "DoWork" monogram logo mark in `#863bff` purple and `#47bfff` cyan accents, preserving the original dark-mode color scheme. Updated `logo.png` assets in both `marketing/public` and `frontend/public`.
 
 ## [Sprint 38] - PostgreSQL & Django ORM Database Indexing Optimization
 ### Added

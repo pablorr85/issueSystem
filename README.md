@@ -1,6 +1,6 @@
-# Solvo - Multi-Tenant Issue Tracking & Upkeep SaaS
+# DoWork - Multi-Tenant Issue Tracking & Upkeep SaaS
 
-**Solvo** is a lean, highly scalable, multi-tenant B2B SaaS platform designed to manage and resolve on-site issues (maintenance, repairs, cleaning) for physical locations such as amusement parks, shopping malls, schools, zoos, and residential communities.
+**DoWork** is a lean, highly scalable, multi-tenant B2B SaaS platform designed to manage and resolve on-site issues (maintenance, repairs, cleaning) for physical locations such as amusement parks, shopping malls, schools, zoos, and residential communities.
 
 The platform decouples reporting from management: end-users can report incidents instantly and anonymously by scanning physical QR codes on site without installing any app, while managers and operators triage and resolve issues through a centralized dashboard.
 

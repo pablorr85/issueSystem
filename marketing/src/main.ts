@@ -18,10 +18,10 @@ const pageTranslations: Record<Lang, Record<string, string>> = {
     'nav.login': 'Acceso Clientes',
     'hero.pill': 'Mantenimiento de Próxima Generación',
     'hero.title': 'Gestión de Instalaciones con <span class="gradient-text">Cero Fricción</span>',
-    'hero.subtitle': 'Impulsado por Solvo. Reporta, asigna y realiza el seguimiento de incidencias de limpieza y mantenimiento al instante. Sin barreras de contraseña ni descargas de apps: ejecución fluida y robusta.',
+    'hero.subtitle': 'Impulsado por DoWork. Reporta, asigna y realiza el seguimiento de incidencias de limpieza y mantenimiento al instante. Sin barreras de contraseña ni descargas de apps: ejecución fluida y robusta.',
     'hero.ctaPrimary': 'Explorar Sectores',
     'hero.ctaSecondary': 'Ver Cómo Funciona',
-    'magic.title': 'El Motor de Solvo',
+    'magic.title': 'El Motor de DoWork',
     'magic.subtitle': 'Una arquitectura sin estado y sin contraseñas diseñada para el rendimiento en el campo y la velocidad operativa.',
     'magic.feat1Title': 'Portal Móvil Sin Contraseñas',
     'magic.feat1Text': 'Los operarios acceden a su panel dinámico de tareas con un solo toque desde un enlace URL seguro. Cero restablecimientos de contraseñas, cero retrasos en el acceso.',
@@ -32,14 +32,14 @@ const pageTranslations: Record<Lang, Record<string, string>> = {
     'magic.feat4Title': 'Esquemas Dinámicos por Sector',
     'magic.feat4Text': 'Arquitectura multi-tenant con base de datos única y aislamiento a nivel de ORM. Los campos personalizados y los diseños se adaptan dinámicamente a tu imagen de marca.',
     'showcase.title': 'Una Herramienta, Adaptabilidad Infinita',
-    'showcase.subtitle': 'Mira cómo Solvo configura dinámicamente sus esquemas, colores y plantillas de diseño según el dominio específico de la instalación.',
+    'showcase.subtitle': 'Mira cómo DoWork configura dinámicamente sus esquemas, colores y plantillas de diseño según el dominio específico de la instalación.',
     'showcase.tabZoo': '🦁 Parques Temáticos y Zoos',
     'showcase.tabMall': '🛍️ Centros Comerciales',
     'showcase.tabSchool': '🏫 Instituciones Educativas',
     'showcase.tabResidential': '🏢 Complejos Residenciales',
     'contact.title': '¿Listo para optimizar tus instalaciones?',
     'contact.subtitle': 'Ponte en contacto con nuestros expertos de producto hoy mismo para configurar una demostración personalizada para tu negocio.',
-    'footer.copy': '&copy; 2026 Solvo. Todos los derechos reservados. Mantenimiento con Cero Fricción.'
+    'footer.copy': '&copy; 2026 DoWork. Todos los derechos reservados. Mantenimiento con Cero Fricción.'
   },
   en: {
     'nav.magic': 'The Magic',
@@ -48,10 +48,10 @@ const pageTranslations: Record<Lang, Record<string, string>> = {
     'nav.login': 'Client Login',
     'hero.pill': 'Next-Gen Maintenance System',
     'hero.title': 'Facility Management with <span class="gradient-text">Zero Friction</span>',
-    'hero.subtitle': 'Powered by Solvo. Instantly report, assign, and track cleaning and maintenance issues. No password barrier, no app downloads—just seamless, robust execution.',
+    'hero.subtitle': 'Powered by DoWork. Instantly report, assign, and track cleaning and maintenance issues. No password barrier, no app downloads—just seamless, robust execution.',
     'hero.ctaPrimary': 'Explore Industries',
     'hero.ctaSecondary': 'See How It Works',
-    'magic.title': 'The Solvo Engine',
+    'magic.title': 'The DoWork Engine',
     'magic.subtitle': 'A stateless, passwordless architecture built for field performance and operational speed.',
     'magic.feat1Title': 'Passwordless Mobile Hub',
     'magic.feat1Text': 'Operators access their dynamic task board with a single tap from a secure URL link. Zero password resets, zero login delays.',
@@ -62,14 +62,14 @@ const pageTranslations: Record<Lang, Record<string, string>> = {
     'magic.feat4Title': 'Dynamic Sector Schemas',
     'magic.feat4Text': 'Single-DB multi-tenant architecture isolated at the ORM level. Custom fields and layouts adapt dynamically to your visual branding.',
     'showcase.title': 'One Tool, Endless Adaptability',
-    'showcase.subtitle': 'See how Solvo dynamically configures its schema, colors, and layout templates depending on the specific facility domain.',
+    'showcase.subtitle': 'See how DoWork dynamically configures its schema, colors, and layout templates depending on the specific facility domain.',
     'showcase.tabZoo': '🦁 Theme Parks & Zoos',
     'showcase.tabMall': '🛍️ Shopping Malls',
     'showcase.tabSchool': '🏫 Educational Institutions',
     'showcase.tabResidential': '🏢 Residential Complexes',
     'contact.title': 'Ready to optimize your facility?',
     'contact.subtitle': 'Get in touch with our product experts today to setup a custom demo for your business.',
-    'footer.copy': '&copy; 2026 Solvo. All rights reserved. Zero-Friction Upkeep.'
+    'footer.copy': '&copy; 2026 DoWork. All rights reserved. Zero-Friction Upkeep.'
   }
 };
 
@@ -77,7 +77,7 @@ const sectorDatabase: Record<Lang, Record<string, SectorData>> = {
   es: {
     zoo: {
       tag: 'Zoo y Parques',
-      title: 'Solvo Wild Zoo',
+      title: 'DoWork Wild Zoo',
       description: 'Optimiza la seguridad del parque y el bienestar de los animales. Supervisa activos como filtros de piscinas, vallas perimetrales y puntos de cobro con campos específicos localizados.',
       list: [
         '<strong>Zonas Activas del Parque:</strong> Controla eventos en Restaurantes, Acuarios y Recintos.',
@@ -123,7 +123,7 @@ const sectorDatabase: Record<Lang, Record<string, SectorData>> = {
   en: {
     zoo: {
       tag: 'Zoo & Park Ops',
-      title: 'Solvo Wild Zoo',
+      title: 'DoWork Wild Zoo',
       description: 'Optimize park safety and animal wellbeing. Track assets like pool filters, perimeter fences, and cashier points with specific localized fields.',
       list: [
         '<strong>Active Park Zones:</strong> Track events in Restaurants, Marines, and Fences.',
@@ -168,7 +168,7 @@ const sectorDatabase: Record<Lang, Record<string, SectorData>> = {
   }
 };
 
-let currentLang: Lang = (localStorage.getItem('solvo_lang') as Lang) || 'es';
+let currentLang: Lang = (localStorage.getItem('dowork_lang') as Lang) || 'es';
 let activeSector = 'zoo';
 
 function translatePage(lang: Lang) {
@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!lang || lang === currentLang) return;
       
       currentLang = lang;
-      localStorage.setItem('solvo_lang', lang);
+      localStorage.setItem('dowork_lang', lang);
       
       // Update toggle class styles
       langButtons.forEach(b => b.classList.remove('active'));

@@ -15,7 +15,7 @@ class Command(BaseCommand):
         tenants_data = [
             {
                 'slug': 'zoo',
-                'name': 'Solvo Wild Zoo',
+                'name': 'DoWork Wild Zoo',
                 'logo_url': '',
                 'visual_config': {
                     'primary_color': '#2e7d32', # Forest Green
@@ -305,12 +305,12 @@ class Command(BaseCommand):
                 username=op_username,
                 defaults={
                     'tenant': tenant,
-                    'email': f"{op_username}@solvo.app",
+                    'email': f"{op_username}@dowork.app",
                     'is_staff': False
                 }
             )
             if user_created:
-                op_user.set_password('solvopass123')
+                op_user.set_password('doworkpass123')
                 op_user.save()
                 self.stdout.write(self.style.SUCCESS(f"   👤 Created Operator User: '{op_user.username}'"))
             else:
