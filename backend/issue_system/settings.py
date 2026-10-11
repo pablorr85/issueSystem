@@ -225,7 +225,7 @@ CELERY_RESULT_SERIALIZER = 'json'
 
 # Execute tasks synchronously in test environment
 import sys
-if 'test' in sys.argv:
+if 'test' in sys.argv or any('pytest' in arg for arg in sys.argv):
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_EAGER_PROPAGATES = True
 

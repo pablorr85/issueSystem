@@ -2,6 +2,28 @@
 
 All notable changes to the **DoWork** project are documented in this file.
 
+## [Sprint 40] - Deployment & CI/CD Architecture Configuration
+### Added & Configured
+- **GitHub Actions CI Pipeline** (`.github/workflows/ci.yml`):
+  - Configured multi-job CI workflow with `concurrency` cancellation controls triggered on push and pull requests targeting `main`.
+  - `frontend` job: Installs Node.js 20, runs `npm ci`, enforces strict ESLint rules, and runs Vitest suite.
+  - `backend` job: Sets up Python 3.12, installs dependencies, validates PEP 8 styling with `flake8`, and runs 55 unit/integration tests with `pytest`.
+  - Added required gate `ci-check` requiring both jobs to succeed before pull request merge.
+- **Backend Cloud Run Containerization** (`backend/Dockerfile` & `backend/.dockerignore`):
+  - Multi-stage/slim Docker container based on `python:3.11-slim` with system libraries for Pillow and PostgreSQL.
+  - Exposes port 8080 (`PORT` environment variable binding) and runs `gunicorn` with multi-worker/thread architecture (`issue_system.wsgi:application`).
+  - Added dedicated unprivileged `appuser` for container security compliance.
+- **Database Demo Seeding Script** (`backend/seed.py`):
+  - Standalone script generating realistic DoWork demo data.
+  - Creates two operators: **Carlos Ruiz** (`carlos_ruiz`) and **Elena Martín** (`elena_martin`) with active `OperatorProfile` records and UUID hub tokens.
+  - Generates 30 diverse maintenance issues covering 6 zones, 4 urgency/priority levels (Critical, High, Medium, Low), and all 6 lifecycle statuses (`pending`, `in_progress`, `qa`, `resolved`, `blocked`, `wont_fix`).
+  - Configured `_skip_whatsapp = True` and eager Celery processing for offline database population.
+- **Vercel Single-Domain Routing** (`vercel.json`):
+  - Configured path-based routing rules serving the marketing landing website from root (`/`) and rewriting `/app` and all `/app/*` subpaths to the React Single Page Application (`/app/index.html`).
+- **Backend Dependency Management** (`backend/requirements.txt`):
+  - Included `google-cloud-storage` for Google Cloud Storage media/photo handling.
+  - Added `gunicorn` for Cloud Run container serving, and `pytest`, `pytest-django`, `flake8` for CI validation.
+
 ## [Sprint 39] - Rebranding to "DoWork" & Corporate Logo Refresh
 ### Added & Changed
 - **Corporate Rebranding**: Renamed product from "Solvo" to **"DoWork"** across all platform modules, including:
