@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { CircularProgress, Alert, Button } from "@mui/material";
@@ -64,7 +64,7 @@ export const OperatorTaskView: React.FC = () => {
   const [isResolveModalOpen, setIsResolveModalOpen] = useState<boolean>(false);
   const [showPrintView, setShowPrintView] = useState<boolean>(false);
 
-  const fetchTask = () => {
+  const fetchTask = useCallback(() => {
     if (!secure_token) return;
     getOperatorTask(secure_token)
       .then((res) => {
@@ -78,11 +78,11 @@ export const OperatorTaskView: React.FC = () => {
         );
         setLoading(false);
       });
-  };
+  }, [secure_token, t]);
 
   useEffect(() => {
     fetchTask();
-  }, [secure_token, t]);
+  }, [fetchTask]);
 
   useEffect(() => {
     if (task?.tenant_visual_config?.primary_color) {
@@ -179,17 +179,6 @@ export const OperatorTaskView: React.FC = () => {
       </CenterContainer>
     );
   }
-
-  const getImageUrl = (url: string | null | undefined) => {
-    if (!url) return "";
-    if (url.startsWith("http://") || url.startsWith("https://")) {
-      return url;
-    }
-    const apiBase =
-      import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
-    const origin = apiBase.replace(/\/api$/, "");
-    return `${origin}${url}`;
-  };
 
   const metadata = task.extra_data || {};
   const metadataKeys = Object.keys(metadata);
