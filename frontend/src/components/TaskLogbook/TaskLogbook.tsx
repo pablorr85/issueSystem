@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { CircularProgress } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
@@ -6,7 +6,6 @@ import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { getTaskLogs, addTaskLog } from "../../services/api";
 import type { TaskLog } from "../../services/types";
-import { getImageUrl } from "../../utils/url";
 import {
   LogbookSection,
   LogbookHeaderRow,
@@ -83,7 +82,7 @@ export const TaskLogbook: React.FC<TaskLogbookProps> = ({
 
   const listRef = useRef<HTMLDivElement>(null);
 
-  const fetchLogs = () => {
+  const fetchLogs = useCallback(() => {
     getTaskLogs(issueId, token)
       .then((res) => {
         setLogs(res);
@@ -94,11 +93,11 @@ export const TaskLogbook: React.FC<TaskLogbookProps> = ({
         setError(t("comments.errorLoad", "Failed to load logbook."));
         setLoading(false);
       });
-  };
+  }, [issueId, token, t]);
 
   useEffect(() => {
     fetchLogs();
-  }, [issueId, token]);
+  }, [fetchLogs]);
 
   // Auto-scroll to bottom on logs change
   useEffect(() => {
@@ -147,16 +146,6 @@ export const TaskLogbook: React.FC<TaskLogbookProps> = ({
     }
   };
 
-  const getImageUrl = (url: string | null | undefined) => {
-    if (!url) return "";
-    if (url.startsWith("http://") || url.startsWith("https://")) {
-      return url;
-    }
-    const apiBase =
-      import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
-    const origin = apiBase.replace(/\/api$/, "");
-    return `${origin}${url}`;
-  };
 
   return (
     <LogbookSection>
