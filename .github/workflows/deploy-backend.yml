@@ -35,15 +35,39 @@ jobs:
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Resolve Project ID
+        run: |
+          PROJ="${{ secrets.GCP_PROJECT_ID }}"
+          if [ -z "$PROJ" ]; then
+            PROJ="${{ steps.auth.outputs.project_id }}"
+          fi
+          if [ -z "$PROJ" ]; then
+            echo "Error: Could not determine GCP project_id from secrets or credentials."
+            exit 1
+          fi
+          echo "PROJECT_ID=$PROJ" >> $GITHUB_ENV
+          echo "Using GCP Project ID: $PROJ"
+
       - name: Configure Docker authentication for Artifact Registry
         run: |
           gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
-      - name: Build and Push Docker Image
-        env:
-          IMAGE_TAG: ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
-          LATEST_TAG: ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:latest
+      - name: Ensure Artifact Registry Repository Exists
         run: |
+          gcloud artifacts repositories describe ${{ env.REPOSITORY }} \
+            --location=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} >/dev/null 2>&1 || \
+          gcloud artifacts repositories create ${{ env.REPOSITORY }} \
+            --repository-format=docker \
+            --location=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} \
+            --description="DoWork backend container repository"
+
+      - name: Build and Push Docker Image
+        run: |
+          IMAGE_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+          LATEST_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:latest"
+
           docker build \
             --tag "$IMAGE_TAG" \
             --tag "$LATEST_TAG" \
@@ -54,12 +78,13 @@ jobs:
           docker push "$LATEST_TAG"
 
       - name: Deploy to Cloud Run
-        env:
-          IMAGE_TAG: ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
         run: |
+          IMAGE_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image "$IMAGE_TAG" \
             --region "${{ env.REGION }}" \
+            --project "${{ env.PROJECT_ID }}" \
             --platform managed \
             --allow-unauthenticated \
             --set-env-vars "DJANGO_DEBUG=False"
