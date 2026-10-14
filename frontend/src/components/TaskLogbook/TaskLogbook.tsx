@@ -6,6 +6,7 @@ import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { getTaskLogs, addTaskLog } from "../../services/api";
 import type { TaskLog } from "../../services/types";
+import { getImageUrl } from "../../utils/url";
 import {
   LogbookSection,
   LogbookHeaderRow,
