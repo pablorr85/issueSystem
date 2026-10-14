@@ -4,15 +4,11 @@
   "rewrites": [
     {
       "source": "/app",
-      "destination": "/app/index.html"
+      "destination": "https://dowork-app.vercel.app"
     },
     {
       "source": "/app/:match*",
-      "destination": "/app/index.html"
-    },
-    {
-      "source": "/",
-      "destination": "/index.html"
+      "destination": "https://dowork-app.vercel.app/:match*"
     }
   ]
 }
