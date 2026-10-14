@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   --primary-hue: 260;
   --primary: hsl(var(--primary-hue), 85%, 60%);
   --primary-hover: hsl(var(--primary-hue), 85%, 50%);
@@ -26,7 +26,7 @@
   --status-in-progress-border: rgba(59, 130, 246, 0.3);
 
   --status-resolved-bg: rgba(34, 197, 94, 0.15);
-  --status-resolved-text: #4ade80);
+  --status-resolved-text: #4ade80;
   --status-resolved-border: rgba(34, 197, 94, 0.3);
 
   --status-blocked-bg: rgba(239, 68, 68, 0.15);
