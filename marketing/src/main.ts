@@ -224,8 +224,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Set target APP URL dynamically
   const clientLoginBtn = document.getElementById('client-login-btn') as HTMLAnchorElement | null;
   if (clientLoginBtn) {
-    const appUrl = import.meta.env.VITE_APP_URL || 'http://localhost:5173';
-    clientLoginBtn.href = `${appUrl}/login`;
+    const appUrl = import.meta.env.VITE_APP_URL || '/app';
+    clientLoginBtn.href = appUrl;
   }
 
   // Load and apply initial language translations
