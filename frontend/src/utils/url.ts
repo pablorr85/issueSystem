@@ -18,8 +18,11 @@ export const getImageUrl = (url: string | null | undefined): string => {
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
     return trimmed;
   }
-  const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api';
-  const origin = apiBase.replace(/\/api$/, '');
+  const apiBase =
+    import.meta.env.VITE_API_URL ||
+    import.meta.env.VITE_API_BASE_URL ||
+    'http://127.0.0.1:8000';
+  const origin = apiBase.replace(/\/api\/?$/, '');
   const path = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
   return `${origin}${path}`;
 };
